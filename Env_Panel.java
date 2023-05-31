@@ -101,7 +101,7 @@ public class Env_Panel extends JPanel
     public void paint(Graphics g){
         super.paint(g); //Call its mother class method
         //Mount back image copy to front and display....
-        if (this.front == null) front = this.getDefaultEnvImage();
+        if (this.front == null) front = Env_Panel.getDefaultEnvImage();
         super.paintComponent(g);
         //Make fron same to background worked imagen and display it.
         g.drawImage(front, 0, 0, null);

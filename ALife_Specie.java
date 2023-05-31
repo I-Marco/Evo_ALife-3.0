@@ -17,7 +17,7 @@ public class ALife_Specie
     private long numberOfCreatures = 0;
     private long medTamComplex = 0;
     private Long timeOfCreation = null;
-    private ArrayList reMutateCreation = new ArrayList<Long>();
+    private ArrayList<Long> reMutateCreation = new ArrayList<Long>();
     
     // Methods ---------------------------------------------------------------------------
     // Construcotors ============================

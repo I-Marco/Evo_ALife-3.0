@@ -35,7 +35,7 @@ public class Env_ALife extends Thread
     // Fields ----------------------------------------------------------------------------
     private Evo_ALife caller = null;
     private ALife_Nutrient_Environment land = null; //Mapa de rastros en lando o otro?
-    private TreeMap<Long, ArrayList> eventList;
+    private TreeMap<Long, ArrayList<Object>> eventList;
     private ArrayList<ALife_Specie> lifeTypeList;
     private ALife_Logical_Environment logical_Env =  null;
     
@@ -94,10 +94,10 @@ public class Env_ALife extends Thread
         //landImg, lifeImg, time,lifeTypeList,land
 
         //Defauls values in global variables.
-        time = new Long (0);
+        time = Long.valueOf(0);
         
         land = new ALife_Nutrient_Environment(this, semaphore);
-        eventList = new TreeMap<Long, ArrayList>(); //esta vacio debe tener al menos 1 evento
+        eventList = new TreeMap<Long, ArrayList<Object>>(); //esta vacio debe tener al menos 1 evento
         MultiTaskUtil.threadMsg("New event List - Default Env_ALife Const");
         addEvent(time,land);
 
@@ -134,8 +134,8 @@ public class Env_ALife extends Thread
         threadManager = new MultiTaskUtil();
 
         //Set time to 0 and create new eventList
-        setTime(new Long(0));
-        eventList = new TreeMap<Long, ArrayList>(); //esta vacio debe tener al menos 1 evento
+        setTime(Long.valueOf(0));
+        eventList = new TreeMap<Long, ArrayList<Object>>(); //esta vacio debe tener al menos 1 evento
         
         //For Concurrency Long and track
         MultiTaskUtil.threadMsg("New event List - Env_ALife const()");
@@ -315,7 +315,7 @@ public class Env_ALife extends Thread
             //MultiTaskUtil.threadMsg("Env Run ("+this.getTime()+")");//For test
 
             // Make now event succeded
-            ArrayList listaAhora = null;
+            ArrayList<Object> listaAhora = null;
             //synchronized (eventList){
             listaAhora = eventList.get(time); // si no hay eventos de time casca
             //}
@@ -606,7 +606,7 @@ public class Env_ALife extends Thread
     public void setEnvVars(java.util.List<Object> envVars){
         if (envVars == null){
             //Variable por defecto
-            time = new Long(0);
+            time = Long.valueOf(0);
             this.land.setLifeDelay(null);
             //resto de variables por defecto
 
@@ -910,12 +910,12 @@ public class Env_ALife extends Thread
      * @return  - None
      **/      
     public synchronized void addEvent(Long t,Object obj){
-        ArrayList list = null;
+        ArrayList<Object> list = null;
         if (eventList.containsKey(t)){
             list = eventList.get(t);
             list.add(obj);
         }else {
-            list = new ArrayList();
+            list = new ArrayList<Object>();
             list.add(obj);
             eventList.put(t, list);
         }

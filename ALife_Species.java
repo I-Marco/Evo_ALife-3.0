@@ -12,7 +12,7 @@ public class ALife_Species
     // Fields ----------------------------------------------------------------------------
     long numberOfDifferentSpecies = 0;
     long lastSpecieNumberID = 0;
-    ArrayList reMutateCreation = new ArrayList<Long>();
+    ArrayList<Long> reMutateCreation = new ArrayList<Long>();
     
     // Methods ---------------------------------------------------------------------------
     // Construcotors ============================

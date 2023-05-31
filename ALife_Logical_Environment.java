@@ -25,7 +25,7 @@ public class ALife_Logical_Environment
         //create the arrays for ArrayList elements
         int with = e.getLand().getLandImg().getWidth();
         int height = e.getLand().getLandImg().getHeight();
-        ocupiers = new ArrayList[with][height];
+        ocupiers = new ArrayList[with][height]; // Unchecked assignment No puedo corregirlo
         observers = new ArrayList[with][height];
         traces = new ArrayList[with][height];
         for (int i = 0; i<with; i++) 
@@ -95,8 +95,8 @@ public class ALife_Logical_Environment
         int h = c.getEnv_ALife().getEnv_Height();
         int x = (p.x - radio + w) % w;
         int y = (p.y - radio + h) % h;
-        for (int i = p.x - radio; i < p.x + radio; i++)
-            for (int j = p.y - radio; j < p.y + radio; j++)
+        for (int i = p.x - radio; i <= p.x + radio; i++)
+            for (int j = p.y - radio; j <= p.y + radio; j++)
         {   x = (i - radio + w) % w;
             y = (j - radio + h) % h;
             if (this.ocupiers[x][y].size() > 0) colision = true;

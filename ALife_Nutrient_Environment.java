@@ -12,7 +12,8 @@ public class ALife_Nutrient_Environment implements Runnable
 {
     // Constants
     public static final int SPREADMADRADIUS = 5; //Max time spread recursive //OverFlow error control
-    public static Long DEFAULT_LifeDelay = new Long(100);
+    public static Long DEFAULT_LifeDelay = Long.valueOf(100);
+
 
     // Env variables //necesitamos meterlas en las variables de entorno
     private int SPREADCuantity = 200; //Cuantity of resource to spread arond divided
@@ -20,14 +21,14 @@ public class ALife_Nutrient_Environment implements Runnable
     private int INC_r = 5;//Increment of resource red
     private int INC_g = 5;//Increment of resource green
     private int INC_b = 5;//Increment of resource blue
-    private boolean doSpread = true;//Do spread or not NOT IMPLEMENTED
-    private boolean flatEnv = false;//Flat or rounded enviroment NOT IMPLEMENTED
+    //private boolean doSpread = true;//Do spread or not NOT IMPLEMENTED
+    //private boolean flatEnv = false;//Flat or rounded enviroment NOT IMPLEMENTED
     
     // Fields ----------------------------------------------------------------------------
     private Env_ALife env_ALive; // Enviroment 
     private BufferedImage backLand = null;// BackLand image
     private BufferedImage frontLand = null;// FrontLand image
-    private Long lifeDelay = new Long (DEFAULT_LifeDelay);// -----> This parameters should be save in env_Vars
+    private Long lifeDelay = Long.valueOf(DEFAULT_LifeDelay);// -----> This parameters should be save in env_Vars
     
     private Semaphore semaphore; // Semaphore to control concurrency
     
@@ -55,7 +56,7 @@ public class ALife_Nutrient_Environment implements Runnable
         env_ALive = env;
         semaphore = s;
         frontLand = land;
-        lifeDelay = new Long(DEFAULT_LifeDelay);
+        lifeDelay = Long.valueOf(DEFAULT_LifeDelay);
         //Env_Panel.imageDisplay(frontLand,"From ALife_Nutrient");
     } // End Constructor public ALife_Nutrient_Enviroment()
     
@@ -109,7 +110,7 @@ public class ALife_Nutrient_Environment implements Runnable
      */
     public synchronized void setLifeDelay(Long ld){
         if (ld == null){
-            ld = new Long(DEFAULT_LifeDelay);
+            ld = Long.valueOf(DEFAULT_LifeDelay);
         }
         this.lifeDelay = ld;
     } // End public synchronized void setLifeDelay(Long ld)
@@ -167,7 +168,7 @@ public class ALife_Nutrient_Environment implements Runnable
             }
             
             try{
-                Thread.currentThread().sleep(Env_ALife.CTE_TIEMPO_CEDER); // ceder tiempo de computo
+                Thread.sleep(Env_ALife.CTE_TIEMPO_CEDER); // ceder tiempo de computo
                 //Thread.currentThread().sleep(Env_ALife.CTE_TIEMPO_ESPERA_LARGA); // ceder tiempo de computo
                 //System.out.println(Thread.currentThread().getName()+" - "+env_ALive.getTime());
             } catch (java.lang.InterruptedException ie){

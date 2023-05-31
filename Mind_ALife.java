@@ -233,9 +233,9 @@ public class Mind_ALife
     
     public double activation(){
         //Max o sumatorio?? FAlta calcularlo
-        output = new Double(0);
+        output = Double.valueOf(0);
         outNeuron = null;
-        ArrayList outOptions = new ArrayList<Out_Neuron_ALife>();
+        ArrayList<Out_Neuron_ALife> outOptions = new ArrayList<Out_Neuron_ALife>();
         try{
             synchronized (this){
                 for (Neuron_ALife n:outputNeurons){

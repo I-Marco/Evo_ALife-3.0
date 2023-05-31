@@ -409,7 +409,7 @@ public class Evo_ALife extends JFrame{
                     //Aun se como va a ir
                 //Load enviroment variables
                 java.util.List<Object> env_Vars = 
-                    (java.util.List<Object>) this.cargarObjeto(selectedFile+".e_v");
+                    (java.util.List<Object>) Env_ALife.cargarObjeto(selectedFile+".e_v");
                 //this.cargarObjeto(new File(selectedFile+".e_v"));
                 //originalImage = ImageIO.read(selectedFile);
                 
@@ -433,7 +433,7 @@ public class Evo_ALife extends JFrame{
             int result = fileChooser.showSaveDialog(null);
             if (result == JFileChooser.APPROVE_OPTION) {
                 File selectedFile = fileChooser.getSelectedFile();
-                String aux = selectedFile.getAbsolutePath();
+                //String aux = selectedFile.getAbsolutePath();
                 // retorna un File aux = selectedFile.getAbsoluteFile();
                 String aux1 = selectedFile.getName();
                 String aux2 = selectedFile.getPath();
@@ -452,7 +452,7 @@ public class Evo_ALife extends JFrame{
                 //eventList
                     //Aun no lo tengo claro
                 //this.env_ALife.getEnvVars()
-                this.guardarObjeto(this.env_ALife.getEnvVars(), selectedFileName + ".e_v");
+                Env_ALife.guardarObjeto(this.env_ALife.getEnvVars(), selectedFileName + ".e_v");
                 
             }
         } catch (IOException e) {
@@ -511,7 +511,7 @@ public class Evo_ALife extends JFrame{
         // Default land done
         
         //Create some creatures.
-        ArrayList listOfCreatures = new ArrayList<Creature>();
+        ArrayList<Creature> listOfCreatures = new ArrayList<Creature>();
         int[] haveR = {100,0,0};
         int[] needR = {1,0,0};
         int liveExp = 10000;
@@ -605,11 +605,13 @@ public class Evo_ALife extends JFrame{
         
         if (env_ALife != null) {
             env_Vars = env_ALife.getEnvVars();
+            this.env_ALife.killThread();
         } else {
             //env_Vars = null previusly fixed
         }
         
         //Remove old enviroment
+        
         this.env_ALife = new Env_ALife(this);
         //Land + Live + env_Variables.
         BufferedImage land_Temp = new BufferedImage(
@@ -644,7 +646,7 @@ public class Evo_ALife extends JFrame{
         // Default land_Temp done
         
         //Create some creatures.
-        ArrayList listOfCreatures = new ArrayList<Creature>();
+        ArrayList<Creature> listOfCreatures = new ArrayList<Creature>();
         int[] haveR = {100,0,0};
         int[] needR = {1,0,0};
         int liveExp = 10000;

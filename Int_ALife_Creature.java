@@ -20,7 +20,7 @@ public abstract class Int_ALife_Creature extends Thread
     Point pos;
     
     long lifeTime = 0;
-    Long lifeDelay = new Long (ALife_Nutrient_Environment.DEFAULT_LifeDelay/2);
+    Long lifeDelay = Long.valueOf(ALife_Nutrient_Environment.DEFAULT_LifeDelay/2);
     long lifeExp = 100 * lifeDelay;
     
     long livePoints = 100;
@@ -43,7 +43,7 @@ public abstract class Int_ALife_Creature extends Thread
     long hungry = 100;
     
     int minReproductionGroup = 1;
-    ArrayList reproductionGroup = new ArrayList<Int_ALife_Creature>();
+    ArrayList<Int_ALife_Creature> reproductionGroup = new ArrayList<Int_ALife_Creature>();
     //Int_ALife_Creature[] reproductionGroup = {this};
     Mind_ALife mind = null;
     

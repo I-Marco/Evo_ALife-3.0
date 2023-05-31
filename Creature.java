@@ -9,7 +9,7 @@ import java.util.*;
  * @author (your name) 
  * @version (a version number or a date)
  */
-public class Creature extends Int_ALife_Creature implements Runnable
+public class Creature extends Int_ALife_Creature
 {
     public static final int DEFAULT_LifeDelayPerNutrient = 10;
     public static final Color CREATURE_DEFAULT_COLOR =new Color (0,0,0);
@@ -63,7 +63,7 @@ public class Creature extends Int_ALife_Creature implements Runnable
         pos = p;
         
         this.lifeExp = lifeexp;
-        lifeDelay = new Long(ALife_Nutrient_Environment.DEFAULT_LifeDelay/DEFAULT_LifeDelayPerNutrient);
+        lifeDelay = Long.valueOf(ALife_Nutrient_Environment.DEFAULT_LifeDelay/DEFAULT_LifeDelayPerNutrient);
         lifeTime = 0;
         foodResourceOwn = new int[3];
         foodResourceNeed = new int[3];
@@ -321,7 +321,7 @@ public class Creature extends Int_ALife_Creature implements Runnable
             this.lifeTime += this.lifeDelay;
             env_ALive.addEvent(env_ALive.getTime()+lifeDelay, this);
             try{
-                Thread.currentThread().sleep(Env_ALife.CTE_TIEMPO_CEDER); // ceder tiempo de computo
+                Thread.sleep(Env_ALife.CTE_TIEMPO_CEDER); // ceder tiempo de computo
                 //Thread.currentThread().sleep(Env_ALife.CTE_TIEMPO_ESPERA_LARGA); // ceder tiempo de computo
                 //System.out.println(Thread.currentThread().getName()+" - "+env_ALive.getTime());
             } catch (java.lang.InterruptedException ie){

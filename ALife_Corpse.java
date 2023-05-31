@@ -1,6 +1,6 @@
 import java.awt.*;
 import java.awt.image.*;
-import java.util.*;
+//import java.util.*;
 import java.util.concurrent.*;
 
 /**
@@ -11,7 +11,7 @@ import java.util.concurrent.*;
  * @version (24-05-2023)
  */
 
-public class ALife_Corpse extends Int_ALife_Creature implements Runnable
+public class ALife_Corpse extends Int_ALife_Creature
 {
     public static long VANISHED_TIME = 10;//time during which the corpses simply disappeared or were banished.
     // Fields ----------------------------------------------------------------------------
@@ -50,26 +50,32 @@ public class ALife_Corpse extends Int_ALife_Creature implements Runnable
      */    
     @Override     
     public void run(){
-        //if too long in time life just vanished
-        if (this.lifeTime > VANISHED_TIME) return;
-        //Else drop to environment a cuantity of resources
-        int[] foodResourceDrop = new int[3];
-        int sum = 0;
-        for(int i = 0; i < this.foodResourceOwn.length; i++){
-            if (this.foodResourceOwn[i] > 256){
-                foodResourceDrop[i] = 256;
-                this.foodResourceOwn[i] -= 256;
-            } else {
-                foodResourceDrop[i] = this.foodResourceOwn[i];
-                this.foodResourceOwn[i] = 0;
-            }
-            sum += this.foodResourceOwn[i];
-        } 
-        this.getEnv_ALife().getLand().dropNutrient(this.pos, foodResourceDrop, this);
-        //int[] dropNutrient(Point p, int[] foodResourceDrop, Creature eater)
-        if (sum > 0) env_ALive.addEvent(env_ALive.getTime()+this.lifeDelay,this);
-        // if more resources schedule new run iteraction, else no
-        
+        try{
+            semaphore.acquire();
+            //if too long in time life just vanished
+            if (this.lifeTime > VANISHED_TIME) return;
+            //Else drop to environment a cuantity of resources
+            int[] foodResourceDrop = new int[3];
+            int sum = 0;
+            for(int i = 0; i < this.foodResourceOwn.length; i++){
+                if (this.foodResourceOwn[i] > 256){
+                    foodResourceDrop[i] = 256;
+                    this.foodResourceOwn[i] -= 256;
+                } else {
+                    foodResourceDrop[i] = this.foodResourceOwn[i];
+                    this.foodResourceOwn[i] = 0;
+                }
+                sum += this.foodResourceOwn[i];
+            } 
+            this.getEnv_ALife().getLand().dropNutrient(this.pos, foodResourceDrop, this);
+            //int[] dropNutrient(Point p, int[] foodResourceDrop, Creature eater)
+            if (sum > 0) env_ALive.addEvent(env_ALive.getTime()+this.lifeDelay,this);
+            // if more resources schedule new run iteraction, else no
+        } catch (Exception e){
+            MultiTaskUtil.threadMsg("Exception in ALife_Corpse.run() " + e.getMessage());
+        } finally {
+            semaphore.release();
+        }
     }
     // Getter and Setters - - - - - - - - - - - -
     // End Getter and Setters - - - - - - - - - -
