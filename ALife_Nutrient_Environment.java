@@ -239,7 +239,7 @@ public class ALife_Nutrient_Environment implements Runnable
             //int r,g,b;
             //Make new Backland copy of primary imga frontland
             this.backLand = new BufferedImage(this.frontLand.getWidth(),
-            this.frontLand.getHeight(), this.frontLand.getType());
+                this.frontLand.getHeight(), this.frontLand.getType());
             Graphics2D g2d = this.backLand.createGraphics();
             g2d.drawImage(this.frontLand, 0, 0, null);
             //g2d.dispose();
@@ -247,7 +247,7 @@ public class ALife_Nutrient_Environment implements Runnable
             int[] ground = {pixelColor.getRed(), pixelColor.getGreen(),pixelColor.getBlue()};
             for(int co = 0; co < ground.length ; co++){
                 ground[co] += foodResourceDrop[co];
-                    if (ground[co] >  SPREADUmbral){
+                    if (ground[co] >  SPREADUmbral *2){ //q se expanda pero solo 2 veces
                     foodResourceDrop[co] = ground[co] - SPREADUmbral;
                     ground[co] = SPREADUmbral;
             }
