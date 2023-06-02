@@ -235,31 +235,37 @@ public class ALife_Nutrient_Environment implements Runnable
      * @return   int that cratures got succesfully
      */
     public int[] dropNutrient(Point p, int[] foodResourceDrop, Int_ALife_Creature eater){
+        int sum = 0;
         synchronized (this){
             //int r,g,b;
             //Make new Backland copy of primary imga frontland
             this.backLand = new BufferedImage(this.frontLand.getWidth(),
                 this.frontLand.getHeight(), this.frontLand.getType());
             Graphics2D g2d = this.backLand.createGraphics();
-            g2d.drawImage(this.frontLand, 0, 0, null);
+             g2d.drawImage(this.frontLand, 0, 0, null);
             //g2d.dispose();
             Color pixelColor = new Color(backLand.getRGB(p.x, p.y));
             int[] ground = {pixelColor.getRed(), pixelColor.getGreen(),pixelColor.getBlue()};
             for(int co = 0; co < ground.length ; co++){
                 ground[co] += foodResourceDrop[co];
-                    if (ground[co] >  SPREADUmbral *2){ //q se expanda pero solo 2 veces
-                    foodResourceDrop[co] = ground[co] - SPREADUmbral;
-                    ground[co] = SPREADUmbral;
+                    if (ground[co] >=  SPREADUmbral + 1){ //force to spread
+                    foodResourceDrop[co] = ground[co] - SPREADUmbral - 1;
+                    ground[co] = SPREADUmbral + 1;
+                    } else {
+                        foodResourceDrop[co] = 0;
+                    }
+                    sum += foodResourceDrop[co];
             }
-            }
-            this.germine(p.x, p.y, 0, 0, 0, 01); //?? REVISA ESTO
-            
             pixelColor= new Color(ground[0], ground[1], ground[2]);
             backLand.setRGB(p.x, p.y, pixelColor.getRGB());
             this.setLandImg(backLand);
-            //Refresh imagen??                       
+            g2d.dispose();
+
+            this.germine(p.x, p.y, 0, 0, 0, 01); //Si aseguramos el drop max se puede agregar aqui el resto
         }
         //return foodResourceNeed;
+        if (sum > 0) return 
+            dropNutrient(p, foodResourceDrop, eater);
         return foodResourceDrop;
     } // End public int[] dropNutrient(Point p, int[] foodResourceDrop, Int_ALife_Creature eater)
     

@@ -151,6 +151,12 @@ public class Creature extends Int_ALife_Creature
         //MEJORA lista posibles sitios y random
         if (this.pos == null){
             this.livePoints = 0; //born death as alternative
+            this.pos = progenitors.get(0).getPos(); //born in same place but death MISSBIRTH
+            if (this.env_ALive == null) this.env_ALive = progenitors.get(0).getEnv_ALife();
+            this.lifeDelay = progenitors.get(0).lifeDelay;
+            MultiTaskUtil.copyIntArrayContent(this.foodResourceOwn, 
+                progenitors.get(0).minfoodResourceOwn);
+            new ALife_Corpse(this);
             throw new Exception("Error in Creature constructor: pos == null");
             //return; // Misbirth detection
         }

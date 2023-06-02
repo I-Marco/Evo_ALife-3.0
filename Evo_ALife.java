@@ -649,7 +649,7 @@ public class Evo_ALife extends JFrame{
         ArrayList<Creature> listOfCreatures = new ArrayList<Creature>();
         int[] haveR = {100,0,0};
         int[] needR = {1,0,0};
-        int liveExp = 10000;
+        int liveExp = 4500;
         
         //Red Creature ...
         listOfCreatures.add(new Creature(this.env_ALife,new Point(1, 1),null,liveExp,haveR,needR));

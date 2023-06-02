@@ -28,7 +28,7 @@ public abstract class Int_ALife_Creature extends Thread
     long def, attack;
     
     ALife_Specie specie = null;
-    long tamComplex = 0;
+    long tamComplex = evaluateTamComplex(this);
     
     int[] foodResourceOwn = {0,0,0};
     int[] minfoodResourceOwn = {0,0,0}; // when born and need to born
@@ -47,7 +47,8 @@ public abstract class Int_ALife_Creature extends Thread
     //Int_ALife_Creature[] reproductionGroup = {this};
     Mind_ALife mind = null;
     
-    ArrayList<Int_ALife_Creature> progenitors = null;
+    ArrayList<Int_ALife_Creature> progenitors = null;//progenitors of creature
+    ArrayList<Int_ALife_Creature> descendents = null;//descendents of creature
     // Num creatures to have a baby
     //int inNeurons, outNeurons, midNeurons, statusNeurons;
     Long move_time; //delay betwen moves
@@ -167,7 +168,13 @@ public abstract class Int_ALife_Creature extends Thread
     // END Getter and Setters ----------------------------
     
     public static long evaluateTamComplex(Int_ALife_Creature c){
-        long comp = 0;
+        long comp = 1;
+        // internal physical caracteristics
+        // Mind global capacity
+        // Mind habilities and perception
+
+
+
         // *** FALTA
         /*
         private long lifeTime = 0;

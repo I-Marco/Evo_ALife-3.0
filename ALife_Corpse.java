@@ -54,6 +54,7 @@ public class ALife_Corpse extends Int_ALife_Creature
             semaphore.acquire();
             //if too long in time life just vanished
             if (this.lifeTime > VANISHED_TIME) return;
+            this.lifeTime++;
             //Else drop to environment a cuantity of resources
             int[] foodResourceDrop = new int[3];
             int sum = 0;
@@ -67,8 +68,8 @@ public class ALife_Corpse extends Int_ALife_Creature
                 }
                 sum += this.foodResourceOwn[i];
             } 
-            this.getEnv_ALife().getLand().dropNutrient(this.pos, foodResourceDrop, this);
-            //int[] dropNutrient(Point p, int[] foodResourceDrop, Creature eater)
+            foodResourceDrop = this.getEnv_ALife().getLand().dropNutrient(this.pos, foodResourceDrop, this);
+            // should be 0
             if (sum > 0) env_ALive.addEvent(env_ALive.getTime()+this.lifeDelay,this);
             // if more resources schedule new run iteraction, else no
         } catch (Exception e){
