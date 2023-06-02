@@ -1,6 +1,9 @@
 import java.awt.image.*;
 import java.awt.*;
 import java.util.concurrent.*;
+
+//import Mind_ALife.Action;
+
 import java.util.*;
 
 /**
@@ -12,7 +15,7 @@ import java.util.*;
 public class Creature extends Int_ALife_Creature
 {
     public static final int DEFAULT_LifeDelayPerNutrient = 10;
-    public static final Color CREATURE_DEFAULT_COLOR =new Color (0,0,0);
+    public static final Color CREATURE_DEFAULT_COLOR =new Color (199,199,199);
     // Fields ----------------------------------------------------------------------------
     //-private Env_ALife env_ALive; // Enviroment 
     private BufferedImage backLand = null;
@@ -28,7 +31,7 @@ public class Creature extends Int_ALife_Creature
     //private  Point pos;
     //private long lifeDelay = 100;
     //-private long tamComplex = 0;
-    private long hungry = 100;
+    //private long hungry = 100;
     //-private long lifeExp = 100;
     //-private long lifeTime = 0;
     
@@ -104,18 +107,21 @@ public class Creature extends Int_ALife_Creature
      * Constructor for objects of class ALife_Nutrient_Enviroment
      * @param   - Env_ALife
      * Create e simulation nutrient enviroment
+     * @throws Exception
      */
     //Creature(this.env_ALife,new Point(170,170),null,1000,haveR,needR
     //public Creature(Env_ALife env, Semaphore s, Point p){
-    public Creature(ArrayList<Int_ALife_Creature> progenitors, boolean mutate){
+    public Creature(ArrayList<Int_ALife_Creature> progenitors, boolean mutate) throws Exception{
         //Caracteristicas mix progenitores
         if (progenitors == null) {
             //Error msg.
-            return; //throwException mejor
+            throw new Exception("Error in Creature constructor: progenitors is null");
+            //return; //throwException mejor
         }
         if (progenitors.size() < this.minReproductionGroup) {
             //Error msg.
-            return;
+            throw new Exception("Error in Creature constructor: progenitors.size() < this.minReproductionGroup");
+            //return;
         }
         
         
@@ -145,7 +151,8 @@ public class Creature extends Int_ALife_Creature
         //MEJORA lista posibles sitios y random
         if (this.pos == null){
             this.livePoints = 0; //born death as alternative
-            return; // Misbirth detection
+            throw new Exception("Error in Creature constructor: pos == null");
+            //return; // Misbirth detection
         }
         /*
         auxP = progenitors[0].pos;
@@ -234,7 +241,7 @@ public class Creature extends Int_ALife_Creature
         mind = new Mind_ALife(progenitors,this,progenitors.get(0).env_ALive.getAllowMutate());//new Mind_ALife(progenitors);
         
         //Autocalculated datas
-        hungry = 0; //0auto calculate
+        hungry = 100; //0auto calculate
         tamComplex = 1; //auto calculate
         specie = null;//autocalculate
         //Ming values neurosn neurons in neurosn out neurons status
@@ -242,6 +249,7 @@ public class Creature extends Int_ALife_Creature
         this.minReproductionGroup = progenitors.get(0).minReproductionGroup;
         reproductionGroup = new ArrayList<Int_ALife_Creature>();
         reproductionGroup.add((Int_ALife_Creature)this);
+        this.progenitors = progenitors;
         //reproductionGroup = new Int_ALife_Creature[this.minReproductionGroup];
         //reproductionGroup[0] = (Int_ALife_Creature)this; //(Int_ALife_Creature)this;
     }
@@ -251,14 +259,15 @@ public class Creature extends Int_ALife_Creature
     // Public Methods and Fuctions ==============
     
     // Getter and Setters
+
     /**
-     * public boolean getReprouctable()
+     * public boolean getReproductable()
      * 
      * Devuelve true si la criatura es capaz de reproducirse
      * @param    None
      * @return   boolean
      */   
-    public boolean getReprouctable(){
+    public boolean getReproductable(){
         boolean r = true;
         for(int i = 0; i < foodResourceOwn.length ; i++){
             if (foodResourceOwn[i] < minfoodResourceOwn[i] * 2) r = false;
@@ -286,38 +295,39 @@ public class Creature extends Int_ALife_Creature
     @Override 
     public void run(){
         try{
-            semaphore.acquire();
-            //this.env_ALive.addWaitForThreads();
-            
+            if (semaphore == null) {
+                MultiTaskUtil.threadMsg("Error in Creature Run: semaphore == null");
+                return;
+            }
+            semaphore.acquire();       
             //For concurrency Log
             //MultiTaskUtil.threadMsg("===== Semaphore ADQUIRED BY CREATURE("+
             //    semaphore.availablePermits()+").................");
-            
             //Run
             //1.- Eventos involuntarios como morir
-            //morir 
-            if (this.lifeExp-this.lifeTime < 0) this.livePoints = 0;
+            //Pasar HAMBRE FALTA
+            if (this.hungry < 100)
+                this.livePoints -= (100 - this.hungry);          
+            //Check if dead
+            if (this.lifeExp-this.lifeTime < 0) this.livePoints = 0;//Die by age
             if(this.livePoints <= 0) {
                 //crear cadaver en descomposicion Class extends Int_ALife_Cre...
-                die();
+                this.livePoints = 0; //standarize
+                die(); // Morir
                 return;
             }         
-            //Pasar HAMBRE FALTA
-            
-            //2.- Evaluacion situacion + pensar + eventos voluntarios
-            //this.mind.run(); //Creature Thinking return a Action
-            Mind_ALife mal = this.mind;
+            //2.- Think and do voluntary actions
+            Mind_ALife mal = this.mind; //For test
             Mind_ALife.Action a = mal.run();
+            if (a.equals(Mind_ALife.Action.REPRODUCE)) {
+                if (this.getReproductable()) {
+                    int breakpoint = 1;
+                }
+            }
             doAction(a);
-            //this.doAction(this.mind.run());
-            
-            
+            //this.doAction(this.mind.run());  // Real code
             //3.- Generacion de consecuncias en entorno.
-            //mind.reset();
-            //notifyEnviroment(this, x, y);
-            
             //if alive add next event.
-            //this.env_ALive.removeWaitForThreads();
             this.lifeTime += this.lifeDelay;
             env_ALive.addEvent(env_ALive.getTime()+lifeDelay, this);
             try{
@@ -348,7 +358,7 @@ public class Creature extends Int_ALife_Creature
             } catch(Exception e){
                 e.printStackTrace(); //Unknown error
             }
-        }
+        }//End try catch - FINALLY
         //Self paint
         if(this.livePoints > 0) {
             paint(this.env_ALive.getBackLifeImage(),Color.YELLOW);
@@ -357,11 +367,16 @@ public class Creature extends Int_ALife_Creature
             paint(this.env_ALive.getBackLifeImage(),new Color(0, 0, 0, 0));
         }
         //Env_Panel.imageDisplay(this.env_ALive.getBackLifeImage(),"From Creature Run (LiveImage) - LIVE Image");
-    }    
+    } // End public void run()    
 
     // Public Methods and Fuctions ==============
     // Private Methods and Fuctions =============
-    
+    /**
+     * private void doAction(Mind_ALife.Action ac)
+     * Execute action that come from mind
+     * @param    Mind_ALife.Action
+     * @return   None
+     */
     public void doAction(Mind_ALife.Action ac){
         // UP,DOWN,RIGHT,LEFT,EAT,REPRODUCE,ATTACK
         switch(ac){
@@ -410,54 +425,105 @@ public class Creature extends Int_ALife_Creature
         
     } // End private void actionEat(Point pos, int[] foodResourceNeed, Creature cr)
     
+    /**
+     * private void grow(Point pos, int[] foodResourceEated)
+     * Try to grow creature with foodResourceEated, if not posible return resources to ground
+     * @param pos
+     * @param foodResourceEated
+     */
     private void grow(Point pos, int[] foodResourceEated){
         int[] rest = {0, 0, 0};
         boolean returFoodToGround = false;
+        boolean isHungry = false;
         for (int i = 0; i <  foodResourceEated.length; i++){
             this.foodResourceOwn [i] += foodResourceEated[i];
             if (foodResourceOwn [i] > this.maxfoodResourceOwn[i]) {
                 rest[i] = foodResourceOwn [i] - maxfoodResourceOwn[i];
                 foodResourceOwn [i]= maxfoodResourceOwn[i];
                 returFoodToGround = true;
+                //for test
                 if (rest[i] > 255){
                     int breakpoint = 1;
                 }
             }
+            if (foodResourceNeed [i] > foodResourceEated [i]) {
+                this.hungry += foodResourceNeed [i] - foodResourceEated [i]; //May be too much
+                isHungry = true;
+            }
         }
-        //return to nut env rest
+        //Reduce hungry
+        if (!isHungry && this.hungry < 1.1*100) this.hungry += 1; // PENDIENTE
+        //ese 100 habria que cambiralo por cte o formula
+
+        //return resources to env rest[]
         if (returFoodToGround) 
             this.env_ALive.getLand().germine(pos.x, pos.y, rest[0], rest[1], rest[2], 0);
     }
     
+    /**
+     * private void actionReproduce(ArrayList<Int_ALife_Creature> progenitors)
+     * 
+     * @param    ArrayList<Int_ALife_Creature> progenitors
+     * @return   None
+     */
     private void actionReproduce(ArrayList<Int_ALife_Creature> progenitors){
-        if(!this. getReprouctable()) return;
+        if(!this. getReproductable()) return;
         if (progenitors.size() < this.minReproductionGroup) return;
-        
+        for(int i = 0; i < foodResourceOwn.length ; i++){
+            this.foodResourceOwn[i] = this.foodResourceOwn[i] - this.minfoodResourceOwn[i];
+        }
         Int_ALife_Creature baby;
         //body reproduce + mutate
-        baby = new Creature(progenitors, this.env_ALive.getAllowMutate());
+        try{
+            baby = new Creature(progenitors, this.env_ALive.getAllowMutate());
+        } catch (Exception e){
+            MultiTaskUtil.threadMsg("Error in Creature actionReproduce: "+e.getMessage());
+            return;
+        } 
+        if (baby == null) return;
         //mind reproduce + mutate /// ---> creo que ahora mind lo invoca el constructor de creature
         //baby.setMind(new Mind_ALife(progenitors, baby, this.env_ALive.getAllowMutate()));
         this.getEnv_ALife().addCreature(baby);
     }
+    
     // Method from abstras still dont implemented --------------------------------------------------------------------
+    /**
+     * public long die()
+     * 
+     * @param    None
+     * @return   long -- may be we need change to none
+     */
     public long die() {
+        //For test
+        MultiTaskUtil.threadMsg(getEnv_ALife().getTime()+" Creature DIED("+this.getIdCreature()+")");
         new ALife_Corpse(this);
         
-        //For track log 
-        MultiTaskUtil.threadMsg("Creature DIED("+this.getIdCreature()+")");
-        
         env_ALive.removeCreature(this);
-        //Ensure this creature dont continue
+        // Be sure this creature dont continue
         
         //delete from lifeImage
         return 0; //May be we return total resourece own
     }
     
+    /**
+     * public void eat(int x, int y, Int_ALife_Creature food)
+     * 
+     * @param    int x, int y, Int_ALife_Creature food
+     * @return   None
+     */
     public void eat(int x, int y, Int_ALife_Creature food){}
     
+    /**
+     * 
+     */
     public void lookForBread(){} // Proliferation of life method
     
+    /**
+     * public void reproduze(Int_ALife_Creature couple)
+     * 
+     * @param    Int_ALife_Creature couple
+     * @return   None
+     */
     public Int_ALife_Creature reproduze(Int_ALife_Creature couple){
         return null;
     } //How to make new life
@@ -476,7 +542,7 @@ public class Creature extends Int_ALife_Creature
             Color creatureColor = col; // Color del círculo
             g2d.setColor(creatureColor);
             g2d.drawOval(this.pos.x - (int)this.tamComplex, this.pos.y - (int)this.tamComplex,
-                (int)this.tamComplex * 2, (int)this.tamComplex * 2);
+                (int)this.tamComplex * 1, (int)this.tamComplex * 1);
             //Env_Panel.imageDisplay(g,"From Creature paint() - LIVE Image");
         }catch (NullPointerException npe){
             npe.printStackTrace();

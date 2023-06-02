@@ -57,7 +57,7 @@ public class Out_Neuron_ALife extends Neuron_ALife
         //For test
         if (this.action ==  Mind_ALife.Action.REPRODUCE){
             int breack = 1;
-            if (this.creature.getReprouctable()){
+            if (this.creature.getReproductable()){
                 breack = 2;
             }
         }

@@ -47,7 +47,7 @@ public abstract class Int_ALife_Creature extends Thread
     //Int_ALife_Creature[] reproductionGroup = {this};
     Mind_ALife mind = null;
     
-    Int_ALife_Creature[] progenitors = null;
+    ArrayList<Int_ALife_Creature> progenitors = null;
     // Num creatures to have a baby
     //int inNeurons, outNeurons, midNeurons, statusNeurons;
     Long move_time; //delay betwen moves
@@ -123,7 +123,7 @@ public abstract class Int_ALife_Creature extends Thread
      */  
     public Trace getCreatureTrace(){
         double mark=0;
-        int weight = 0;
+        //int weight = 0;
         for (int res:foodResourceOwn) 
             mark+=((double)res)/Env_ALife.TRACE_PODENRACION_PESO_DETECCIÓN;
             
@@ -217,7 +217,7 @@ public abstract class Int_ALife_Creature extends Thread
     
     public abstract void doAction(Mind_ALife.Action ac);
     
-    public abstract boolean getReprouctable();
+    public abstract boolean getReproductable();
     
     public abstract void eat(int x, int y, Int_ALife_Creature food); //food can be null
     

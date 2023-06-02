@@ -40,8 +40,8 @@ public class Reproductable_Neuron_ALife extends Neuron_ALife
         if (this.output != null) return output;
         
         output = Mind_ALife.FALSE_in_double;
-        if (creature.getReprouctable()) output = Mind_ALife.TRUE_in_double;
-        return output;
+        if (creature.getReproductable()) output = Mind_ALife.TRUE_in_double;
+        return output; //this.output" is null" ?????
     }
     
     @Override

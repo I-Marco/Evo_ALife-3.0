@@ -161,10 +161,10 @@ public class Env_ALife extends Thread
         
         //Need Function generate_lifeTypeList(eventList)
         setLandImg(l); 
-        setLifeImg( Env_Panel.getDefaultEnvTransparentImage()); //Temporal
+        setLifeImg( Env_Panel.getDefaultEnvTransparentImage(l.getWidth(),l.getHeight())); //Temporal
         //Env_Panel.imageDisplay(l,"Constructor imagen");
         backLandImage = l; //Temporal
-        backLifeImage =  Env_Panel.getDefaultEnvTransparentImage();
+        backLifeImage =  getLifeImg(); //= referencia?
         
         //Live
         if (liveEnv == null){
@@ -284,7 +284,7 @@ public class Env_ALife extends Thread
             //For concurrency Log
             //MultiTaskUtil.threadMsg("Env Run ("+this.getTime()+") "+ semaphore.availablePermits()); //For test
             
-            //this.backLifeImage = Env_Panel.getDefaultEnvTransparentImage(); //Blinck efect
+            this.backLifeImage = Env_Panel.getDefaultEnvTransparentImage(); //Blinck efect
             
             //Do something ...
             synchronized (eventList){
@@ -296,10 +296,7 @@ public class Env_ALife extends Thread
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                }
-            }
-
-            synchronized (eventList){
+                } //If after sleep we have no events we will show an error message and exit enviroment
                 if (eventList.isEmpty()) {
                     //no hay eventos HA fallado algo nada por hacer
                     //JOptionPane.showMessageDialog(null, "Lista de eventos temporales vacia");
@@ -627,12 +624,13 @@ public class Env_ALife extends Thread
      * @return  - None
      **/
     public void setLandImg(BufferedImage i){
-        if (landImg == null) {
+        if (landImg == null) { 
             this.landImg =  i;
             return;
-        }
-        synchronized (this.landImg){
-            this.landImg =  i;
+        } else {
+            synchronized (this.landImg){ //Null pointer exception when try to sync null object
+                this.landImg =  i;
+            }
         }
     }// End public BufferedImage getLandImg()
 
@@ -652,14 +650,14 @@ public class Env_ALife extends Thread
      * @param   - BufferedImage
      * @return  - None
      **/
-    public void setLifeImg(BufferedImage i){
+    public void setLifeImg(BufferedImage i){ 
         if (lifeImg == null) {
             this.lifeImg =  i;
             return;
-        }
-
-        synchronized (this.lifeImg){
-            this.lifeImg =  i;
+        }else {
+            synchronized (this.lifeImg){//Null pointer exception when try to sync null object
+                this.lifeImg =  i;
+            }
         }
     }// End public BufferedImage getLandImg()
 
@@ -985,6 +983,7 @@ public class Env_ALife extends Thread
             c.setIdCreature(this.getCreatureID());
         }
         //Add creature to eventList
+        //"Nueva Criatura"+c.idCreature+" hijo de "+c.progenitors[0].idCreature
         addEvent(getTime()+1,c);   
         //Add creature to ALife_Logical_Environment
         this.logical_Env.addCreature(c, c.getPos());

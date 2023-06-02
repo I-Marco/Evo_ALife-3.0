@@ -90,7 +90,7 @@ public class ALife_Corpse extends Int_ALife_Creature
     
     public void doAction(Mind_ALife.Action ac){}
     
-    public boolean getReprouctable(){
+    public boolean getReproductable(){
         return true;
     }
     
