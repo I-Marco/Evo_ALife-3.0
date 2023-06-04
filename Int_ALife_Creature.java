@@ -12,6 +12,17 @@ import java.util.*;
  */
 public abstract class Int_ALife_Creature extends Thread
 {
+    // Constant for evaluations formulas
+    public static double DEFAULT_max_Lexp_vs_Ldelay = 200 * ALife_Nutrient_Environment.DEFAULT_LifeDelay;
+    public static double DEFAULT_max_LivePoints = 1000;
+    public static double DEFAULT_max_Def_Attack = 100;
+    public static double DEFAULT_max_foodResourceNeed = 256*3;
+    public static double DEFAULT_max_Hungry = 250;
+    public static double DEFAULT_max_minReproductionGroup = 5;
+    public static double DEFAULT_max_descendants = 10;
+    public static double DEFAULT_max_detectRange = 10;
+    
+    // Fields ==================================================================================
 
     //end for test
     long idCreature = 0;
@@ -28,7 +39,7 @@ public abstract class Int_ALife_Creature extends Thread
     long def, attack;
     
     ALife_Specie specie = null;
-    long tamComplex = evaluateTamComplex(this);
+    double tamComplex = 1; //evaluateTamComplex(this);
     
     int[] foodResourceOwn = {0,0,0};
     int[] minfoodResourceOwn = {0,0,0}; // when born and need to born
@@ -38,24 +49,31 @@ public abstract class Int_ALife_Creature extends Thread
     Trace creatureTrace = null;
     double hidden = 1L; //0..1, 1= No hidden
     int detectionRange = 1; //in pixels min 1
-    int umbralDetectión = 1;
+    int umbralDetection = 1;
     
     long hungry = 100;
     
-    int minReproductionGroup = 1;
+    int minReproductionGroup = 1;//min progenitors to have a baby
     ArrayList<Int_ALife_Creature> reproductionGroup = new ArrayList<Int_ALife_Creature>();
+    int maxDescendants = 1; //max descendants to have in 1 reproduction
     //Int_ALife_Creature[] reproductionGroup = {this};
     Mind_ALife mind = null;
     
-    ArrayList<Int_ALife_Creature> progenitors = null;//progenitors of creature
-    ArrayList<Int_ALife_Creature> descendents = null;//descendents of creature
-    // Num creatures to have a baby
+    ArrayList<Int_ALife_Creature> progenitors = new ArrayList<Int_ALife_Creature>();//progenitors of creature
+    ArrayList<Int_ALife_Creature> descendents = new ArrayList<Int_ALife_Creature>();//descendents of creature
+    
+    double status = 0, ownedStatus = 0; //status of creature now and owned status out this moment
     //int inNeurons, outNeurons, midNeurons, statusNeurons;
-    Long move_time; //delay betwen moves
+    //Long move_time; //delay betwen moves
     //more...
     
     //Methods ==================================================================================
+    
+    // Constructors ============================
+        //No constructors
+
     // Getter and Setters ----------------------------
+
     /**
      * public void setEnv_ALife(Env_ALife e)
      * 
@@ -153,7 +171,7 @@ public abstract class Int_ALife_Creature extends Thread
      * @return   int, the detección umbral of creature lower is better
      */       
     public synchronized int getUmbralDetection(){
-        return this.umbralDetectión;
+        return this.umbralDetection;
     }    
     
     /**
@@ -165,46 +183,81 @@ public abstract class Int_ALife_Creature extends Thread
     public synchronized Point getPos(){
         return this.pos;
     }
+    
+    /**
+     * getStatus()
+     * @param c
+     * @return
+     */
+    public synchronized double getStatus(){
+        synchronized (this){
+            return this.status;
+        }
+    } // End public synchronized double getStatus()
+    
     // END Getter and Setters ----------------------------
     
-    public static long evaluateTamComplex(Int_ALife_Creature c){
-        long comp = 1;
-        // internal physical caracteristics
+    /**
+     * public static double evaluateTamComplex(Int_ALife_Creature c)
+     * Evaluate the tamComplex of creature, actualize it and return it
+     * @param c
+     * @return
+     */
+    public static double evaluateTamComplex(Int_ALife_Creature c){
+        double DEFAULT_max_Lexp_vs_Ldelay = 200 * ALife_Nutrient_Environment.DEFAULT_LifeDelay;
+        double DEFAULT_max_LivePoints = 1000;
+        double DEFAULT_max_Def_Attack = 100;
+        double DEFAULT_max_foodResourceNeed = 256*3;
+        double DEFAULT_max_Hungry = 250;
+        double DEFAULT_max_minReproductionGroup = 5;
+        double DEFAULT_max_descendants = 10;
+        double DEFAULT_max_detectRange = 10;
+
+        double comp = 1; // 1= min complexity.
+        //for test
+        double aux = 0;
+        // internal physical caracteristics ------
+            aux = (double)c.lifeDelay / (double)(ALife_Nutrient_Environment.DEFAULT_LifeDelay * 2);
+        comp += (double)c.lifeDelay / (double)(ALife_Nutrient_Environment.DEFAULT_LifeDelay * 2);
+            aux = (double)c.lifeDelay / (double)(ALife_Nutrient_Environment.DEFAULT_LifeDelay * 2);
+        comp += ((double)c.lifeExp / (double)c.lifeDelay)/(double)DEFAULT_max_Lexp_vs_Ldelay;
+            aux = (double)c.livePoints / (double)DEFAULT_max_LivePoints;
+        comp += (double)c.livePointMax / (double)DEFAULT_max_LivePoints;
+            aux = (double)c.def / (double)DEFAULT_max_Def_Attack;
+        comp += (double)c.def / (double)DEFAULT_max_Def_Attack;
+            aux = (double)c.attack / (double)DEFAULT_max_Def_Attack;
+        comp += (double)c.attack / (double)DEFAULT_max_Def_Attack;
+            aux = (double)c.hungry / (double)DEFAULT_max_Hungry;
+        comp += (double)c.hungry / (double)DEFAULT_max_Hungry;
+            aux = (double)c.minReproductionGroup / (double)DEFAULT_max_minReproductionGroup;
+        comp += (double)c.minReproductionGroup / (double)DEFAULT_max_minReproductionGroup;
+            aux = (double)c.maxDescendants / (double)DEFAULT_max_descendants;
+        comp += (double)c.maxDescendants / (double)DEFAULT_max_descendants;
+            aux = 1-(double)c.hidden;//1-(double)c.hidden;
+        comp += 1-(double)c.hidden; // 0..1, 1= No hidden
+            aux = 1-(double)c.umbralDetection;//1-(double)c.umbralDetection;
+        comp += 1-(double)c.umbralDetection; // 0..1, 1= No Detection
+            aux = (double)c.detectionRange / (double)DEFAULT_max_detectRange;
+        comp += (double)c.detectionRange / (double)DEFAULT_max_detectRange;
+        for (int i = 0; i < c.foodResourceNeed.length; i++){
+            comp += (double)c.foodResourceNeed[i] / (double)DEFAULT_max_foodResourceNeed;
+            comp += ((double)c.foodResourceOwn[i] / (10*(double)DEFAULT_max_foodResourceNeed));
+        }
+        
+
+
         // Mind global capacity
         // Mind habilities and perception
 
-
-
-        // *** FALTA
-        /*
-        private long lifeTime = 0;
-        private Long lifeDelay = new Long (ALife_Nutrient_Enviroment.DEFAULT_LifeDealy/2);
-        private long lifeExp = 100 * lifeDelay;
-
-        private long livePoints = 100;
-        private long def, attack;
-        
+        /*       
         private ALife_Specie specie = null;
         private long tamComplex = 0;
         
-        private int[] foodResourceOwn = {0,0,0};
-        private int[] minfoodResourceOwn = {0,0,0}; // when born and need to born
-        private int[] maxfoodResourceOwn = {0,0,0};
-        private int[] foodResourceNeed = {0,0,0};
-        
-        private long hungry = 100;
-        
-        private Int_ALife_Creature[] reproductionGroup = null;
         private Mind_ALife mind = null;
-        
-        private Int_ALife_Creature[] progenitors = null;
-        // Num creatures to have a baby
-        private int inNeurons, outNeurons, midNeurons, memNeurons;
-        private Long move_time; //delay betwen moves         
-         */
-        // Evaluate comples from variables
-        // Get mid comples and factorize both values.
-        //comp = c.getMind().evaluateMindComlex();
+        */
+        synchronized (c){
+            c.tamComplex = comp;
+        }
         
         return comp;
     }
@@ -219,21 +272,58 @@ public abstract class Int_ALife_Creature extends Thread
     
     //private abstract void actionReproduce(Int_ALife_Creature[] progenitors);
     
-    
+    /**
+     * public static double evaluateStatus(Int_ALife_Creature c)
+     * Evaluate the status and OwnedStatus of creature, actualize both and return status
+     * @param   - c ,the creature to evaluate, for static context
+     * @return  - double, the status of creature
+     */
+    public static double evaluateStatus(Int_ALife_Creature c){
+        double DEFAULT_descendat_StatusPlus = 0.1; //For normalizing
+        //check all dates to avoid crash
+        if (c == null) return -1;
+
+        // Variable status + Owned status
+        double ownedStatus = 0;
+        for(Int_ALife_Creature cr: c.descendents){
+            if (cr == null) ownedStatus += DEFAULT_descendat_StatusPlus; //implement DEFAULT_descendat_StatusPlus
+            else ownedStatus += cr.getStatus(); 
+            ownedStatus += cr.getStatus(); // implement getStatus()
+            //Posibly specie add to status value 
+        }
+        synchronized (c){
+            c.ownedStatus = ownedStatus;
+        }
+        // Variable status
+        //for test
+        double VarTemporaldStatus = 0;
+        VarTemporaldStatus = (double)c.lifeTime; //may be we need to normalize this values
+        VarTemporaldStatus += (double)c.hungry;
+        VarTemporaldStatus += (double)c.livePoints / (double)c.livePointMax;
+        for (int i = 0; i < c.foodResourceOwn.length; i++){
+            VarTemporaldStatus += (double)c.foodResourceOwn[i] / (double)c.minfoodResourceOwn[i]/DEFAULT_max_foodResourceNeed; 
+        }
+
+        synchronized (c){
+            c.status = VarTemporaldStatus + ownedStatus;
+        }   
+        return VarTemporaldStatus + ownedStatus; //for test
+        //return c.status;
+    }
     public abstract long die();
     
     public abstract void doAction(Mind_ALife.Action ac);
     
     public abstract boolean getReproductable();
-    
-    public abstract void eat(int x, int y, Int_ALife_Creature food); //food can be null
+
+    public abstract void actionEat(Point pos, int[] foodResourceEat, Creature cr); //food can be null
     
     public abstract void lookForBread(); // Proliferation of life method
     
-    public abstract Int_ALife_Creature reproduze(Int_ALife_Creature couple); //How to make new life
+    public abstract void actionReproduce(ArrayList<Int_ALife_Creature> progenitors);//How to make new life
     
     public abstract String specieToString(Int_ALife_Creature c);
-    
+
     /**
      * public abstract void paint(Graphics g, Color c);
      * 

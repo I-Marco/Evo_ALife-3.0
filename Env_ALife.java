@@ -50,6 +50,7 @@ public class Env_ALife extends Thread
     private Long time  = null;
     private long timeCicles = 0;
     private int waitForThreads = 0; //Temporal tratamos de incluir un patron singleton pero dudas
+    
     static private int maxThreads = 10; //Max number of simultaneus Threads allowed    
 
     private boolean allowMutate = true;

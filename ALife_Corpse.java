@@ -1,6 +1,6 @@
 import java.awt.*;
 import java.awt.image.*;
-//import java.util.*;
+import java.util.*;
 import java.util.concurrent.*;
 
 /**
@@ -83,8 +83,7 @@ public class ALife_Corpse extends Int_ALife_Creature
     // Private Methods and Fuctions =============
     // Main if needed --------------------------------------------------------------------
     //private abstract void actionReproduce(Int_ALife_Creature[] progenitors);
-    
-    
+ 
     public long die(){
         return 0;
     }
@@ -92,15 +91,16 @@ public class ALife_Corpse extends Int_ALife_Creature
     public void doAction(Mind_ALife.Action ac){}
     
     public boolean getReproductable(){
-        return true;
+        return false;
     }
     
-    public void eat(int x, int y, Int_ALife_Creature food){} //food can be null
+    public void actionEat(Point pos, int[] foodResourceEat, Creature cr){} //food can be null
     
     public void lookForBread(){} // Proliferation of life method
     
-    public Int_ALife_Creature reproduze(Int_ALife_Creature couple){
-        return null;
+    public void actionReproduce(ArrayList<Int_ALife_Creature> progenitors) {//How to make new life
+    //public Int_ALife_Creature reproduze(Int_ALife_Creature couple){
+        //return null;
     } //How to make new life
     
     public String specieToString(Int_ALife_Creature c){

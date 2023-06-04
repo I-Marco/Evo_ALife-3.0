@@ -472,6 +472,7 @@ public class Evo_ALife extends JFrame{
      */
     private void makeDefaultEnv(){
         //Remove old enviroment
+        if (env_ALife != null) this.env_ALife.killThread();
         this.env_ALife = new Env_ALife(this);
         //Land + Live + env_Variables.
         BufferedImage land = null;
@@ -554,6 +555,7 @@ public class Evo_ALife extends JFrame{
         
         if (env_ALife != null) {
             env_Vars = env_ALife.getEnvVars();
+            this.env_ALife.killThread();
         } else {
             //env_Vars = null previusly fixed
         }

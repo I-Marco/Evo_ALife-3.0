@@ -84,20 +84,18 @@ public class Creature extends Int_ALife_Creature
         for (int i = 0; i< foodResourceOwn.length; i++){maxfoodResourceOwn[i] = (int)(foodResourceOwn[i] * fac);}
 
         //foodResourceNeed = {0,0,0};            
-        
-        tamComplex = 1; // Funcion de evaluacion?
-        
+                
         hungry = 100;
-        
-        
     
         if (m != null) { this.mind = m;}
         else {//
             setMind(new Mind_ALife(this));
         }
         
+        descendents = new ArrayList<Int_ALife_Creature>();
         reproductionGroup = new ArrayList<Int_ALife_Creature>();
         reproductionGroup.add(this);
+        tamComplex = evaluateTamComplex(this); // Funcion de evaluacion?
         //this.env_ALive.addEvent(env_ALive.getTime() + 1, this); //se añade a la siguiente unidad de tiempo
         //specie = getALife_Specie;
     
@@ -248,14 +246,16 @@ public class Creature extends Int_ALife_Creature
         
         //Autocalculated datas
         hungry = 100; //0auto calculate
-        tamComplex = 1; //auto calculate
+
         specie = null;//autocalculate
         //Ming values neurosn neurons in neurosn out neurons status
         
         this.minReproductionGroup = progenitors.get(0).minReproductionGroup;
+        descendents = new ArrayList<Int_ALife_Creature>();
         reproductionGroup = new ArrayList<Int_ALife_Creature>();
         reproductionGroup.add((Int_ALife_Creature)this);
         this.progenitors = progenitors;
+        tamComplex = evaluateTamComplex(this); // Funcion de evaluacion?; //auto calculate
         //reproductionGroup = new Int_ALife_Creature[this.minReproductionGroup];
         //reproductionGroup[0] = (Int_ALife_Creature)this; //(Int_ALife_Creature)this;
     }
@@ -407,7 +407,7 @@ public class Creature extends Int_ALife_Creature
      * private void actionEat(Point pos, int[] foodResourceEat, Creature cr)
      * where Point, what int[] how much resource, what creature -- Want eat
      */
-    private void actionEat(Point pos, int[] foodResourceEat, Creature cr){
+    public void actionEat(Point pos, int[] foodResourceEat, Creature cr){
         if (cr == null){
             //remove from nutrient            
             foodResourceEat = this.env_ALive.getLand().getNutrient(pos, foodResourceEat, this); 
@@ -472,7 +472,7 @@ public class Creature extends Int_ALife_Creature
      * @param    ArrayList<Int_ALife_Creature> progenitors
      * @return   None
      */
-    private void actionReproduce(ArrayList<Int_ALife_Creature> progenitors){
+    public void actionReproduce(ArrayList<Int_ALife_Creature> progenitors){
         if(!this. getReproductable()) return;
         if (progenitors.size() < this.minReproductionGroup) return;
         for(int i = 0; i < foodResourceOwn.length ; i++){
@@ -487,6 +487,8 @@ public class Creature extends Int_ALife_Creature
             return;
         } 
         if (baby == null) return;
+        if (descendents == null) descendents = new ArrayList<Int_ALife_Creature>(); //For security
+        this.descendents.add(baby);
         //mind reproduce + mutate /// ---> creo que ahora mind lo invoca el constructor de creature
         //baby.setMind(new Mind_ALife(progenitors, baby, this.env_ALive.getAllowMutate()));
         this.getEnv_ALife().addCreature(baby);
@@ -547,8 +549,12 @@ public class Creature extends Int_ALife_Creature
             Graphics2D g2d = g.createGraphics();
             Color creatureColor = col; // Color del círculo
             g2d.setColor(creatureColor);
-            g2d.drawOval(this.pos.x - (int)this.tamComplex, this.pos.y - (int)this.tamComplex,
-                (int)this.tamComplex * 1, (int)this.tamComplex * 1);
+            if (this.tamComplex > 1){
+                g2d.drawOval(this.pos.x - (int)this.tamComplex, this.pos.y - (int)this.tamComplex,
+                    (int)this.tamComplex * 1, (int)this.tamComplex * 1);
+            } else {
+                g2d.drawOval(this.pos.x, this.pos.y, 1, 1); // If it's too big them we draw a point
+            }
             //Env_Panel.imageDisplay(g,"From Creature paint() - LIVE Image");
         }catch (NullPointerException npe){
             npe.printStackTrace();
