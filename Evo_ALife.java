@@ -9,6 +9,7 @@ import java.awt.image.*; //import java.awt.image.BufferedImage;
 import javax.imageio.*; // import javax.imageio.ImageIO;
 import java.util.*; //import java.util.List;import java.util.ArrayList;
 //import org.apache.commons.io.*;//import org.apache.commons.io.FilenameUtils; ELIMINAR
+
 /**
  * Description of class Evo_ALife:
  * Evo_ALife project its a artificial enviroment "world" 

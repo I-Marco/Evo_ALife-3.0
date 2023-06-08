@@ -6,6 +6,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "ALifeCalcUtil",
+            "request": "launch",
+            "mainClass": "ALifeCalcUtil",
+            "projectName": "Evo_ALife-3.0_a25a947e"
+        },
+        {
+            "type": "java",
             "name": "Current File",
             "request": "launch",
             "mainClass": "${file}"

@@ -268,6 +268,11 @@ public class Mind_ALife
         }        
     }
     
+    public void updateMind(Action action, Double statusChange, Double weightOfActionVsTime){
+        //Find the neuron that has the action and update it and its inputs
+        
+    } // End public void updateMind(Action action, Double statusChange, Double weightOfActionVsTime)
+    
     // Getter and setters
     public Double getOutput(){//?????
         return null;//output;

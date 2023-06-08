@@ -38,11 +38,12 @@ public class Env_ALife extends Thread
     private TreeMap<Long, ArrayList<Object>> eventList;
     private ArrayList<ALife_Specie> lifeTypeList;
     private ALife_Logical_Environment logical_Env =  null;
+    private ALife_Species species = null;
     
     long last_CreatureID = 0;
     long creatureNumber = 0;
-    long last_SpecieID = 0;
-    long specieNumber = 0;
+    long last_SpecieID = 0;//
+    long specieNumber = 0;//
     
     //Enviroment variables, we have a next fuction to set and get all variables and a different one for images
     private String env_Name = "Noname";
@@ -96,6 +97,7 @@ public class Env_ALife extends Thread
 
         //Defauls values in global variables.
         time = Long.valueOf(0);
+        species = new ALife_Species(this);
         
         land = new ALife_Nutrient_Environment(this, semaphore);
         eventList = new TreeMap<Long, ArrayList<Object>>(); //esta vacio debe tener al menos 1 evento
@@ -114,7 +116,7 @@ public class Env_ALife extends Thread
             this.logical_Env = new ALife_Logical_Environment(this);
         }
         caller.visualiceEnv(this);
-    }
+    } // End public Env_ALife(Evo_ALife e) Constructor
 
     /**
      * Constructor for objects of class Evo_ALife
@@ -136,6 +138,7 @@ public class Env_ALife extends Thread
 
         //Set time to 0 and create new eventList
         setTime(Long.valueOf(0));
+        species = new ALife_Species(this);
         eventList = new TreeMap<Long, ArrayList<Object>>(); //esta vacio debe tener al menos 1 evento
         
         //For Concurrency Long and track
@@ -184,8 +187,8 @@ public class Env_ALife extends Thread
             try{for (Object o:(ArrayList)liveEnv) {
                     if (o instanceof Int_ALife_Creature) {
                         //Asignamos la cretura a este enviroment
-                        this.addCreature(((Creature)o));
-                        
+                        this.addCreature(((Creature)o));//Add to enviroment adding to eventList
+                        this.species.addCreature(((Creature)o)); //Add to species
                         //((Creature)o).setEnv_ALife(this);
                         //((Creature)o).setIdCreature(this.getCreatureID());                        
                         //addEvent(getTime()+1,(Creature)o);
@@ -205,17 +208,19 @@ public class Env_ALife extends Thread
         }
 
         //if any problem default enviroment configuration
-
-        lifeTypeList = new ArrayList<ALife_Specie>(); //Empty need values
+        //lifeTypeList = new ArrayList<ALife_Specie>(); //Empty need values
         //evaluate lifeTypeList(eventList);
 
 
 
         caller.visualiceEnv(this); //Display de new enviroment
-    }    
+    } // End public Env_ALife(Evo_ALife e,BufferedImage l, Object liveEnv, java.util.List<Object> envVars) Constructor
+
     // Public Methods and Fuctions ==============
 
     // From class Thread
+
+
     /**
      * Run() -
      *  Main work of a Thread
@@ -466,6 +471,12 @@ public class Env_ALife extends Thread
     }
      */    
 
+    /**
+     * public void MyNotifyAll()
+     * 
+     * @param   - None
+     * @return  - None
+     */
     public void MyNotifyAll(){
         //maxThreadSignal
         //synchronized (maxThreadSignal) {
@@ -473,7 +484,7 @@ public class Env_ALife extends Thread
             notify();
             //maxThreadSignal.notifyAll(); // enviar señal de continuación
         }        
-    }
+    } // End public void MyNotifyAll()
 
     /**
      * public void pauseThread() -
@@ -495,7 +506,6 @@ public class Env_ALife extends Thread
      * @return  - no returns 
      **/         
     public void resumeThread() {
-
         //boolean testB = this.isPaused; // just for test
         isPaused = false;
         //testB = this.isPaused; // just for test
@@ -512,7 +522,8 @@ public class Env_ALife extends Thread
         synchronized (pauseSignal) {
             pauseSignal.notifyAll(); // enviar señal de continuación
         }
-    }
+    } // End public void killThread()
+
     // ============= GETTERS & SETTERS
 
     /**
@@ -546,7 +557,7 @@ public class Env_ALife extends Thread
         isPaused = b;
         //Env_ALive Tried to pause
         MultiTaskUtil.threadMsg("Set_isPaused ("+this.getTime()+") := "+b);
-    } 
+    } // End public void set_isPaused(boolean b)
 
     /**
      * public boolean get_isPaused() -
@@ -556,7 +567,7 @@ public class Env_ALife extends Thread
      **/
     public boolean get_isPaused(){
         return isPaused;
-    } 
+    } // End public boolean get_isPaused()
 
     /**
      * public Long getTime() -
@@ -593,7 +604,7 @@ public class Env_ALife extends Thread
 
         return envVars;
         //BE CAREFULL changes here must be updated in setter method
-    }
+    } // End public List<Object> getEnvVars()
 
     /**
      * public void setEnvVars(List<Object> envVars) -
@@ -616,7 +627,7 @@ public class Env_ALife extends Thread
             //Msg "Algo no salio bien al cargar las variables de entorno
             e.printStackTrace();
         }
-    }
+    } // End public void setEnvVars(List<Object> envVars)
 
     /**
      * public void setLandImg(BufferedImage i)
@@ -713,7 +724,7 @@ public class Env_ALife extends Thread
      **/    
     public ALife_Nutrient_Environment setLand(){
         return this.land;
-    }    
+    } // End public ALife_Nutrient_Environment setLand()
 
     /**
      * public Semaphore getSemaphore()
@@ -725,7 +736,7 @@ public class Env_ALife extends Thread
         synchronized (semaphore){
             return this.semaphore;
         }
-    }
+    } // End public Semaphore getSemaphore()
 
     /**
      * public synchronized boolean getAllowMutate() -
@@ -735,7 +746,7 @@ public class Env_ALife extends Thread
      **/     
     public synchronized boolean getAllowMutate(){
         return allowMutate;
-    }
+    } // End public synchronized boolean getAllowMutate()
 
     /**
      * public synchronized String getCreatureNumber()
@@ -747,7 +758,7 @@ public class Env_ALife extends Thread
         String r = "";
         r = ""+this.creatureNumber;
         return r;
-    }
+    } // End public synchronized String getCreatureNumber()
 
     /**
      * public synchronized String getSpeciesNumber()
@@ -758,7 +769,7 @@ public class Env_ALife extends Thread
     public synchronized String getSpeciesNumber(){
         String r = "No computado";        
         return r;
-    }
+    } // End public synchronized String getSpeciesNumber()
 
     /**
      * public synchronized String getTotalResources()
@@ -769,7 +780,7 @@ public class Env_ALife extends Thread
     public synchronized String getTotalResources(){
         String r = "No computado";        
         return r;
-    }
+    } // End public synchronized String getTotalResources()
 
     /**
      * public synchronized String getResourceAdd()
@@ -781,7 +792,7 @@ public class Env_ALife extends Thread
         String r = "";
         r =this.land.getResourceAddByTime();
         return r;
-    }
+    } // End public synchronized String getResourceAdd()
 
     /**
      * public synchronized String getResourceDelay()
@@ -793,7 +804,7 @@ public class Env_ALife extends Thread
         String r = "";
 
         return r;
-    }
+    } // End public synchronized String getResourceDelay()
 
     /**
      * public int getEnv_Width()
@@ -803,7 +814,7 @@ public class Env_ALife extends Thread
      */
     public int getEnv_Width(){
         return this.land.getLandImg().getWidth();
-    }
+    } // End public int getEnv_Width()
     
     /**
      * public int getEnv_Height()
@@ -813,20 +824,48 @@ public class Env_ALife extends Thread
      */
     public int getEnv_Height(){
         return this.land.getLandImg().getHeight();
-    }
+    } // End public int getEnv_Height()
     
-    public ALife_Logical_Environment getLogical_Env(){
+    /**
+     * public ALife_Logical_Environment getLogical_Env()
+     * 
+     * @param    None
+     * @return   ALife_Logical_Environment
+     */
+    public ALife_Logical_Environment getLogical_Env(){ 
         return this.logical_Env;
-    }
-    
+    } // End public ALife_Logical_Environment getLogical_Env()
+
+    /**
+     * public void setLogical_Env(ALife_Logical_Environment l_e)
+     * 
+     * @param    ALife_Logical_Environment
+     * @return   None
+     */
     public String getCreature_Born(){
         return ""+this.creature_Born;
-    }
+    } // End public void setLogical_Env(ALife_Logical_Environment l_e)
     
+    /**
+     * public void setLogical_Env(ALife_Logical_Environment l_e)
+     * 
+     * @param    ALife_Logical_Environment
+     * @return   None
+     */
     public String getCreature_Death(){
         return ""+this.creature_Death;
-    }
+    } // End public String getCreature_Death()
     
+    /**
+     * public synchronized ALife_Species getSpecies()
+     * 
+     * @param    None
+     * @return   ALife_Species
+     */
+    public synchronized ALife_Species getSpecies(){
+        return this.species;
+    } // End public synchronized ALife_Species getSpecies()
+
     //land ALife_Nutrient_Environment
     //envet List?? specie list??
     //BufferedImage landImg, lifeImg setters?
