@@ -22,6 +22,9 @@ public abstract class Int_ALife_Creature extends Thread
     public static double DEFAULT_max_descendants = 10;
     public static double DEFAULT_max_detectRange = 10;
     
+    public static long DEFAULT_Hungry_Humbral = 100;
+    public static long DEFAULT_Life_Turns = 100;
+    
     // Fields ==================================================================================
 
     //end for test
@@ -32,12 +35,13 @@ public abstract class Int_ALife_Creature extends Thread
     
     long lifeTime = 0;
     Long lifeDelay = Long.valueOf(ALife_Nutrient_Environment.DEFAULT_LifeDelay/2);
-    long lifeExp = 100 * lifeDelay;
+    long lifeExp = DEFAULT_Life_Turns * lifeDelay;
     
-    long livePoints = 100;
-    long livePointMax = 100;
+    long livePoints = DEFAULT_Hungry_Humbral;
+    long livePointMax = DEFAULT_Hungry_Humbral;
     long def, attack;
     
+    long specieNumberID = -2; //-1 for corpses, -2 for no specie
     ALife_Specie specie = null;
     double tamComplex = 1; //evaluateTamComplex(this);
     
@@ -47,11 +51,13 @@ public abstract class Int_ALife_Creature extends Thread
     int[] foodResourceNeed = {0,0,0};
     
     Trace creatureTrace = null;
-    double hidden = 1L; //0..1, 1= No hidden
+    double hidden = 0L; //0..1, 0 = No hidden
     int detectionRange = 1; //in pixels min 1
-    int umbralDetection = 1;
+    int umbralDetection = 1; //0..1, 0 = Min detection
     
-    long hungry = 100;
+    long humgryUmbral = DEFAULT_Hungry_Humbral;
+    long hungry = DEFAULT_Hungry_Humbral;
+    
     
     int minReproductionGroup = 1;//min progenitors to have a baby
     ArrayList<Int_ALife_Creature> reproductionGroup = new ArrayList<Int_ALife_Creature>();
@@ -82,7 +88,7 @@ public abstract class Int_ALife_Creature extends Thread
      */    
     public void setEnv_ALife(Env_ALife e){
         env_ALive = e;
-    }
+    } // End public void setEnv_ALife(Env_ALife e)
     
     /**
      * public Env_ALife getEnv_ALife()
@@ -92,7 +98,7 @@ public abstract class Int_ALife_Creature extends Thread
      */    
     public Env_ALife getEnv_ALife(){
         return env_ALive;
-    }
+    } // End public Env_ALife getEnv_ALife()
     
     /**
      * public void setMind(Mind_ALife m)
@@ -102,7 +108,7 @@ public abstract class Int_ALife_Creature extends Thread
      */  
     public void setMind(Mind_ALife m){
         this.mind = m;
-    }    
+    } // End public void setMind(Mind_ALife m)
 
     /**
      * public Mind_ALife getMind()
@@ -112,7 +118,7 @@ public abstract class Int_ALife_Creature extends Thread
      */  
     public Mind_ALife getMind(){
         return this.mind;
-    }    
+    } // End public Mind_ALife getMind()
     
     /**
      * public void setIdCreature(long id)
@@ -122,7 +128,7 @@ public abstract class Int_ALife_Creature extends Thread
      */  
     public void setIdCreature(long id){
         this.idCreature = id;
-    }
+    } // End public void setIdCreature(long id)
 
     /**
      * public long getIdCreature()
@@ -132,7 +138,7 @@ public abstract class Int_ALife_Creature extends Thread
      */  
     public long getIdCreature(){
         return this.idCreature;
-    }
+    } // End public long getIdCreature()
 
     /**
      * public Trace getCreatureTrace()
@@ -162,7 +168,7 @@ public abstract class Int_ALife_Creature extends Thread
      */       
     public synchronized int getDetectionRange(){
         return this.detectionRange;
-    }
+    } // End public int getDetectionRange()
     
     /**
      * public int getUmbralDetection()
@@ -171,8 +177,8 @@ public abstract class Int_ALife_Creature extends Thread
      * @return   int, the detección umbral of creature lower is better
      */       
     public synchronized int getUmbralDetection(){
-        return this.umbralDetection;
-    }    
+        return this.umbralDetection; 
+    } // End public int getUmbralDetection()
     
     /**
      * public synchronized Point getPos()
@@ -182,8 +188,28 @@ public abstract class Int_ALife_Creature extends Thread
      */       
     public synchronized Point getPos(){
         return this.pos;
-    }
+    } // End public synchronized Point getPos()
     
+    /**
+     * public long getSpecieIdNumber()
+     * 
+     * @param    None
+     * @return   long, the specie identification number for this creature
+     */
+    public long getSpecieIdNumber(){
+        return this.specieNumberID;
+    } // End public long getSpecieIdNumber()
+
+    /**
+     * public void setSpecieIdNumber(long id)
+     * 
+     * @param    long, the specie identification number for this creature
+     * @return   None
+     */
+    public void setSpecieIdNumber(long id){
+        this.specieNumberID = id;
+    } // End public void setSpecieIdNumber(long id)
+
     /**
      * getStatus()
      * @param c
@@ -198,12 +224,38 @@ public abstract class Int_ALife_Creature extends Thread
     // END Getter and Setters ----------------------------
     
     /**
+     * public static double[] serializeCreature(Int_ALife_Creature c)
+     * Serialize the creature in a double[] and return it
+     * @param  c
+     * @return double[]
+     */
+    public static double[] serializeCreature(Int_ALife_Creature c){
+        if (c == null) return null;
+        double[] carac; // = new double[caracArrayList.size()];
+        carac = Creature.serializeCreature(c);
+        return carac;
+        //return Creature.serializeCreature(c);
+    } // End public static double[] serializeCreature(Int_ALife_Creature c)
+
+
+/**
      * public static double evaluateTamComplex(Int_ALife_Creature c)
      * Evaluate the tamComplex of creature, actualize it and return it
      * @param c
      * @return
-     */
+     */    
     public static double evaluateTamComplex(Int_ALife_Creature c){
+        double[] carac = Creature.serializeCreature(c);
+        carac = ALifeCalcUtil.min_max_Array_Normalization(carac, Creature.creature_minCaracteristics, 
+            Creature.creature_maxCaracteristics);
+        //carac = ALifeCalcUtil.ponderation_Array(carac, ponderationArray);
+        //double tamComplex = ALifeCalcUtil.arrayDistance(v1,v2);
+        double tamComplex = ALifeCalcUtil.mean(carac);
+        return tamComplex;
+    
+        
+        
+        /* 
         double DEFAULT_max_Lexp_vs_Ldelay = 200 * ALife_Nutrient_Environment.DEFAULT_LifeDelay;
         double DEFAULT_max_LivePoints = 1000;
         double DEFAULT_max_Def_Attack = 100;
@@ -249,18 +301,13 @@ public abstract class Int_ALife_Creature extends Thread
         // Mind global capacity
         // Mind habilities and perception
 
-        /*       
-        private ALife_Specie specie = null;
-        private long tamComplex = 0;
-        
-        private Mind_ALife mind = null;
-        */
         synchronized (c){
             c.tamComplex = comp;
         }
         
         return comp;
-    }
+        */
+    } // End public static double evaluateTamComplex(Int_ALife_Creature c)
     
     /**
      * An example of a method header - replace this comment with your own
@@ -298,12 +345,15 @@ public abstract class Int_ALife_Creature extends Thread
         //for test
         double VarTemporaldStatus = 0;
         VarTemporaldStatus = (double)c.lifeTime; //may be we need to normalize this values
-        VarTemporaldStatus += (double)c.hungry;
+        VarTemporaldStatus += ((double)c.hungry - 100)/DEFAULT_max_Hungry;
         VarTemporaldStatus += (double)c.livePoints / (double)c.livePointMax;
+        double tempBody = 0, tempMinBody = 0;
         for (int i = 0; i < c.foodResourceOwn.length; i++){
-            VarTemporaldStatus += (double)c.foodResourceOwn[i] / (double)c.minfoodResourceOwn[i]/DEFAULT_max_foodResourceNeed; 
+            tempBody += (double)c.foodResourceOwn[i];
+            tempMinBody += (double)c.minfoodResourceOwn[i];
         }
-
+        //(tempBody - tempMinBody) /(DEFAULT_max_foodResourceNeed*100);
+        VarTemporaldStatus += tempBody / tempMinBody;//DEFAULT_max_foodResourceNeed
         synchronized (c){
             c.status = VarTemporaldStatus + ownedStatus;
         }   

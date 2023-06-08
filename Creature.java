@@ -16,35 +16,46 @@ public class Creature extends Int_ALife_Creature
 {
     public static final int DEFAULT_LifeDelayPerNutrient = 10;
     public static final Color CREATURE_DEFAULT_COLOR =new Color (199,199,199);
+    // Constants for normalization Creature
+    /*public static final double[] creature_Caracteristics =
+        {hidden, tamComplex, attack, def, detectionRange, umbralDetection, humgryUmbral, 
+            lifeDelay, lifeExp, livePointMax, maxDescendants, minReproductionGroup, [creatureTrace,]
+            minfoodResourceOwn, maxfoodResourceOwn, foodResourceNeed,
+            mind.getInnerN(), mind.getMidN(), mind.getOutN(), mind.getStatusN()};
+    */
+
+
+    public static final double[] creature_minCaracteristics =
+        {0, 1, 0, 0, 0, 0, 1, //hidden, tamComplex, attack, def, detectionRange, umbralDetection, humgryUmbral, 
+            1, 100, 1, 1, 1, //lifeDelay, lifeExp, livePointMax, maxDescendants, minReproductionGroup, 
+            1, 1, 1, //minfoodResourceOwn, maxfoodResourceOwn, foodResourceNeed,
+            1, 0, 2, 0 //mind.getInnerN(), mind.getMidN(), mind.getOutN(), mind.getStatusN()
+        };
+
+    public static double[] creature_maxCaracteristics = //Can update if changes evolve
+    {1, 1000, 100, 100, 5, 1, 200, //hidden, tamComplex, attack, def, detectionRange, umbralDetection, humgryUmbral, 
+        100, 10000, 200, 10, 3, //lifeDelay, lifeExp, livePointMax, maxDescendants, minReproductionGroup, 
+        750, 750, 750, //minfoodResourceOwn, maxfoodResourceOwn, foodResourceNeed,
+        25, 15, 25, 5 //mind.getInnerN(), mind.getMidN(), mind.getOutN(), mind.getStatusN()
+    };
+        
+    //End Constants for normalization Creature
+
     // Fields ----------------------------------------------------------------------------
     //-private Env_ALife env_ALive; // Enviroment 
     private BufferedImage backLand = null;
     private BufferedImage frontLand = null;    
     private Semaphore semaphore;
     
-    //Creature caracteristics
-    //-private Point pos;
-    //-private Long lifeDelay = new Long (ALife_Nutrient_Enviroment.DEFAULT_LifeDealy/2);
-    
-    
-    //-private long idCreature = 0;
-    //private  Point pos;
-    //private long lifeDelay = 100;
-    //-private long tamComplex = 0;
-    //private long hungry = 100;
-    //-private long lifeExp = 100;
-    //-private long lifeTime = 0;
-    
-    //-private ALife_Specie specie = null;
-    
-    //-private int[] foodResourceOwn = {0,0,0};
-    //-private int[] minfoodResourceOwn = {0,0,0}; // when born and need to born
-    //-private int[] maxfoodResourceOwn = {0,0,0};
-    //-private int[] foodResourceNeed = {0,0,0};
-    
-    //-private Int_ALife_Creature[] reproductionGroup;
-    //-private Mind_ALife mind = null;
-        
+    //Creature caracteristics in Int_ALife_Creature
+    ArrayList <Long> timeOfDeccision = new ArrayList<Long>(); // Time of deccision
+    ArrayList <Mind_ALife.Action> actions = new ArrayList<Mind_ALife.Action>(); // Actions that creature can do
+    ArrayList <Double> statusValue = new ArrayList<Double>(); // Status of creature
+
+    //Make a variable with 3 fields long time field, double statusvalue and Mind_ALife.Action doneAction
+
+
+
         
     // Methods ---------------------------------------------------------------------------
     // Construcotors ============================
@@ -98,7 +109,7 @@ public class Creature extends Int_ALife_Creature
         tamComplex = evaluateTamComplex(this); // Funcion de evaluacion?
         //this.env_ALive.addEvent(env_ALive.getTime() + 1, this); //se añade a la siguiente unidad de tiempo
         //specie = getALife_Specie;
-    
+        env_ALive.getSpecies().addCreature(this); //Automatically assign specieIdNumber    
     }// Ene public Creature(Env_ALife env)
         
     /**
@@ -258,9 +269,12 @@ public class Creature extends Int_ALife_Creature
         tamComplex = evaluateTamComplex(this); // Funcion de evaluacion?; //auto calculate
         //reproductionGroup = new Int_ALife_Creature[this.minReproductionGroup];
         //reproductionGroup[0] = (Int_ALife_Creature)this; //(Int_ALife_Creature)this;
+        env_ALive.getSpecies().addCreature(this); //Automatically assign specieIdNumber
     }
     
-    Creature(){}//Just to can make subclass constructors
+    Creature(){
+        //env_ALive.getSpecies().addCreature(null); //Automatically assign specieIdNumber ??
+    }//Just to can make subclass constructors
     
     // Public Methods and Fuctions ==============
     
@@ -309,33 +323,40 @@ public class Creature extends Int_ALife_Creature
             //For concurrency Log
             //MultiTaskUtil.threadMsg("===== Semaphore ADQUIRED BY CREATURE("+
             //    semaphore.availablePermits()+").................");
-            //Run
+            //Run 
             //1.- Eventos involuntarios como morir
-            //Pasar HAMBRE FALTA
-            if (this.hungry < 100)
-                this.livePoints -= (100 - this.hungry);          
+            this.statusChangeEvolution(); //Register status changes for mind learning and evolution
+            
+            if (this.hungry < this.humgryUmbral)
+                this.livePoints -= (this.humgryUmbral - this.hungry);          
             //Check if dead
             if (this.lifeExp-this.lifeTime < 0) this.livePoints = 0;//Die by age
             if(this.livePoints <= 0) {
                 //crear cadaver en descomposicion Class extends Int_ALife_Cre...
                 this.livePoints = 0; //standarize
                 die(); // Morir
-                return;
+                return; //End fo this thread and no more scheduled events for this creature
             }         
             //2.- Think and do voluntary actions
             Mind_ALife mal = this.mind; //For test
-            Mind_ALife.Action a = mal.run();
-            if (a.equals(Mind_ALife.Action.REPRODUCE)) {
+            Mind_ALife.Action decidedAction = this.mind.run();
+
+            //For test
+            if (decidedAction.equals(Mind_ALife.Action.REPRODUCE)) {
                 if (this.getReproductable()) {
                     int breakpoint = 1;
                 }
             }
-            doAction(a);
+
+            doAction(decidedAction);
             //this.doAction(this.mind.run());  // Real code
             //3.- Generacion de consecuncias en entorno.
             //if alive add next event.
             this.lifeTime += this.lifeDelay;
             env_ALive.addEvent(env_ALive.getTime()+lifeDelay, this);
+
+            // Time to learn and evolve
+            this.statusChangesUpdate(decidedAction);
             try{
                 Thread.sleep(Env_ALife.CTE_TIEMPO_CEDER); // ceder tiempo de computo
                 //Thread.currentThread().sleep(Env_ALife.CTE_TIEMPO_ESPERA_LARGA); // ceder tiempo de computo
@@ -374,6 +395,89 @@ public class Creature extends Int_ALife_Creature
         }
         //Env_Panel.imageDisplay(this.env_ALive.getBackLifeImage(),"From Creature Run (LiveImage) - LIVE Image");
     } // End public void run()    
+
+    /**
+     * public static double[] serializeCreature(Int_ALife_Creature c)
+     * @param c Int_ALife_Creature
+     * @return double[], the serialized creature
+     */
+    public static double[] serializeCreature(Int_ALife_Creature c){
+        //super.serializeCreature(c); //Can't use super in static method
+        if (c == null) return null;
+        
+        ArrayList<Double> caracArrayList = new ArrayList<Double>();
+        caracArrayList.add(c.hidden);
+        caracArrayList.add(c.tamComplex);
+        caracArrayList.add((double)c.attack);
+        caracArrayList.add((double)c.def);
+        caracArrayList.add((double)c.detectionRange);
+        caracArrayList.add((double)c.umbralDetection);
+        caracArrayList.add((double)c.humgryUmbral);
+        caracArrayList.add((double)c.lifeDelay);
+        caracArrayList.add((double)c.lifeExp);
+        caracArrayList.add((double)c.livePointMax);
+        caracArrayList.add((double)c.maxDescendants);
+        caracArrayList.add((double)c.minReproductionGroup);
+        //caracArrayList.add(c.creatureTrace); //Don't know add or not
+        int cmfo = 0, cMfo = 0, cfrn = 0;
+        for(int i = 0; i < c.minfoodResourceOwn.length; i++){
+            cmfo += c.minfoodResourceOwn[i];
+            cMfo += c.maxfoodResourceOwn[i];
+            cfrn += c.foodResourceNeed[i];
+        }
+        caracArrayList.add((double)cmfo);
+        caracArrayList.add((double)cMfo);
+        caracArrayList.add((double)cfrn);
+        //Mind_ALife
+        if (c instanceof Creature){
+            caracArrayList.add((double)c.mind.getInnerN());
+            caracArrayList.add((double)c.mind.getMidN());
+            caracArrayList.add((double)c.mind.getOutN());
+            caracArrayList.add((double)c.mind.getStatusN());
+        } else {
+            caracArrayList.add(0.0);
+            caracArrayList.add(0.0);
+            caracArrayList.add(0.0);
+            caracArrayList.add(0.0);
+        } //for uniformity
+        //Add all to double[]
+        /* Version 1 of code with Double[] - wrapper
+        Double[] carac = new Double[caracArrayList.size()];
+        carac = caracArrayList.toArray(carac);
+        */
+        //Make new array abd chage from Double to double
+        double[] carac = new double[caracArrayList.size()];
+        for (int i = 0; i < caracArrayList.size(); i++){
+            carac[i] = caracArrayList.get(i);
+        }
+        //For test
+        if (carac.length != 19) {
+            int breakpoint = 1;
+        }
+        else{
+            int breakpoint = Creature.creature_minCaracteristics.length;
+            breakpoint = Creature.creature_maxCaracteristics.length;
+            breakpoint = 1;
+        }
+        return carac;
+    } // End public static double[] serializeCreature(Int_ALife_Creature c)
+
+    /**
+     * public static double evaluateTamComplex(Int_ALife_Creature c)
+     * Evaluate the tamComplex of creature, actualize it and return it
+     * @param c
+     * @return
+    */ 
+    public static double evaluateTamComplex(Int_ALife_Creature c){
+        double[] carac = Creature.serializeCreature(c);
+        carac = ALifeCalcUtil.min_max_Array_Normalization(carac, Creature.creature_minCaracteristics, 
+            Creature.creature_maxCaracteristics);
+        //carac = ALifeCalcUtil.ponderation_Array(carac, ponderationArray);
+        //double tamComplex = ALifeCalcUtil.arrayDistance(v1,v2);
+        double tamComplex = ALifeCalcUtil.mean(carac);
+        return tamComplex;
+    } // End public static double evaluateTamComplex(Int_ALife_Creature c)
+    
 
     // Public Methods and Fuctions ==============
     // Private Methods and Fuctions =============
@@ -467,6 +571,64 @@ public class Creature extends Int_ALife_Creature
     }
     
     /**
+     * private void statusChangesUpdate()
+     * Store in arraylist variables the time, the actual status value and the action done
+     * @param    - Mind_ALife.Action
+     * @return   - None
+     */
+    private void statusChangesUpdate(Mind_ALife.Action ac){
+        if (ac == null) return;
+        if (this.timeOfDeccision == null) this.timeOfDeccision = new ArrayList<Long>();
+        if (this.actions == null) this.actions = new ArrayList<Mind_ALife.Action>();
+        if (this.statusValue == null) this.statusValue = new ArrayList<Double>();
+        if (this.timeOfDeccision.size()!=this.actions.size() || 
+            this.timeOfDeccision.size() != this.statusValue.size()){
+            MultiTaskUtil.threadMsg("Error in Creature statusChangesUpdate: size of arraylist are diferent");
+            return;
+        } 
+        synchronized(this) {
+            timeOfDeccision.add(env_ALive.getTime());
+            actions.add(ac);
+            statusValue.add(Int_ALife_Creature.evaluateStatus(this));
+        }
+    }
+
+    /**
+     * private void statusChangeEvolution()
+     * 
+     */
+    private void statusChangeEvolution(){
+        double WEIGHT = 0.1; //Weight of actual status in evolution
+        long MEDIUM_TIME_UPDATE = 5; //Medium time for update data
+        long LONG_TIME_UPDATE = 15; //Long time for update data
+        double actualStatus = Int_ALife_Creature.evaluateStatus(this);
+        //Check
+        if (this.timeOfDeccision == null || this.actions == null || this.statusValue == null){
+            MultiTaskUtil.threadMsg("Error in Creature statusChangeEvolution: arraylist are null");
+            return;
+        }
+        if (this.timeOfDeccision.isEmpty() || 
+            this.timeOfDeccision.isEmpty() || this.statusValue.isEmpty()){
+            MultiTaskUtil.threadMsg("Error in Creature statusChangeEvolution: Any ArrayList is empty");
+            return;
+        }
+        // Fast minimal updates
+        this.mind.updateMind(actions.get(actions.size()-1), statusValue.get(statusValue.size()-1)-actualStatus, 
+            WEIGHT * (timeOfDeccision.get(timeOfDeccision.size()-1) - this.env_ALive.getTime()));
+        // Medium updates
+
+        // Long time updates
+
+        // Remove old useless datas
+        if (actions.size() > LONG_TIME_UPDATE && timeOfDeccision.size() > LONG_TIME_UPDATE && 
+            statusValue.size() > LONG_TIME_UPDATE){
+            actions.remove(0);
+            timeOfDeccision.remove(0);
+            statusValue.remove(0);
+        }
+    } // End private void statusChangeEvolution()
+
+    /**
      * private void actionReproduce(ArrayList<Int_ALife_Creature> progenitors)
      * 
      * @param    ArrayList<Int_ALife_Creature> progenitors
@@ -492,7 +654,7 @@ public class Creature extends Int_ALife_Creature
         //mind reproduce + mutate /// ---> creo que ahora mind lo invoca el constructor de creature
         //baby.setMind(new Mind_ALife(progenitors, baby, this.env_ALive.getAllowMutate()));
         this.getEnv_ALife().addCreature(baby);
-    }
+    } // End private void actionReproduce(ArrayList<Int_ALife_Creature> progenitors)
     
     // Method from abstras still dont implemented --------------------------------------------------------------------
     /**
