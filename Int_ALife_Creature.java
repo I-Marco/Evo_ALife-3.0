@@ -25,6 +25,7 @@ public abstract class Int_ALife_Creature extends Thread
     public static long DEFAULT_Hungry_Humbral = 100;
     public static long DEFAULT_Life_Turns = 100;
     
+    public static double MUTATION_DISTANCE = 1; //1 * minimum value of caracteristic
     // Fields ==================================================================================
 
     //end for test
@@ -43,7 +44,7 @@ public abstract class Int_ALife_Creature extends Thread
     
     long specieNumberID = -2; //-1 for corpses, -2 for no specie
     ALife_Specie specie = null;
-    double tamComplex = 1; //evaluateTamComplex(this);
+    double tamComplex = 0; //evaluateTamComplex(this);
     
     int[] foodResourceOwn = {0,0,0};
     int[] minfoodResourceOwn = {0,0,0}; // when born and need to born
@@ -53,7 +54,7 @@ public abstract class Int_ALife_Creature extends Thread
     Trace creatureTrace = null;
     double hidden = 0L; //0..1, 0 = No hidden
     int detectionRange = 1; //in pixels min 1
-    int umbralDetection = 1; //0..1, 0 = Min detection
+    double umbralDetection = 1; //0..1, 0 = Min detection
     
     long humgryUmbral = DEFAULT_Hungry_Humbral;
     long hungry = DEFAULT_Hungry_Humbral;
@@ -176,7 +177,7 @@ public abstract class Int_ALife_Creature extends Thread
      * @param    None
      * @return   int, the detección umbral of creature lower is better
      */       
-    public synchronized int getUmbralDetection(){
+    public synchronized double getUmbralDetection(){
         return this.umbralDetection; 
     } // End public int getUmbralDetection()
     
@@ -229,21 +230,80 @@ public abstract class Int_ALife_Creature extends Thread
      * @param  c
      * @return double[]
      */
+
+    /**
+     * public static double[] serializeCreature(Int_ALife_Creature c)
+     * @param c Int_ALife_Creature
+     * @return double[], the serialized creature
+     */
     public static double[] serializeCreature(Int_ALife_Creature c){
+        //super.serializeCreature(c); //Can't use super in static method
         if (c == null) return null;
-        double[] carac; // = new double[caracArrayList.size()];
-        carac = Creature.serializeCreature(c);
+        
+        ArrayList<Double> caracArrayList = new ArrayList<Double>();
+        caracArrayList.add(c.hidden);
+        caracArrayList.add(c.tamComplex);
+        caracArrayList.add((double)c.attack);
+        caracArrayList.add((double)c.def);
+        caracArrayList.add((double)c.detectionRange);
+        caracArrayList.add((double)c.umbralDetection);
+        caracArrayList.add((double)c.humgryUmbral);
+        caracArrayList.add((double)c.lifeDelay);
+        caracArrayList.add((double)c.lifeExp);
+        caracArrayList.add((double)c.livePointMax);
+        caracArrayList.add((double)c.maxDescendants);
+        caracArrayList.add((double)c.minReproductionGroup);
+        //caracArrayList.add(c.creatureTrace); //Don't know add or not
+        int cmfo = 0, cMfo = 0, cfrn = 0;
+        for(int i = 0; i < c.minfoodResourceOwn.length; i++){
+            cmfo += c.minfoodResourceOwn[i];
+            cMfo += c.maxfoodResourceOwn[i];
+            cfrn += c.foodResourceNeed[i];
+        }
+        caracArrayList.add((double)cmfo);
+        caracArrayList.add((double)cMfo);
+        caracArrayList.add((double)cfrn);
+        //Mind_ALife
+        if (c instanceof Creature){
+            caracArrayList.add((double)c.mind.getInnerN());
+            caracArrayList.add((double)c.mind.getMidN());
+            caracArrayList.add((double)c.mind.getOutN());
+            caracArrayList.add((double)c.mind.getStatusN());
+        } else {
+            caracArrayList.add(0.0);
+            caracArrayList.add(0.0);
+            caracArrayList.add(0.0);
+            caracArrayList.add(0.0);
+        } //for uniformity
+        //Add all to double[]
+        /* Version 1 of code with Double[] - wrapper
+        Double[] carac = new Double[caracArrayList.size()];
+        carac = caracArrayList.toArray(carac);
+        */
+        //Make new array abd chage from Double to double
+        double[] carac = new double[caracArrayList.size()];
+        for (int i = 0; i < caracArrayList.size(); i++){
+            carac[i] = caracArrayList.get(i);
+        }
+        //For test
+        if (carac.length != 19) {
+            int breakpoint = 1;
+        }
+        else{
+            int breakpoint = Creature.creature_minCaracteristics.length;
+            breakpoint = Creature.creature_maxCaracteristics.length;
+            breakpoint = 1;
+        }
         return carac;
-        //return Creature.serializeCreature(c);
     } // End public static double[] serializeCreature(Int_ALife_Creature c)
 
 
-/**
+    /**
      * public static double evaluateTamComplex(Int_ALife_Creature c)
      * Evaluate the tamComplex of creature, actualize it and return it
      * @param c
      * @return
-     */    
+    */ 
     public static double evaluateTamComplex(Int_ALife_Creature c){
         double[] carac = Creature.serializeCreature(c);
         carac = ALifeCalcUtil.min_max_Array_Normalization(carac, Creature.creature_minCaracteristics, 
@@ -252,61 +312,6 @@ public abstract class Int_ALife_Creature extends Thread
         //double tamComplex = ALifeCalcUtil.arrayDistance(v1,v2);
         double tamComplex = ALifeCalcUtil.mean(carac);
         return tamComplex;
-    
-        
-        
-        /* 
-        double DEFAULT_max_Lexp_vs_Ldelay = 200 * ALife_Nutrient_Environment.DEFAULT_LifeDelay;
-        double DEFAULT_max_LivePoints = 1000;
-        double DEFAULT_max_Def_Attack = 100;
-        double DEFAULT_max_foodResourceNeed = 256*3;
-        double DEFAULT_max_Hungry = 250;
-        double DEFAULT_max_minReproductionGroup = 5;
-        double DEFAULT_max_descendants = 10;
-        double DEFAULT_max_detectRange = 10;
-
-        double comp = 1; // 1= min complexity.
-        //for test
-        double aux = 0;
-        // internal physical caracteristics ------
-            aux = (double)c.lifeDelay / (double)(ALife_Nutrient_Environment.DEFAULT_LifeDelay * 2);
-        comp += (double)c.lifeDelay / (double)(ALife_Nutrient_Environment.DEFAULT_LifeDelay * 2);
-            aux = (double)c.lifeDelay / (double)(ALife_Nutrient_Environment.DEFAULT_LifeDelay * 2);
-        comp += ((double)c.lifeExp / (double)c.lifeDelay)/(double)DEFAULT_max_Lexp_vs_Ldelay;
-            aux = (double)c.livePoints / (double)DEFAULT_max_LivePoints;
-        comp += (double)c.livePointMax / (double)DEFAULT_max_LivePoints;
-            aux = (double)c.def / (double)DEFAULT_max_Def_Attack;
-        comp += (double)c.def / (double)DEFAULT_max_Def_Attack;
-            aux = (double)c.attack / (double)DEFAULT_max_Def_Attack;
-        comp += (double)c.attack / (double)DEFAULT_max_Def_Attack;
-            aux = (double)c.hungry / (double)DEFAULT_max_Hungry;
-        comp += (double)c.hungry / (double)DEFAULT_max_Hungry;
-            aux = (double)c.minReproductionGroup / (double)DEFAULT_max_minReproductionGroup;
-        comp += (double)c.minReproductionGroup / (double)DEFAULT_max_minReproductionGroup;
-            aux = (double)c.maxDescendants / (double)DEFAULT_max_descendants;
-        comp += (double)c.maxDescendants / (double)DEFAULT_max_descendants;
-            aux = 1-(double)c.hidden;//1-(double)c.hidden;
-        comp += 1-(double)c.hidden; // 0..1, 1= No hidden
-            aux = 1-(double)c.umbralDetection;//1-(double)c.umbralDetection;
-        comp += 1-(double)c.umbralDetection; // 0..1, 1= No Detection
-            aux = (double)c.detectionRange / (double)DEFAULT_max_detectRange;
-        comp += (double)c.detectionRange / (double)DEFAULT_max_detectRange;
-        for (int i = 0; i < c.foodResourceNeed.length; i++){
-            comp += (double)c.foodResourceNeed[i] / (double)DEFAULT_max_foodResourceNeed;
-            comp += ((double)c.foodResourceOwn[i] / (10*(double)DEFAULT_max_foodResourceNeed));
-        }
-        
-
-
-        // Mind global capacity
-        // Mind habilities and perception
-
-        synchronized (c){
-            c.tamComplex = comp;
-        }
-        
-        return comp;
-        */
     } // End public static double evaluateTamComplex(Int_ALife_Creature c)
     
     /**
@@ -334,8 +339,8 @@ public abstract class Int_ALife_Creature extends Thread
         double ownedStatus = 0;
         for(Int_ALife_Creature cr: c.descendents){
             if (cr == null) ownedStatus += DEFAULT_descendat_StatusPlus; //implement DEFAULT_descendat_StatusPlus
-            else ownedStatus += cr.getStatus(); 
-            ownedStatus += cr.getStatus(); // implement getStatus()
+            else ownedStatus += DEFAULT_descendat_StatusPlus + cr.getStatus(); 
+            //ownedStatus += cr.getStatus(); // implement getStatus()
             //Posibly specie add to status value 
         }
         synchronized (c){
@@ -359,7 +364,155 @@ public abstract class Int_ALife_Creature extends Thread
         }   
         return VarTemporaldStatus + ownedStatus; //for test
         //return c.status;
+    } // End public static double evaluateStatus(Int_ALife_Creature c)
+
+    /**
+     * public static double[] mutateCreaturebySerialization(double[] carac)
+     * Mutate the creature in a double[] and return it but most work automutation c
+     * @param  c Int_ALife_Creature
+     * @return double[]
+     */
+    public static double[] mutateCreaturebySerialization(double[] carac){
+        //Serialized but not necessarily normalized
+        if (carac == null) return null;
+        if (carac.length != 19) return null; // Unknow creature type
+        int l = carac.length;
+        // same possibility to mutate all caracteristics other way an array to set the possibilities of each caracteristic
+        Random r = new Random();
+        int mutateCaracteristic = r.nextInt(l);
+        double[] caracMutated = new double[l];
+        for (int j = 0; j < l; j++){
+            if (j == mutateCaracteristic) {
+                double tempMin = 0; //Cuantity of minimum modification, other way if min = 0 modifycantion is always 0
+                if (Creature.creature_minCaracteristics[mutateCaracteristic] == 0) {
+                    tempMin = Creature.creature_maxCaracteristics[mutateCaracteristic] / 100;
+                    /*
+                    tempMin = Creature.creature_maxCaracteristics[mutateCaracteristic] / 
+                      (Creature.creature_maxCaracteristics[mutateCaracteristic] + 
+                        (100 * Creature.creature_maxCaracteristics[mutateCaracteristic])); //may be 1000
+                    */
+                    if (tempMin == 0) tempMin = 0.01;
+                }else tempMin = Creature.creature_minCaracteristics[mutateCaracteristic];
+                caracMutated[j] = 
+                    carac[j] + (r.nextInt(3)-1) * MUTATION_DISTANCE * tempMin;//random +-1 * mutation distance
+                //limits check
+                if (caracMutated[j] < Creature.creature_minCaracteristics[mutateCaracteristic]) 
+                    caracMutated[j] = Creature.creature_minCaracteristics[mutateCaracteristic];
+                if (caracMutated[j] > Creature.creature_maxCaracteristics[mutateCaracteristic]) 
+                    Creature.creature_maxCaracteristics[mutateCaracteristic] = caracMutated[j];
+                    // This cause diferences un species asignation and can't be backsteps the done asignations
+                
+                //caracMutated[j] = 
+                //    carac[j] + (r.nextInt(3)-1) * MUTATION_DISTANCE * 
+                //    Creature.creature_minCaracteristics[mutateCaracteristic];//random +-1 * mutation distance
+            } else caracMutated[j] = carac[j];
+        }
+        return caracMutated;
+    } // End public static double[] mutateCreaturebySerialization(double[] carac)
+
+    /**
+     * public void mutateCreature() 
+     * Mutate the creature by seriazing it and them aply chnages
+     * @param  None
+     * @return None
+     */
+    public void mutateCreature(){
+        double[] carac = Creature.serializeCreature(this);
+        double[] caracMutated = Creature.mutateCreaturebySerialization(carac);
+        int mutatedCar; //number of caracteristic have been mutated
+        for (mutatedCar = 0; mutatedCar < carac.length; mutatedCar ++){
+            if (carac[mutatedCar] != caracMutated[mutatedCar]) break;
+        }
+        //for test
+        double d = ALifeCalcUtil.arrayDistance(carac, caracMutated);
+
+        if (mutatedCar == carac.length || carac[mutatedCar] == caracMutated[mutatedCar]) return; //No mutation
+        //Mutate creature
+        if (mutatedCar < carac.length - Creature.MIND_NEURONS_TYPES){
+        /*
+         public static final double[] creature_minCaracteristics =
+            {0, 1, 0, 0, 0, 0, 1, //hidden, tamComplex, attack, def, detectionRange, umbralDetection, humgryUmbral, 
+            1, 100, 1, 1, 1, //lifeDelay, lifeExp, livePointMax, maxDescendants, minReproductionGroup, 
+            1, 1, 1, //minfoodResourceOwn, maxfoodResourceOwn, foodResourceNeed,
+            1, 0, 2, 0 //mind.getInnerN(), mind.getMidN(), mind.getOutN(), mind.getStatusN()
+        };
+        */
+            switch (mutatedCar){
+                case 0 : //hidden
+                    this.hidden = caracMutated[mutatedCar];
+                    break;
+                case 1 : //tamComplex must be calculated later
+                    break;
+                case 2 : //attack
+                    this.attack = (long)caracMutated[mutatedCar];
+                    break;
+                case 3 : //def
+                    this.def = (long)caracMutated[mutatedCar];
+                    break;
+                case 4 : //detectionRange
+                    this.detectionRange = (int)caracMutated[mutatedCar];
+                    break;
+                case 5 : //umbralDetection
+                    this.umbralDetection = caracMutated[mutatedCar];
+                    break;
+                case 6 : //humgryUmbral 
+                    this.humgryUmbral = (long)caracMutated[mutatedCar]; 
+                    break;
+                case 7 : //lifeDelay
+                    this.lifeDelay = (long)caracMutated[mutatedCar];
+                    break;
+                case 8 : //lifeExp
+                    this.lifeExp = (long)caracMutated[mutatedCar];
+                    break;
+                case 9 : //livePointMax
+                    this.livePointMax = (long)caracMutated[mutatedCar];
+                    break;
+                case 10 : //maxDescendants
+                    this.maxDescendants = (int)caracMutated[mutatedCar];
+                    break;
+                case 11 : //minReproductionGroup
+                    this.minReproductionGroup = (int)caracMutated[mutatedCar];
+                    break;
+                case 12 : //minfoodResourceOwn
+                    mutateFood(this.minfoodResourceOwn, (int)caracMutated[mutatedCar]);
+                    break;
+                case 13 : //maxfoodResourceOwn
+                    mutateFood(this.maxfoodResourceOwn, (int)caracMutated[mutatedCar]);
+                    break;
+                case 14 : //foodResourceNeed
+                    mutateFood(this.foodResourceNeed, (int)caracMutated[mutatedCar]);
+                    break;
+                default :
+                    MultiTaskUtil.threadMsg("Error in mutateCreature() in Int_ALife_Creature.java");
+                    break;
+            } // End switch (mutatedCar)
+        } // End if // esto deberia ser para todos. Falta mutate Mind
+        this.tamComplex = evaluateTamComplex(this);
+    } // End public void mutateCreature()
+
+    private int[] mutateFood(int[] food, int newcarac){
+        int[] returnedFood = new int[food.length];
+        MultiTaskUtil.copyIntArrayContent(returnedFood, food);
+        int totFood = Arrays.stream(returnedFood).sum();
+        if (totFood == newcarac) {return returnedFood;} //No mutation
+        Random r = new Random();
+        int whereMutate = r.nextInt(newcarac);
+        for (int i = 0; i < food.length; i++) {
+            if (returnedFood[i] >= whereMutate){
+                if (totFood > (int)newcarac) 
+                    returnedFood[i] -= Creature.creature_minCaracteristics[15];
+                else returnedFood[i] += Creature.creature_minCaracteristics[15]; //food minumum modification
+            }
+        }
+        //for test
+        totFood = Arrays.stream(returnedFood).sum();
+        if (totFood != newcarac) {
+            MultiTaskUtil.threadMsg("Error in mutateFood() in Int_ALife_Creature.java, "+totFood+" != "+newcarac);
+        }
+        //End for test
+        return returnedFood;
     }
+
     public abstract long die();
     
     public abstract void doAction(Mind_ALife.Action ac);

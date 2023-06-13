@@ -26,19 +26,21 @@ public class Creature extends Int_ALife_Creature
 
 
     public static final double[] creature_minCaracteristics =
-        {0, 1, 0, 0, 0, 0, 1, //hidden, tamComplex, attack, def, detectionRange, umbralDetection, humgryUmbral, 
+        {0, 0, 0, 0, 0, 0, 1, //hidden, tamComplex, attack, def, detectionRange, umbralDetection, humgryUmbral, 
             1, 100, 1, 1, 1, //lifeDelay, lifeExp, livePointMax, maxDescendants, minReproductionGroup, 
             1, 1, 1, //minfoodResourceOwn, maxfoodResourceOwn, foodResourceNeed,
             1, 0, 2, 0 //mind.getInnerN(), mind.getMidN(), mind.getOutN(), mind.getStatusN()
         };
 
     public static double[] creature_maxCaracteristics = //Can update if changes evolve
-    {1, 1000, 100, 100, 5, 1, 200, //hidden, tamComplex, attack, def, detectionRange, umbralDetection, humgryUmbral, 
+    {1, 1, 100, 100, 5, 1, 200, //hidden, tamComplex, attack, def, detectionRange, umbralDetection, humgryUmbral, 
         100, 10000, 200, 10, 3, //lifeDelay, lifeExp, livePointMax, maxDescendants, minReproductionGroup, 
-        750, 750, 750, //minfoodResourceOwn, maxfoodResourceOwn, foodResourceNeed,
+        768, 768, 768, //minfoodResourceOwn, maxfoodResourceOwn, foodResourceNeed,
         25, 15, 25, 5 //mind.getInnerN(), mind.getMidN(), mind.getOutN(), mind.getStatusN()
     };
-        
+    //Note: 2º value is TamComplex. Be care on changes same on MIND values
+    
+    public static int MIND_NEURONS_TYPES = 4; //Number of caracteristics reffered to Mind_ALife
     //End Constants for normalization Creature
 
     // Fields ----------------------------------------------------------------------------
@@ -68,7 +70,7 @@ public class Creature extends Int_ALife_Creature
     //public Creature(Env_ALife env, Semaphore s, Point p){
     public Creature(Env_ALife env, Point p, Mind_ALife m, long lifeexp, int[] frOwn, int[] frNeed){
         env_ALive = env;
-        idCreature = this.env_ALive.getCreatureID();
+        idCreature = this.env_ALive.getNewCreatureID();
         semaphore = env_ALive.getSemaphore(); // Quiza deberia ser parámetro pero Evo_ALIFE no lo tiene
         
         //frontLand = Env_Panel.getDefaultEnvImage(); //?
@@ -96,7 +98,7 @@ public class Creature extends Int_ALife_Creature
 
         //foodResourceNeed = {0,0,0};            
                 
-        hungry = 100;
+        hungry = Int_ALife_Creature.DEFAULT_Hungry_Humbral + 1;
     
         if (m != null) { this.mind = m;}
         else {//
@@ -187,7 +189,7 @@ public class Creature extends Int_ALife_Creature
         
         //Int_ALife_Creature ausC = progenitors[0];
         //this.setEnv_ALife(progenitors[0].getEnv_ALife());
-        idCreature = this.env_ALive.getCreatureID();
+        idCreature = this.env_ALive.getNewCreatureID();
         semaphore = env_ALive.getSemaphore();
         lifeTime = 0;
         
@@ -256,9 +258,9 @@ public class Creature extends Int_ALife_Creature
         mind = new Mind_ALife(progenitors,this,progenitors.get(0).env_ALive.getAllowMutate());//new Mind_ALife(progenitors);
         
         //Autocalculated datas
-        hungry = 100; //0auto calculate
+        hungry = Int_ALife_Creature.DEFAULT_Hungry_Humbral + 1; //0auto calculate
 
-        specie = null;//autocalculate
+        specie = null;//autocalculate deprecated for moment
         //Ming values neurosn neurons in neurosn out neurons status
         
         this.minReproductionGroup = progenitors.get(0).minReproductionGroup;
@@ -269,6 +271,7 @@ public class Creature extends Int_ALife_Creature
         tamComplex = evaluateTamComplex(this); // Funcion de evaluacion?; //auto calculate
         //reproductionGroup = new Int_ALife_Creature[this.minReproductionGroup];
         //reproductionGroup[0] = (Int_ALife_Creature)this; //(Int_ALife_Creature)this;
+        this.mutateCreature();
         env_ALive.getSpecies().addCreature(this); //Automatically assign specieIdNumber
     }
     
@@ -400,7 +403,7 @@ public class Creature extends Int_ALife_Creature
      * public static double[] serializeCreature(Int_ALife_Creature c)
      * @param c Int_ALife_Creature
      * @return double[], the serialized creature
-     */
+     
     public static double[] serializeCreature(Int_ALife_Creature c){
         //super.serializeCreature(c); //Can't use super in static method
         if (c == null) return null;
@@ -440,11 +443,6 @@ public class Creature extends Int_ALife_Creature
             caracArrayList.add(0.0);
             caracArrayList.add(0.0);
         } //for uniformity
-        //Add all to double[]
-        /* Version 1 of code with Double[] - wrapper
-        Double[] carac = new Double[caracArrayList.size()];
-        carac = caracArrayList.toArray(carac);
-        */
         //Make new array abd chage from Double to double
         double[] carac = new double[caracArrayList.size()];
         for (int i = 0; i < caracArrayList.size(); i++){
@@ -461,13 +459,13 @@ public class Creature extends Int_ALife_Creature
         }
         return carac;
     } // End public static double[] serializeCreature(Int_ALife_Creature c)
-
+    */
     /**
      * public static double evaluateTamComplex(Int_ALife_Creature c)
      * Evaluate the tamComplex of creature, actualize it and return it
      * @param c
      * @return
-    */ 
+    
     public static double evaluateTamComplex(Int_ALife_Creature c){
         double[] carac = Creature.serializeCreature(c);
         carac = ALifeCalcUtil.min_max_Array_Normalization(carac, Creature.creature_minCaracteristics, 
@@ -477,7 +475,7 @@ public class Creature extends Int_ALife_Creature
         double tamComplex = ALifeCalcUtil.mean(carac);
         return tamComplex;
     } // End public static double evaluateTamComplex(Int_ALife_Creature c)
-    
+    */
 
     // Public Methods and Fuctions ==============
     // Private Methods and Fuctions =============
@@ -557,7 +555,7 @@ public class Creature extends Int_ALife_Creature
                 }
             }
             if (foodResourceNeed [i] > foodResourceEated [i]) {
-                this.hungry += foodResourceNeed [i] - foodResourceEated [i]; //May be too much
+                this.hungry += foodResourceEated [i] - foodResourceNeed [i]; //May be too much
                 isHungry = true;
             }
         }
@@ -568,7 +566,7 @@ public class Creature extends Int_ALife_Creature
         //return resources to env rest[]
         if (returFoodToGround) 
             this.env_ALive.getLand().germine(pos.x, pos.y, rest[0], rest[1], rest[2], 0);
-    }
+    } // End private void grow(Point pos, int[] foodResourceEated)
     
     /**
      * private void statusChangesUpdate()
@@ -608,7 +606,7 @@ public class Creature extends Int_ALife_Creature
             return;
         }
         if (this.timeOfDeccision.isEmpty() || 
-            this.timeOfDeccision.isEmpty() || this.statusValue.isEmpty()){
+            this.actions.isEmpty() || this.statusValue.isEmpty()){
             MultiTaskUtil.threadMsg("Error in Creature statusChangeEvolution: Any ArrayList is empty");
             return;
         }

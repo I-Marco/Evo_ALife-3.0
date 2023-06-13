@@ -20,7 +20,13 @@ public class ALifeCalcUtil {
      * @ return: normalized value
      */
     public static double min_max_Normalization(double value, double min, double max){
-        return (value - min) / (max - min);
+        try{
+            return (value - min) / (max - min);
+        }catch(Exception e){
+            //error div by 0
+            MultiTaskUtil.threadMsg("Error in min_max_Normalization (value: "+value+" min: "+min+" max: "+max+"))");
+        }
+        return 0;
     } // End of method min_max_Normalization
 
 /**
@@ -36,6 +42,12 @@ public class ALifeCalcUtil {
         double[] normalized_values = new double[values.length];
         for(int i = 0; i < values.length; i++){
             normalized_values[i] = min_max_Normalization(values[i], min[i], max[i]);
+            //for test
+            if (normalized_values[i] < 0 || normalized_values[i] > 1){
+                MultiTaskUtil.threadMsg("Error in min_max_Array_Normalization");
+                MultiTaskUtil.threadMsg("value: "+values[i]+" min: "+min[i]+" max: "+max[i]+" normalized: "+normalized_values[i]);
+            }
+            //end for test
         }  
         return normalized_values;
     } // End of method min_max_Array_Normalization
@@ -49,7 +61,7 @@ public class ALifeCalcUtil {
      * @ param max: maximum value of the range
      * @ return: normalized set of values
      */
-     public static double[] min_max_Normalization(double[] values, double min, double max){
+     public static double[] min_max_MultipleValuesNormalization(double[] values, double min, double max){
         double[] normalized_values = new double[values.length];
         for(int i = 0; i < values.length; i++){
             normalized_values[i] = min_max_Normalization(values[i], min, max);
@@ -230,6 +242,7 @@ public class ALifeCalcUtil {
      * @ return: ponderation of the set of values
      */
     public static double[] ponderation_Array(double[] values, double[] ponderationArray){
+        //NOT tested yet
         double[] ponderation = new double[values.length];
         for(int i = 0; i < values.length; i++){
             ponderation[i] = values[i] * ponderationArray[i];
@@ -248,6 +261,13 @@ public class ALifeCalcUtil {
     public static double arrayDistance(double[] array1, double[] array2){
         double distance = 0;
         for(int i = 0; i < array1.length; i++){
+            
+            //for test
+            double a1 = array1[i];
+            double a2 = array2[i];
+            double a3 = Math.pow(array1[i] - array2[i], 2);
+            //end for test
+
             distance += Math.pow(array1[i] - array2[i], 2);
         }
         return Math.sqrt(distance);

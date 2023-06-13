@@ -83,11 +83,11 @@ public class MultiTaskUtil
     
     /**
      * public static boolean copyIntArrayContent(int[] a, int[] b)
-     * Copia el contenido de un array a otro
+     * Copia el contenido del segundo array en el array pasado como primer parámetro
      * Evita la copia de arrays por referencia en lugar de por valor.
      * @param a
      * @param b
-     * @return
+     * @return true si la copia se ha realizado correctamente
      */
     public static boolean copyIntArrayContent(int[] a, int[] b){
         //boolean done = false;

@@ -31,14 +31,34 @@ public class ALife_Species
     // Public Methods and Fuctions ==============
     
     //Getter and Setters
+
     /**
      * public long getNumberOfDifferentSpecies()
      * Get the number of different species
      * @return long, the number of different species
      */ 
     public long getNumberOfDifferentSpecies(){
+        //for test
+        if (speciesList.size() != numberOfDifferentSpecies){
+            MultiTaskUtil.threadMsg("Error en el número de especies. Contador distinto que longitud de la lista");  
+        }
+        //end for test
         return numberOfDifferentSpecies;  
     } // End public long getNumberOfDifferentSpecies()
+
+    /**
+     * public long getNumberOfDifferentActiveSpecies()
+     * Get the number of different active species, the species with at least one creature alive
+     * @return long, the number of different active species
+     */
+    public long getNumberOfDifferentActiveSpecies(){
+        //for test
+        if (speciesList.size() != numberOfDifferentSpecies){
+            MultiTaskUtil.threadMsg("Error en el número de especies. Contador distinto que longitud de la lista");  
+        }
+        //end for test
+        return numberOfDifferentActiveSpecies;
+    } // End public long getNumberOfDifferentActiveSpecies()
 
     /**
      * public long getLastSpecieNumberID()
@@ -97,9 +117,10 @@ public class ALife_Species
             //c.setSpecieIdNumber(specieIdNumber); Asigned in addSpecie
         } else {
             //Add creature to specie
-            ALife_Specie s = this.speciesList.get(specieIdNumber.intValue());
+            ALife_Specie s = this.speciesList.get(specieIdNumber.intValue() - 1);
+            c.setSpecieIdNumber(specieIdNumber);
             s.addCreature(c);
-            c.setSpecieIdNumber(s.getSpecieIdNumber());
+            c.setSpecieIdNumber(s.getSpecieIdNumber()); //Redundant ??
         }
     } // End public void addCreature(Int_ALife_Creature c)
 
@@ -112,7 +133,7 @@ public class ALife_Species
     public void removeCreature(Int_ALife_Creature c){
         if (c == null) return;
         try{
-            ALife_Specie s = this.speciesList.get((int)c.getSpecieIdNumber());
+            ALife_Specie s = this.speciesList.get((int)c.getSpecieIdNumber() - 1);
             if (s.removeCreature(c) == 0){
                 this.numberOfDifferentActiveSpecies--;
             }
@@ -153,8 +174,25 @@ public class ALife_Species
     public static double getDistancetoSpecie(ALife_Specie s, Int_ALife_Creature c){
         if (s == null || c == null) return -1;
         if (s.getRepresentativeCreature() == null) return -1;
-
         Int_ALife_Creature sp_c= s.getRepresentativeCreature();
+        
+        return 
+        ALifeCalcUtil.arrayDistance(
+          ALifeCalcUtil.min_max_Array_Normalization(
+            Int_ALife_Creature.serializeCreature(sp_c),
+            Creature.creature_minCaracteristics,
+            Creature.creature_maxCaracteristics
+          ),
+          ALifeCalcUtil.min_max_Array_Normalization(
+            Int_ALife_Creature.serializeCreature(c),
+            Creature.creature_minCaracteristics,
+            Creature.creature_maxCaracteristics
+          )
+        );
+        
+
+        /*
+        
         ArrayList<Double> distances = new ArrayList<Double>();
         double auxD = 0;
         auxD = sp_c.hidden / c.hidden;
@@ -211,7 +249,7 @@ public class ALife_Species
         for (Double d: distances){
             auxD += d;
         }
-        return auxD;
+        */
     } // End public double getDistancetoSpecie(ALife_Specie s, Int_ALife_Creature c)
 
      // Private Methods and Fuctions =============
@@ -228,8 +266,9 @@ public class ALife_Species
         double minDistance = SPECIE_DISTANCE;
         Long specieIdNumber = Long.valueOf(-2);
         for (ALife_Specie s: speciesList){
-            if (getDistancetoSpecie(s, c) < minDistance){
-                minDistance = getDistancetoSpecie(s, c);
+            double distance = getDistancetoSpecie(s, c); //Aboid recalculation of long time function
+            if (distance < minDistance){
+                minDistance = distance;
                 specieIdNumber = s.getSpecieIdNumber();
             }
         }

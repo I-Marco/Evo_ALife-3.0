@@ -148,7 +148,12 @@ public class ALife_Specie
     public synchronized long addCreature(Int_ALife_Creature c){
         if (c == null) return this.numberOfCreatures;
         if (c.getEnv_ALife() == null) return this.numberOfCreatures;
-        if (c.getEnv_ALife().getSpecieIdNumber() != specieIdNumber) return this.numberOfCreatures;
+        //for test c.getSpecieIdNumber()
+        long t1 = c.getSpecieIdNumber();
+        long t2 =specieIdNumber;
+        //End for test
+
+        if (c.getSpecieIdNumber() != specieIdNumber) return this.numberOfCreatures;
         
         //There are 0 creatures new creation of the specie by mutation
         if (numberOfCreatures == 0){
@@ -156,7 +161,7 @@ public class ALife_Specie
             reMutateCreation.add(c.getEnv_ALife().getTime());
         }
         numberOfCreatures++;
-        c.specieNumberID = this.specieIdNumber;
+        c.specieNumberID = this.specieIdNumber; //Redundant
         return numberOfCreatures;
         // reevaluate the the this.representativeCreature atributes?
     } // End public void addCreature(c)
@@ -170,7 +175,7 @@ public class ALife_Specie
     public synchronized long removeCreature(Int_ALife_Creature c){
         if (c == null) return this.numberOfCreatures;
         if (c.getEnv_ALife() == null) return this.numberOfCreatures;
-        if (c.getEnv_ALife().getSpecieIdNumber() != specieIdNumber) return this.numberOfCreatures;
+        if (c.getSpecieIdNumber() != specieIdNumber) return this.numberOfCreatures;
         if (numberOfCreatures == 0) return this.numberOfCreatures;
         numberOfCreatures--;
         if (numberOfCreatures == 0){
@@ -191,6 +196,8 @@ public class ALife_Specie
         if (c == null) return null;
         if (c.getEnv_ALife() == null) return null;
         //    private ALife_Specie(Int_ALife_Creature c, long tam, long time){
+        //Dupe the creature FALTA
+        c.setSpecieIdNumber(specieId);
         return new ALife_Specie(c, Int_ALife_Creature.evaluateTamComplex(c), c.getEnv_ALife().getTime());
     } // End public static ALife_Specie createSpecie(Int_ALife_Creature c, long specieId)
 

@@ -199,7 +199,7 @@ public class ALife_Nutrient_Environment implements Runnable
      * @return   int that cratures got succesfully 
      */
     public int[] getNutrient(Point p, int[] fResN, Creature eater){
-        int[] fResNeed = new int[fResN.length];
+        int[] fResNeed = new int[fResN.length];//Copy of fResN parámeter
         MultiTaskUtil.copyIntArrayContent(fResNeed, fResN);
         synchronized (this){
             //int r,g,b;

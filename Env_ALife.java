@@ -31,7 +31,8 @@ public class Env_ALife extends Thread
     public static final long CTE_TIEMPO_ESPERA_LARGA = 2500;
     public static final int[] FOOD_0 = {0, 0, 0};
     public static final int TRACE_PODENRACION_PESO_DETECCIÓN = 256*3;
-
+    public static final double MUTATION_PROBABILITY = 0.01;
+    
     // Fields ----------------------------------------------------------------------------
     private Evo_ALife caller = null;
     private ALife_Nutrient_Environment land = null; //Mapa de rastros en lando o otro?
@@ -767,7 +768,7 @@ public class Env_ALife extends Thread
      * @return   String
      */
     public synchronized String getSpeciesNumber(){
-        String r = "No computado";        
+        String r = this.species.getNumberOfDifferentActiveSpecies() + " especies.";        
         return r;
     } // End public synchronized String getSpeciesNumber()
 
@@ -985,14 +986,12 @@ public class Env_ALife extends Thread
     }   
 
     /**
-     *  
-     * @param   - Object, the event to be added
-     * @return  - None
+     * public long getCreatureID()
+     * 
+     * @param   - None
+     * @return  - long creatureNumber variable, the number of creatures borned
      **/      
-    public long getCreatureID(){
-        this.creatureNumber++;
-        this.creature_Born ++;
-        this.last_CreatureID ++;
+    public long getCreatureID(){;
         return last_CreatureID;
     }
     
@@ -1008,6 +1007,19 @@ public class Env_ALife extends Thread
     }
     
     /**
+     * public long getNewCreatureID()
+     * 
+     * @param   - None  
+     * @return  - long creatureNumber variable, the number of creatures borned
+     */
+    public long getNewCreatureID(){
+        this.creatureNumber++;
+        this.creature_Born ++;
+        this.last_CreatureID ++;
+        return last_CreatureID;
+    }
+
+    /**
      *  
      * @param   - Object, the event to be added
      * @return  - None
@@ -1020,7 +1032,7 @@ public class Env_ALife extends Thread
         }
         if (c.getEnv_ALife() != this) {
             c.setEnv_ALife(this);
-            c.setIdCreature(this.getCreatureID());
+            c.setIdCreature(this.getNewCreatureID());
         }
         //Add creature to eventList
         //"Nueva Criatura"+c.idCreature+" hijo de "+c.progenitors[0].idCreature
@@ -1041,7 +1053,7 @@ public class Env_ALife extends Thread
     public void removeCreature(Int_ALife_Creature c){
         this.creatureNumber -= 1;
         this.creature_Death += 1;
-        
+        this.species.removeCreature(c);
         //remove from specie   FALTA
     } // End public void removeCreature(Int_ALife_Creature c)
     // Private Methods and Fuctions ====================================================================
