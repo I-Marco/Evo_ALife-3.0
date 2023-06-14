@@ -54,7 +54,7 @@ public abstract class Int_ALife_Creature extends Thread
     Trace creatureTrace = null;
     double hidden = 0L; //0..1, 0 = No hidden
     int detectionRange = 1; //in pixels min 1
-    double umbralDetection = 1; //0..1, 0 = Min detection
+    double umbralDetection = 0L; //0..1, 0 = Min detection
     
     long humgryUmbral = DEFAULT_Hungry_Humbral;
     long hungry = DEFAULT_Hungry_Humbral;
@@ -77,7 +77,58 @@ public abstract class Int_ALife_Creature extends Thread
     //Methods ==================================================================================
     
     // Constructors ============================
-        //No constructors
+    public Int_ALife_Creature(){
+        //For subClasses init
+    } // End public Int_ALife_Creature()
+
+    /**
+     * public Int_ALife_Creature(Int_ALife_Creature c)
+     * 
+     * @param    Int_ALife_Creature c the Int_ALife_Creature to copy
+    */
+    private Int_ALife_Creature(Int_ALife_Creature c){
+        this.attack = c.attack; // long def, attack;
+        this.creatureTrace = c.creatureTrace; //Trace creatureTrace = null;
+        this.def = c.def; //long def, attack;
+        descendents = new ArrayList<Int_ALife_Creature>(); // ArrayList<Int_ALife_Creature> descendents = new ArrayList<Int_ALife_Creature>();//descendents of creature
+        for(Int_ALife_Creature cr: c.descendents){
+            descendents.add(cr);
+        }
+        this.detectionRange = c.detectionRange; //int detectionRange = 1; //in pixels min 1
+        this.env_ALive = c.env_ALive; // Env_ALife env_ALive; // Enviroment 
+        this.foodResourceNeed = new int[c.foodResourceNeed.length]; // int[] foodResourceNeed = {0,0,0};
+        MultiTaskUtil.copyIntArrayContent(this.foodResourceNeed, c.foodResourceNeed);
+        this.foodResourceOwn = new int[c.foodResourceOwn.length]; // int[] foodResourceOwn = {0,0,0};
+        MultiTaskUtil.copyIntArrayContent(this.foodResourceOwn, c.foodResourceOwn);
+        this.hidden = c.hidden; // double hidden = 0L; //0..1, 0 = No hidden
+        this.hungry = c.hungry; // long hungry = DEFAULT_Hungry_Humbral;
+        this.humgryUmbral = c.humgryUmbral; //long humgryUmbral = DEFAULT_Hungry_Humbral;
+        this.idCreature = c.idCreature; //long idCreature = 0;
+        this.lifeDelay = Long.valueOf(c.lifeDelay); // Long lifeDelay = Long.valueOf(ALife_Nutrient_Environment.DEFAULT_LifeDelay/2);
+        this.lifeExp = c.lifeExp; // long lifeExp = DEFAULT_Life_Turns * lifeDelay;
+        this.lifeTime = c.lifeTime;  // long lifeTime = 0;
+        this.livePointMax = c.livePointMax; //   long livePointMax = DEFAULT_Hungry_Humbral;
+        this.livePoints = c.livePoints; // long livePoints = DEFAULT_Hungry_Humbral;
+        this.maxDescendants = c.maxDescendants; //int maxDescendants = 1; //max descendants to have in 1 reproduction
+        this.maxfoodResourceOwn = new int[c.maxfoodResourceOwn.length];
+        MultiTaskUtil.copyIntArrayContent(this.maxfoodResourceOwn, c.maxfoodResourceOwn);
+        this.mind = c.mind; //FALTA dupe // Mind_ALife mind = null;
+        this.minfoodResourceOwn = new int[c.minfoodResourceOwn.length]; //  int[] minfoodResourceOwn = {0,0,0}; // when born and need to born
+        MultiTaskUtil.copyIntArrayContent(this.minfoodResourceOwn, c.minfoodResourceOwn);
+        this.minReproductionGroup = c.minReproductionGroup; // int minReproductionGroup = 1;//min progenitors to have a baby
+        this.ownedStatus = c.ownedStatus; //ownedStatus = 0; //status of creature now and owned status out this moment
+        this.pos = new Point(c.pos); // Point pos;
+        this.progenitors = new ArrayList<Int_ALife_Creature>(); //  ArrayList<Int_ALife_Creature> progenitors = new ArrayList<Int_ALife_Creature>();//progenitors of creature
+        for(Int_ALife_Creature cr: c.progenitors){
+            progenitors.add(cr);
+        }
+        this.reproductionGroup = new ArrayList<Int_ALife_Creature>(); //ArrayList<Int_ALife_Creature> reproductionGroup = new ArrayList<Int_ALife_Creature>();
+        this.specie = c.specie; //ALife_Specie specie = null;
+        this.specieNumberID = c.specieNumberID; //long specieNumberID = -2; //-1 for corpses, -2 for no specie
+        this.status = c.status; //double status = 0
+        this.tamComplex = c.tamComplex; // double tamComplex = 0; //evaluateTamComplex(this);
+        this.umbralDetection = c.umbralDetection; // double umbralDetection = 0; //0..1, 0 = Min detection               
+    } // End public Int_ALife_Creature()
 
     // Getter and Setters ----------------------------
 
@@ -223,7 +274,18 @@ public abstract class Int_ALife_Creature extends Thread
     } // End public synchronized double getStatus()
     
     // END Getter and Setters ----------------------------
-    
+    /**
+     * public static Int_ALife_Creature dupeInt_ALife_Creature(Int_ALife_Creature c)
+     * 
+     * @param    Int_ALife_Creature c
+     * @return   Int_ALife_Creature
+     */
+    public static Int_ALife_Creature dupeInt_ALife_Creature(Int_ALife_Creature c){
+        Int_ALife_Creature newC = null;
+        //newC = new Int_ALife_Creature(c); NO FUNCIONA FALLA Y FALTA
+        return newC;
+    } // End public static Creature dupeCreature(Creature c)
+
     /**
      * public static double[] serializeCreature(Int_ALife_Creature c)
      * Serialize the creature in a double[] and return it
@@ -264,7 +326,7 @@ public abstract class Int_ALife_Creature extends Thread
         caracArrayList.add((double)cMfo);
         caracArrayList.add((double)cfrn);
         //Mind_ALife
-        if (c instanceof Creature){
+        if (c instanceof Creature && c.mind != null){
             caracArrayList.add((double)c.mind.getInnerN());
             caracArrayList.add((double)c.mind.getMidN());
             caracArrayList.add((double)c.mind.getOutN());

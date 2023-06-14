@@ -19,7 +19,11 @@ public class ALife_Logical_Environment
     
     // Methods --------------------------------------------------------------------------
     // Construcotors ============================
-    
+    /**
+     * public ALife_Logical_Environment(Env_ALife e)
+     * 
+     * @param e Env_ALife
+     */
     public ALife_Logical_Environment(Env_ALife e){
         env_ALife = e;
         //create the arrays for ArrayList elements
@@ -34,18 +38,32 @@ public class ALife_Logical_Environment
                     observers[i][j] = new ArrayList<Int_ALife_Creature>();
                     traces[i][j] = new ArrayList<Trace>();
             }
-    }
+    } // End public ALife_Logical_Environment(Env_ALife e)
     
     // End Construcotors ========================
+
     // Public Methods and Fuctions ==============
+
     // Getter and Setters - - - - - - - - - - - -
     
+    /**
+     * public void getTraces()
+     * 
+     * @param  None
+     * @return None
+     */
     public void getTraces(){
             int i;//get all traces around a Point.
     }
     
     // End Getter and Setters - - - - - - - - - -
     
+    /**
+     * public void addCreature(Int_ALife_Creature c,Point p)
+     * 
+     * @param c
+     * @param p
+     */
     public void addCreature(Int_ALife_Creature c,Point p){
         if (c == null || p == null){
             int breakpoint = 1 ;
@@ -85,16 +103,55 @@ public class ALife_Logical_Environment
         }
     } // End public void addCreture(Int_ALife_Creature c,Point p)
         
+    /**
+     * public void removeCreature(Int_ALife_Creature c)
+     * 
+     * @param c
+     */
+    public void removeCreature(Int_ALife_Creature c){
+        if (c == null) {
+            MultiTaskUtil.threadMsg("Fallo, falta creature para borrar.");
+            return;
+        }
+        Point p = c.getPos();
+        if (p.x < 0 || p.x > (this.ocupiers.length - 1) || p.y < 0 || p.y > (this.ocupiers[0].length - 1)){
+            return;
+        } // Out of bounds
+        if (ocupiers[p.x][p.y] == null || ocupiers[p.x][p.y].isEmpty()) {
+            MultiTaskUtil.threadMsg("Fallo, no hay creature en la posicion.");
+            return;
+        }
+        if (ocupiers[p.x][p.y].contains(c)){
+            ocupiers[p.x][p.y].remove(c);
+            traces[p.x][p.y].remove(c.getCreatureTrace());
+            //for faster processing
+            int w = c.getEnv_ALife().getEnv_Width();
+            int h = c.getEnv_ALife().getEnv_Height();
+            int r = c.getDetectionRange();
+            
+            int x,y;
+            //observers updating
+            for (int i = p.x - r - 1; i < (p.x +  r + 1); i++)
+                for (int j = p.y - r - 1; j < (p.y +  r + 1); j++)
+            {   x = (i + w) % w;
+                y = (j + h) % h;
+                if (observers[x][y].contains(c)) observers[x][y].remove(c);                    
+            }
+            //We should notify to observers any way of change? FALTA
+        }
+    } // End public void removeCreature(Int_ALife_Creature c)
+
     public void addTrace(Trace c, Point p){
     }
     
-    public boolean detectColision(Int_ALife_Creature c, Point p){
+    
+    public  boolean detectColision(Int_ALife_Creature c, Point p){
+        int radio = 0;
         boolean colision = false;
-        int radio = 1; // May be we have to take in count the creature dimensions Owned food resources and tamcomplex
         int w = c.getEnv_ALife().getEnv_Width();
         int h = c.getEnv_ALife().getEnv_Height();
-        int x = (p.x - radio + w) % w;
-        int y = (p.y - radio + h) % h;
+        int x = (p.x + w) % w;//int x = (p.x - radio + w) % w;
+        int y = (p.y + h) % h;//int y = (p.y - radio + h) % h;
         for (int i = p.x - radio; i <= p.x + radio; i++)
             for (int j = p.y - radio; j <= p.y + radio; j++)
         {   x = (i - radio + w) % w;

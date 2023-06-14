@@ -192,11 +192,11 @@ public class ALife_Nutrient_Environment implements Runnable
 
     /**
      * public int[] getNutrient(Point p, int[] fResN, Creature eater)
-     * try to get fResN reources from enviroment
+     * Try to get fResN reources from enviroment
      * @param    Point the position on ALife_Nutrient_Evironment where we want get resource
      * @param    int[] the resource cuantity that want to get
      * @param    Creature the creature that's trying to eat
-     * @return   int that cratures got succesfully 
+     * @return   int that cratures got succesfully to grown
      */
     public int[] getNutrient(Point p, int[] fResN, Creature eater){
         int[] fResNeed = new int[fResN.length];//Copy of fResN parámeter
@@ -223,7 +223,7 @@ public class ALife_Nutrient_Environment implements Runnable
             this.setLandImg(backLand);
             //Refresh imagen??                       
         }
-        return fResNeed;
+        return fResNeed; // Food that creature has got
     }
     
     /**

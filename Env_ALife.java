@@ -1054,7 +1054,7 @@ public class Env_ALife extends Thread
         this.creatureNumber -= 1;
         this.creature_Death += 1;
         this.species.removeCreature(c);
-        //remove from specie   FALTA
+        this.logical_Env.removeCreature(c);
     } // End public void removeCreature(Int_ALife_Creature c)
     // Private Methods and Fuctions ====================================================================
 

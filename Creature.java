@@ -69,6 +69,7 @@ public class Creature extends Int_ALife_Creature
     //Creature(this.env_ALife,new Point(170,170),null,1000,haveR,needR
     //public Creature(Env_ALife env, Semaphore s, Point p){
     public Creature(Env_ALife env, Point p, Mind_ALife m, long lifeexp, int[] frOwn, int[] frNeed){
+        super();
         env_ALive = env;
         idCreature = this.env_ALive.getNewCreatureID();
         semaphore = env_ALive.getSemaphore(); // Quiza deberia ser parámetro pero Evo_ALIFE no lo tiene
@@ -151,8 +152,12 @@ public class Creature extends Int_ALife_Creature
             for (int i = auxP.x-lo; i < auxP.x+lo ; i++){
                 if (pos != null) break;
                 for(int j = auxP.y-lo;j <= auxP.y+lo; j++){
-                    if (!env_ALive.getLogical_Env().detectColision(progenitors.get(0),
-                        new Point((i + w) % w,(j + h) % h))){
+                    Env_ALife e = this.getEnv_ALife();
+                    ALife_Logical_Environment le = e.getLogical_Env();
+                    boolean b = le.detectColision(progenitors.get(0),new Point((i + w) % w,(j + h) % h), 0);
+                    if (!b){
+                    //if (!env_ALive.getLogical_Env().detectColision(progenitors.get(0),
+                    //    new Point((i + w) % w,(j + h) % h), 0)){
                         this.pos = new Point((i + w) % w,(j + h) % h);
                         break;
                     }
@@ -273,12 +278,36 @@ public class Creature extends Int_ALife_Creature
         //reproductionGroup[0] = (Int_ALife_Creature)this; //(Int_ALife_Creature)this;
         this.mutateCreature();
         env_ALive.getSpecies().addCreature(this); //Automatically assign specieIdNumber
-    }
+    } // End public Creature(ArrayList<Int_ALife_Creature> progenitors)
     
     Creature(){
         //env_ALive.getSpecies().addCreature(null); //Automatically assign specieIdNumber ??
     }//Just to can make subclass constructors
     
+    /**
+     * private Creature(Creature c)
+     * Make a duplication of creature
+     * @param   - Creature
+     */
+    private Creature(Creature c){
+        //Dupe creature
+        this.backLand = c.backLand; //private BufferedImage backLand = null;
+        this.frontLand = c.frontLand; // private BufferedImage frontLand = null;
+        this.semaphore = c.semaphore; // private Semaphore semaphore;
+        this.timeOfDeccision = new ArrayList<Long>(); // ArrayList <Long> timeOfDeccision = new ArrayList<Long>(); // Time of deccision
+        for(Long l: c.timeOfDeccision){
+            this.timeOfDeccision.add(l);
+        }
+        this.actions = new ArrayList<Mind_ALife.Action>(); //ArrayList <Mind_ALife.Action> actions = new ArrayList<Mind_ALife.Action>(); // Actions that creature can do
+        for(Mind_ALife.Action a: c.actions){
+            this.actions.add(a);
+        }
+        this.statusValue = new ArrayList<Double>(); //ArrayList <Double> statusValue = new ArrayList<Double>(); // Status of creature
+        for(Double d: c.statusValue){
+            this.statusValue.add(d);
+        }        
+    } // End private Creature(Creature c)
+
     // Public Methods and Fuctions ==============
     
     // Getter and Setters
@@ -303,7 +332,7 @@ public class Creature extends Int_ALife_Creature
         if (r) {
             int breackpoint = 1;}
         return r;
-    }
+    } // End public boolean getReproductable()
 
        
     // End Getter and Setters
@@ -398,6 +427,17 @@ public class Creature extends Int_ALife_Creature
         }
         //Env_Panel.imageDisplay(this.env_ALive.getBackLifeImage(),"From Creature Run (LiveImage) - LIVE Image");
     } // End public void run()    
+
+    /**
+     * public static Creature dupeCreature(Creature c)
+     * 
+     * @param    Creature c
+     * @return   Creature
+     */
+    public static Creature dupeCreature(Creature c){
+        Creature newC = new Creature(c);
+        return newC;
+    } // End public static Creature dupeCreature(Creature c)
 
     /**
      * public static double[] serializeCreature(Int_ALife_Creature c)
