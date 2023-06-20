@@ -29,10 +29,9 @@ public class ALifeCalcUtil {
         return 0;
     } // End of method min_max_Normalization
 
-/**
+    /**
      * public static double[] min_max_Array_Normalization(double[] value, double min[], double max[])
-     * 
-     * This method normalizes a set of values between 0 and 1.
+     * his method normalizes a set of values between 0 and 1.
      * @ param value: set of values to normalize
      * @ param min: minimum value of the range
      * @ param max: maximum value of the range

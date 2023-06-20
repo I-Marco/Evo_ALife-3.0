@@ -145,8 +145,8 @@ public class ALife_Logical_Environment
     }
     
     
-    public  boolean detectColision(Int_ALife_Creature c, Point p){
-        int radio = 0;
+    public  boolean detectColision(Int_ALife_Creature c, Point p, int radio){
+        //int radio = 0;
         boolean colision = false;
         int w = c.getEnv_ALife().getEnv_Width();
         int h = c.getEnv_ALife().getEnv_Height();

@@ -28,14 +28,14 @@ public class Creature extends Int_ALife_Creature
     public static final double[] creature_minCaracteristics =
         {0, 0, 0, 0, 0, 0, 1, //hidden, tamComplex, attack, def, detectionRange, umbralDetection, humgryUmbral, 
             1, 100, 1, 1, 1, //lifeDelay, lifeExp, livePointMax, maxDescendants, minReproductionGroup, 
-            1, 1, 1, //minfoodResourceOwn, maxfoodResourceOwn, foodResourceNeed,
-            1, 0, 2, 0 //mind.getInnerN(), mind.getMidN(), mind.getOutN(), mind.getStatusN()
+            0, 0, 0, 0, 0, 0, 0, 0, 0, //All R, All G, all B minfoodResourceOwn, maxfoodResourceOwn, foodResourceNeed,
+            1, 0, 1, 0 //mind.getInnerN(), mind.getMidN(), mind.getOutN(), mind.getStatusN()
         };
 
     public static double[] creature_maxCaracteristics = //Can update if changes evolve
     {1, 1, 100, 100, 5, 1, 200, //hidden, tamComplex, attack, def, detectionRange, umbralDetection, humgryUmbral, 
         100, 10000, 200, 10, 3, //lifeDelay, lifeExp, livePointMax, maxDescendants, minReproductionGroup, 
-        768, 768, 768, //minfoodResourceOwn, maxfoodResourceOwn, foodResourceNeed,
+        1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, //minfoodResourceOwn, maxfoodResourceOwn, foodResourceNeed,
         25, 15, 25, 5 //mind.getInnerN(), mind.getMidN(), mind.getOutN(), mind.getStatusN()
     };
     //Note: 2º value is TamComplex. Be care on changes same on MIND values
@@ -87,14 +87,14 @@ public class Creature extends Int_ALife_Creature
         minfoodResourceOwn = new int[3];
         maxfoodResourceOwn = new int[3];
 
-        if (frOwn == null){for(int b:foodResourceOwn){b=0;}}
+        if (frOwn == null){for(int b:foodResourceOwn){b = 0;}}
             else MultiTaskUtil.copyIntArrayContent(foodResourceOwn, frOwn);
-        if (frNeed == null){for(int b:foodResourceNeed){b=0;}}
+        if (frNeed == null){for(int b:foodResourceNeed){b = 0;}}
             else MultiTaskUtil.copyIntArrayContent(foodResourceNeed, frNeed);
         //foodResourceOwn = {0,0,0};
         MultiTaskUtil.copyIntArrayContent(minfoodResourceOwn, foodResourceOwn);
         Random random = new Random();
-        double fac = 3 + random.nextInt(126)/100;
+        double fac = 3 + random.nextInt(126)/100; //Factor of maxfoodResourceOwn from foodResourceOwn
         for (int i = 0; i< foodResourceOwn.length; i++){maxfoodResourceOwn[i] = (int)(foodResourceOwn[i] * fac);}
 
         //foodResourceNeed = {0,0,0};            
@@ -154,7 +154,7 @@ public class Creature extends Int_ALife_Creature
                 for(int j = auxP.y-lo;j <= auxP.y+lo; j++){
                     Env_ALife e = this.getEnv_ALife();
                     ALife_Logical_Environment le = e.getLogical_Env();
-                    boolean b = le.detectColision(progenitors.get(0),new Point((i + w) % w,(j + h) % h), 0);
+                    boolean b = le.detectColision(progenitors.get(0),new Point((i + w) % w,(j + h) % h),0);
                     if (!b){
                     //if (!env_ALive.getLogical_Env().detectColision(progenitors.get(0),
                     //    new Point((i + w) % w,(j + h) % h), 0)){
@@ -629,11 +629,14 @@ public class Creature extends Int_ALife_Creature
             actions.add(ac);
             statusValue.add(Int_ALife_Creature.evaluateStatus(this));
         }
-    }
+    } // End private void statusChangesUpdate(Mind_ALife.Action ac)
 
     /**
      * private void statusChangeEvolution()
+     * Lauch mind update with status changes
      * 
+     * @param    None
+     * @return   None
      */
     private void statusChangeEvolution(){
         double WEIGHT = 0.1; //Weight of actual status in evolution
@@ -645,11 +648,13 @@ public class Creature extends Int_ALife_Creature
             MultiTaskUtil.threadMsg("Error in Creature statusChangeEvolution: arraylist are null");
             return;
         }
+        
         if (this.timeOfDeccision.isEmpty() || 
             this.actions.isEmpty() || this.statusValue.isEmpty()){
             MultiTaskUtil.threadMsg("Error in Creature statusChangeEvolution: Any ArrayList is empty");
             return;
         }
+        
         // Fast minimal updates
         this.mind.updateMind(actions.get(actions.size()-1), statusValue.get(statusValue.size()-1)-actualStatus, 
             WEIGHT * (timeOfDeccision.get(timeOfDeccision.size()-1) - this.env_ALive.getTime()));

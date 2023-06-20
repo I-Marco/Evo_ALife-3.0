@@ -424,7 +424,7 @@ public class Env_ALife extends Thread
             
             //For concurrency Log
             //MultiTaskUtil.threadMsg("Event List remove item");
-            MultiTaskUtil.threadMsg("Env Run ("+this.getTime()+") END CICLE");//For test
+            //MultiTaskUtil.threadMsg("Env Run ("+this.getTime()+") END CICLE");//For test
 
             //setTime(getTime()+1);
             synchronized (eventList){

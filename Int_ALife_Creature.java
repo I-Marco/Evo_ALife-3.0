@@ -316,6 +316,12 @@ public abstract class Int_ALife_Creature extends Thread
         caracArrayList.add((double)c.maxDescendants);
         caracArrayList.add((double)c.minReproductionGroup);
         //caracArrayList.add(c.creatureTrace); //Don't know add or not
+        for(int i = 0; i < c.minfoodResourceOwn.length; i++){
+            caracArrayList.add((double) c.minfoodResourceOwn[i]);
+            caracArrayList.add((double) c.maxfoodResourceOwn[i]);
+            caracArrayList.add((double) c.foodResourceNeed[i]);
+        }
+        /*
         int cmfo = 0, cMfo = 0, cfrn = 0;
         for(int i = 0; i < c.minfoodResourceOwn.length; i++){
             cmfo += c.minfoodResourceOwn[i];
@@ -325,6 +331,7 @@ public abstract class Int_ALife_Creature extends Thread
         caracArrayList.add((double)cmfo);
         caracArrayList.add((double)cMfo);
         caracArrayList.add((double)cfrn);
+        */
         //Mind_ALife
         if (c instanceof Creature && c.mind != null){
             caracArrayList.add((double)c.mind.getInnerN());
@@ -348,7 +355,7 @@ public abstract class Int_ALife_Creature extends Thread
             carac[i] = caracArrayList.get(i);
         }
         //For test
-        if (carac.length != 19) {
+        if (carac.length != Creature.creature_minCaracteristics.length) {
             int breakpoint = 1;
         }
         else{
@@ -420,7 +427,7 @@ public abstract class Int_ALife_Creature extends Thread
             tempMinBody += (double)c.minfoodResourceOwn[i];
         }
         //(tempBody - tempMinBody) /(DEFAULT_max_foodResourceNeed*100);
-        VarTemporaldStatus += tempBody / tempMinBody;//DEFAULT_max_foodResourceNeed
+        VarTemporaldStatus += tempBody - tempMinBody;//DEFAULT_max_foodResourceNeed
         synchronized (c){
             c.status = VarTemporaldStatus + ownedStatus;
         }   
@@ -437,7 +444,7 @@ public abstract class Int_ALife_Creature extends Thread
     public static double[] mutateCreaturebySerialization(double[] carac){
         //Serialized but not necessarily normalized
         if (carac == null) return null;
-        if (carac.length != 19) return null; // Unknow creature type
+        if (carac.length != Creature.creature_minCaracteristics.length) return null; // Unknow creature type
         int l = carac.length;
         // same possibility to mutate all caracteristics other way an array to set the possibilities of each caracteristic
         Random r = new Random();
@@ -535,7 +542,7 @@ public abstract class Int_ALife_Creature extends Thread
                 case 11 : //minReproductionGroup
                     this.minReproductionGroup = (int)caracMutated[mutatedCar];
                     break;
-                case 12 : //minfoodResourceOwn
+                case 12 : //minfoodResourceOwn ///FALTA MUTAR FOOD Ha cambiado
                     mutateFood(this.minfoodResourceOwn, (int)caracMutated[mutatedCar]);
                     break;
                 case 13 : //maxfoodResourceOwn
@@ -544,6 +551,8 @@ public abstract class Int_ALife_Creature extends Thread
                 case 14 : //foodResourceNeed
                     mutateFood(this.foodResourceNeed, (int)caracMutated[mutatedCar]);
                     break;
+                //Falta Mutar mind
+                
                 default :
                     MultiTaskUtil.threadMsg("Error in mutateCreature() in Int_ALife_Creature.java");
                     break;
