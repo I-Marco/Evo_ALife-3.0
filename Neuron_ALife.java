@@ -38,10 +38,10 @@ public class Neuron_ALife
      * @param ns ArrayList <Neuron_ALife> an ArrayList with the input neurons
      * @param c  Int_ALife_Creature the creature owner of this neuron
      */
-    public Neuron_ALife(ArrayList <Neuron_ALife> ns, Int_ALife_Creature c){
+    public Neuron_ALife(ArrayList <Neuron_ALife> ns, Int_ALife_Creature c) throws IllegalArgumentException {
         //Checks
         if (c==null) return; //(For moment we dont contemps unowned neurons
-        if (ns == null) return; else if (ns.isEmpty()) return;
+        if (ns == null || ns.isEmpty()) throw new IllegalArgumentException("Neuron_ALife: Neuron_ALife(ArrayList <Neuron_ALife> ns, Int_ALife_Creature c) ns == null || ns.isEmpty()");
         //double u = Mind_ALife.DEFAULT_u;
         //Double output = null; 
         creature = c;
@@ -61,8 +61,8 @@ public class Neuron_ALife
      * Constructor to copy or dupe a neuron
      * @param n Neuron_ALife the neuron to copy
      */
-    public Neuron_ALife (Neuron_ALife n){
-        if (n.creature == null) 
+    public Neuron_ALife (Neuron_ALife n) throws IllegalArgumentException{
+        if (n == null) 
             throw new IllegalArgumentException("Neuron_ALife: Neuron_ALife(Neuron_ALife n) n.creature == null");
         this.creature = n.creature;
         this.mind = n.mind;
@@ -70,20 +70,23 @@ public class Neuron_ALife
             //has not input neurons on this mind
             int breackpoint = 1;
         }
-        this.inputs = new ArrayList <Neuron_ALife>();
-        this.weights = new ArrayList<Double>();
+        if ( !(n instanceof Input_Neuron_ALife)){
+            this.inputs = new ArrayList <Neuron_ALife>();
+            this.weights = new ArrayList<Double>();
 
-        if (this.mind.allNeurons.size() - this.mind.outputNeurons.size() != n.inputs.size()){
-            //Diferent number of inputs neurons
-            int breackpoint = 1;
-        }else{
-            for (int i = 0; i <this.mind.allNeurons.size() - this.mind.outputNeurons.size(); i++){
-                this.inputs.add(this.mind.allNeurons.get(i));
-                this.weights.add(Double.valueOf(n.weights.get(i))); //test if its new or copy
+            if (this.mind.allNeurons.size() - this.mind.outputNeurons.size() != n.inputs.size()){
+                //Diferent number of inputs neurons
+                int breackpoint = 1;
+            }else{
+                for (int i = 0; i <this.mind.allNeurons.size() - this.mind.outputNeurons.size(); i++){
+                    this.inputs.add(this.mind.allNeurons.get(i));
+                    this.weights.add(Double.valueOf(n.weights.get(i))); //test if its new or copy
+                }
             }
         }
         this.u = n.u;
         this.output = Double.valueOf(n.output);
+        this.neuron_ID = n.neuron_ID; // For full dupe, we have change in mind
         //Any more??
     }// End public Neuron_ALife (Neuron_ALife n)
 
@@ -98,6 +101,16 @@ public class Neuron_ALife
      */
     public void reset(){
         //synchronized (output){
+            //For test
+            if (this.creature.getMind() != this.mind){
+                int breackpoint = 1;
+                MultiTaskUtil.threadMsg("Neuron_ALife.reset() this.creature.getMind() != this.mind ("+this.neuron_ID+")");
+            }
+            if (this.neuron_ID == -1) {
+                int breackpoint = 1;
+                MultiTaskUtil.threadMsg("From Neuron_ALife.reset() this.neuron_ID == -1 ");
+            }
+            //End test
             output = null;
         //}
     } // End public void reset()
@@ -185,6 +198,50 @@ public class Neuron_ALife
         this.neuron_ID = neuron_ID; // -1 is a neuron out of any mind for moment
     } // End public void setNeuron_ID(long neuron_ID)
     
+    /**
+     * public void setMind(Mind_ALife mind)
+     * 
+     * Set the mind of the neuron
+     * @param mind Mind_ALife the mind of the neuron
+     * @return None
+     */
+    public synchronized void setMind(Mind_ALife mind){
+        this.mind = mind;
+    } // End public void setMind(Mind_ALife mind)
+
+    /**
+     * public Mind_ALife getMind()
+     * 
+     * Returns the mind of the neuron
+     * @ param None
+     * @return Mind_ALife the mind of the neuron
+     */
+    public Mind_ALife getMind(){
+        return mind;
+    } // End public Mind_ALife getMind()
+
+    /**
+     * public synchronized void setCreature(Int_ALife_Creature creature)
+     * 
+     * Set the creature of the neuron
+     * @param creature Int_ALife_Creature the creature of the neuron
+     * @return None
+     */
+    public synchronized void setCreature(Int_ALife_Creature creature){
+        this.creature = creature;
+    } // End public void setCreature(Int_ALife_Creature creature)
+
+    /**
+     * public synchronized Int_ALife_Creature getCreature()
+     * 
+     * Returns the creature of the neuron
+     * @param None
+     * @return Int_ALife_Creature the creature of the neuron
+     */
+    public synchronized Int_ALife_Creature getCreature(){
+        return creature;
+    } // End public Int_ALife_Creature getCreature()
+
     // Private Methods and Fuctions =============
     
     

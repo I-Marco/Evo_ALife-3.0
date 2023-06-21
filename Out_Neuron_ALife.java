@@ -9,7 +9,7 @@ import java.util.*;
 public class Out_Neuron_ALife extends Neuron_ALife
 {
     // Fields ----------------------------------------------------------------------------
-     double u = Mind_ALife.DEFAULT_u;
+     //double u = Mind_ALife.DEFAULT_u;
      
      //ArrayList <Neuron_ALife> inputs;
      //ArrayList<Double> weights;
@@ -59,7 +59,7 @@ public class Out_Neuron_ALife extends Neuron_ALife
      * private constructor for copy pr dupe a neuron
      * @param n Out_Neuron_ALife the neuron to copy
      */
-    private Out_Neuron_ALife(Out_Neuron_ALife n){
+    private Out_Neuron_ALife(Out_Neuron_ALife n) throws IllegalArgumentException{
         this.action = n.action;
         this.creature = n.creature;
         this.mind = n.mind;
@@ -117,13 +117,15 @@ public class Out_Neuron_ALife extends Neuron_ALife
      * @return  None
      * 
      */
+    /*
     @Override
     public void reset(){
         //synchronized (output){
             output = null;
         //}
     }
-    
+    */
+
     /**
      * public double activation()
      * 

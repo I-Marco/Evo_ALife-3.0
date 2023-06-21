@@ -33,7 +33,7 @@ public class Input_Neuron_ALife extends Neuron_ALife{
      * @param n Input_Neuron_ALife the neuron to add
      */
     public Input_Neuron_ALife(Input_Neuron_ALife n){
-        //super(n);
+        super(n);
         if (!input_Neuron_ALife_Order.contains(n)) input_Neuron_ALife_Order.add(n);
     } // End public Input_Neuron_ALife(Input_Neuron_ALife n)
 

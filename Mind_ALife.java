@@ -5,8 +5,8 @@ import org.xml.sax.InputSource;
 /**
  * Write a description of class Mind_ALife here.
  * 
- * @author (your name) 
- * @version (a version number or a date)
+ * @author Iñigo Marco
+ * @version 20-06-2023
  */
 public class Mind_ALife
 {
@@ -53,8 +53,9 @@ public class Mind_ALife
      * Default constructor - premakes mind
      * @param creature - the creature that owns the mind
      */
-    public Mind_ALife(Int_ALife_Creature creature){
+    public Mind_ALife(Int_ALife_Creature creature) throws IllegalArgumentException{
         setCreature(creature);
+        creature.setMind(this); //update creature mind
         this.output = null;
         this.outNeuron = null;
         //Add inputNeurons
@@ -76,16 +77,19 @@ public class Mind_ALife
         auxN = new Out_Neuron_ALife(this.inputNeurons,this.creature, Action.EAT);
         //faltan inpits y pesos
         
-        allNeurons.add(auxN);
-        outputNeurons.add((Out_Neuron_ALife)auxN);
+        //allNeurons.add(auxN);
+        //outputNeurons.add((Out_Neuron_ALife)auxN);
+        this.addNeuron(auxN);
         auxN = new Out_Neuron_ALife(this.inputNeurons,this.creature, Action.REPRODUCE);
-        allNeurons.add(auxN);
-        outputNeurons.add((Out_Neuron_ALife)auxN);
+        //allNeurons.add(auxN);
+        //outputNeurons.add((Out_Neuron_ALife)auxN);
+        this.addNeuron(auxN);
         this.output = null;
         setNeuronsCount();
         if (!checkNeurons()){
             throw new IllegalArgumentException("No se puede crear el objeto debido a una condición inválida.");
         }
+        creature.setMind(this); //update creature mind
         //Add In Neuron habmbre
         //Add In neuron comida en el suelo
         //Add out Neuron mitosis = reproduccion independiente
@@ -100,10 +104,13 @@ public class Mind_ALife
      * @param creature - The creature that owns the mind
      * @param mutate - true if the mind can must mutate
      */
-    public Mind_ALife(ArrayList<Int_ALife_Creature>  progenitors, Int_ALife_Creature creature, boolean mutate){
+    public Mind_ALife(ArrayList<Int_ALife_Creature>  progenitors, Int_ALife_Creature creature, boolean mutate) 
+        throws IllegalArgumentException
+    {
         //Inners Neuron
-        // Si la tienen los dos la tiene, si la tiene 1 50% si no la tiene 0% + mutate
+        // Si la tienen los dos la tiene, si la tiene 1 50% si no la tiene 0% + mutate 
         setCreature(creature);
+        creature.setMind(this); //update creature mind
         this.output = null;
         this.outNeuron = null;
         
@@ -325,7 +332,7 @@ public class Mind_ALife
             throw new IllegalArgumentException("No se puede crear el objeto debido a una condición inválida.");
         }        
         //Reevaluar complexity
-        
+        creature.setMind(this); //update creature mind
     } // End public Mind_ALife(Int_ALife_Creature[] progenitors, Int_ALife_Creature creature, boolean mutate)
     
     /**
@@ -335,7 +342,8 @@ public class Mind_ALife
      * @param m Mind_ALife the mind to copy
      * @return Mind_ALife the new mind
      */
-    public Mind_ALife(Mind_ALife m){
+    public Mind_ALife(Mind_ALife m) throws IllegalArgumentException{
+        //carefull with owner. During construction owner has 2 minds
         this.creature = m.creature; //??
         this.outNeuron = m.outNeuron.dupeNeuron_ALife(m.outNeuron); //?? //this Neuron is from other Mind
         this.output = m.output; //??
@@ -350,14 +358,16 @@ public class Mind_ALife
         for (Neuron_ALife n:m.inputNeurons){
             //Neuron_ALife auxN = n.dupeInputNeuron();dupeNeuron_ALife(
             Neuron_ALife auxN = Neuron_ALife.dupeNeuron_ALife(n);
-            this.inputNeurons.add(auxN);
-            this.allNeurons.add(auxN);
+            this.addNeuron(auxN);
+            //this.inputNeurons.add(auxN);
+            //this.allNeurons.add(auxN);
         }
         for (Neuron_ALife n:m.midNeurons){
             //Neuron_ALife auxN = n.dupeMidNeuron();
             Neuron_ALife auxN = Neuron_ALife.dupeNeuron_ALife(n);
-            this.midNeurons.add(auxN);
-            this.allNeurons.add(auxN);
+            this.addNeuron(auxN);
+            //this.midNeurons.add(auxN);
+            //this.allNeurons.add(auxN);
         }
         /*
         for (Neuron_ALife n:m.statusNeurons){
@@ -370,8 +380,9 @@ public class Mind_ALife
         */
         for (Out_Neuron_ALife n:m.outputNeurons){
             Out_Neuron_ALife auxN = Out_Neuron_ALife.dupeNeuron_ALife(n);
-            this.outputNeurons.add((Out_Neuron_ALife)auxN);
-            this.allNeurons.add(auxN);
+            this.addNeuron(auxN);
+            //this.outputNeurons.add((Out_Neuron_ALife)auxN);
+            //this.allNeurons.add(auxN);
         }
 
         setNeuronsCount();
@@ -399,14 +410,15 @@ public class Mind_ALife
                 Mind_ALife mj= progenitorsMinds.get(j);//for test
                 Input_Neuron_ALife nj= (Input_Neuron_ALife)(progenitorsMinds.get(j)).inputNeurons.get(i[j]);
                 if ( !Input_Neuron_ALife.isBiggerThan(n,nj)){ //n <= nj
-                    n = nj;
+                    n = nj; //n is the smallest inputNeuron to be copied
                 }
             }
             // Add n to this mind
-            Input_Neuron_ALife auxN = n.dupeNeuron_ALife(n);
-            m.inputNeurons.add(auxN); 
-            m.allNeurons.add(auxN);
-            
+            Input_Neuron_ALife auxN = n.dupeNeuron_ALife(n); //new inputNeuron
+            m.addNeuron(auxN); //Add and get neuron_ID
+            //m.inputNeurons.add(auxN); 
+            //m.allNeurons.add(auxN);
+            //Actualize index values.
             for (int j = 0; j < progenitorsMinds.size(); j++){ //each progenitor mind
                 Mind_ALife mj= progenitorsMinds.get(j); //for text
                 Input_Neuron_ALife nj= (Input_Neuron_ALife)(progenitorsMinds.get(j)).inputNeurons.get(i[j]);
@@ -421,7 +433,7 @@ public class Mind_ALife
                 }
             }
             n = null;
-            //Search for new inputNeuron
+            //Search for new inputNeuron to add
             for (int j = 0; j < i.length; j++){
                 if (i[j] < progenitorsMinds.get(j).inputNeurons.size()){
                     n = (Input_Neuron_ALife)progenitorsMinds.get(j).inputNeurons.get(i[j]);
@@ -470,8 +482,9 @@ public class Mind_ALife
             }
             auxU = auxU / num;
             auxN.u = auxU;
-            mind.midNeurons.add(auxN);
-            mind.allNeurons.add(auxN);
+            mind.addNeuron(auxN);
+            //mind.midNeurons.add(auxN);
+            //mind.allNeurons.add(auxN);
         } // End for (Neuron_ALife mn:progenitorsMinds.get(indProg).midNeurons)
         return true;
     } //End public boolean createMidNeurons(this, progenitorsMinds)
@@ -517,8 +530,9 @@ public class Mind_ALife
             }
             //Add n to this mind
             Out_Neuron_ALife auxN = n.dupeNeuron_ALife(n);
-            mind.outputNeurons.add(auxN); // test if dupe make a correct copy
-            mind.allNeurons.add(auxN);
+            mind.addNeuron(auxN); //Add and get neuron_ID
+            //mind.outputNeurons.add(auxN); // test if dupe make a correct copy
+            //mind.allNeurons.add(auxN);
             //update index.
             for (int j = 0; j < progenitorsMinds.size(); j++){ //each progenitor mind
                 Mind_ALife mj= progenitorsMinds.get(j); //for text
@@ -626,31 +640,36 @@ public class Mind_ALife
                         }
                     } else {
                         //Any error Unknown neuron type
+                        int breakpoint = 1;
                     }
                 }// End for (Mind_ALife m:progenitorsMinds)
                 // we have a neuron and its similars to n in similarNeurons and its owners in ownerMindsç
-                // update weights
+                // update weights of n
                 //check input size. for test
-                if (n.inputs.size() != mind.allNeurons.size() - mind.inputNeurons.size()){
+                if (n.inputs.size() != mind.allNeurons.size() - mind.outputNeurons.size()){
                     MultiTaskUtil.threadMsg("Creator of Mind" + this.creature.idCreature + 
                         "Mind_ALife: neuron inputs size not correct.- Remake inputs.");
                 }
-                // mix similarNeurons weights on n.weights
-                if (n.inputs != null && n.inputs.size() > 0 && n.inputs.get(0) instanceof Input_Neuron_ALife){
-                    for(Neuron_ALife n_w: mind.allNeurons){
+                // mix similarNeurons weights on n.weights //2 types input all non outNeurons and input just midNeurons
+                if (n.inputs != null && n.inputs.size() > 0 
+                    && n.inputs.get(0) instanceof Input_Neuron_ALife)
+                {
+                    //for(Neuron_ALife n_w: mind.allNeurons){
+                    for(Neuron_ALife n_w: this.allNeurons){                        
                         boolean b = n_w instanceof Out_Neuron_ALife;
                         if(!(n_w instanceof Out_Neuron_ALife)){
                             auxInputs.add(n_w);
                         }
                     }
-                } else {
+                } else { //Neron that have only midNeurons as inputs - multi layer
                     for(Neuron_ALife n_w: mind.allNeurons){
                         if (!(n_w instanceof Out_Neuron_ALife) || (n_w instanceof Input_Neuron_ALife)){
                             auxInputs.add(n_w);
                         }
+                    }
 
                 }
-                // auxInputs have now the new input neuron list
+                // auxInputs have now the new input neuron list in neuron inputs are other mind's neurons
                 double auxW = 0; //auxiliar weight
                 int auxCont = 0; //auxiliar counter
                 int[] i = new int[similarNeurons.size()];
@@ -677,9 +696,12 @@ public class Mind_ALife
                         success = false;
                     }
                 } // End for (Neuron_ALife n1_w: auxInputs) //All inputs for this neuron
-                } // End if( !(n instanceof Input_Neuron_ALife))
+                
                 //InpuNeuron have no weights
+                n.inputs = auxInputs;
+                n.weights = auxWeights;
             } // if( !(n instanceof Input_Neuron_ALife))
+            //n is an inputNeuron--> have no weights or inputs to update
         } // End for (Neuron_ALife n: mind.allNeurons)
         return success;
     } //End public boolean updateMixedWeights(this, progenitorsMinds)
@@ -919,15 +941,15 @@ public class Mind_ALife
      * @param n Neuron_ALife the neuron to set the ID
      * @return long the new neuron ID
      */
-    public long getNewNeuronID(Neuron_ALife n){
+    public long getNewNeuronID(Neuron_ALife n)throws IllegalArgumentException{
         long id = -1; // creature_ID + type(1 = inn, 2 = mid, 3 = status, 4 = out) + neuron_number (<1000)
         if (n == null) return id;
         if (!this.allNeurons.contains(n)) return id;
         id = this.creature.getIdCreature() * 10;
         if (n instanceof Input_Neuron_ALife) id += 1;
-        //else if (n instanceof Mid_Neuron_ALife) id += 2;
-        //else if (n instanceof Status_Neuron_ALife) id += 3;
+        else if (n instanceof Status_Neuron_ALife) id += 3;
         else if (n instanceof Out_Neuron_ALife) id += 4;
+        else if (n instanceof Neuron_ALife) id += 2; //Rest of neurons
         else throw new IllegalArgumentException("Mind_ALife: getNewNeuronID(Neuron_ALife n) Neuron_ALife n is unknown Neuron_ALife");
         id = id * 1000;
         id += this.allNeurons.indexOf(n);
@@ -942,15 +964,18 @@ public class Mind_ALife
      * @param n Neuron_ALife the neuron to add
      * @return None
      */
-    public void addNeuron(Neuron_ALife n){
+    public void addNeuron(Neuron_ALife n) throws IllegalArgumentException{
         if (n == null) return;
         this.allNeurons.add(n);
         this.getNewNeuronID(n);
+        n.setMind(this);
+        n.setCreature(this.creature);
         if (n instanceof Out_Neuron_ALife) this.outputNeurons.add((Out_Neuron_ALife)n);
         else if (n instanceof Input_Neuron_ALife) this.inputNeurons.add(n);
-        //else if (n instanceof Status_Neuron_ALife) this.statusNeurons.add(n);
-        else if (n instanceof Neuron_ALife) this.midNeurons.add(n);
-        else throw new IllegalArgumentException("Mind_ALife: addNeuron(Neuron_ALife n) Neuron_ALife n is unknown Neuron_ALife");
+        else if (n instanceof Status_Neuron_ALife) this.statusNeurons.add(n);
+        else if (n instanceof Neuron_ALife) this.midNeurons.add(n); //last option
+        else 
+            throw new IllegalArgumentException("Mind_ALife: addNeuron(Neuron_ALife n) Neuron_ALife n is unknown Neuron_ALife");
     } // End public void addNeuron(Neuron_ALife n)
 
     // Save Load Merge Mutate

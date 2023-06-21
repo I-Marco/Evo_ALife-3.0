@@ -9,8 +9,8 @@ import java.util.*;
 /**
  * Write a description of class Creature here.
  * 
- * @author (your name) 
- * @version (a version number or a date)
+ * @author Iñigo Marco 
+ * @version 20-06-2023
  */
 public class Creature extends Int_ALife_Creature
 {
@@ -102,7 +102,7 @@ public class Creature extends Int_ALife_Creature
         hungry = Int_ALife_Creature.DEFAULT_Hungry_Humbral + 1;
     
         if (m != null) { this.mind = m;}
-        else {//
+        else {
             setMind(new Mind_ALife(this));
         }
         
