@@ -284,6 +284,12 @@ public class Evo_ALife extends JFrame{
         JMenuItem testNewWorld_1C = new JMenuItem("Create new enviroment Type 1C- Minimal Creature");
         testNewWorld_1C.addActionListener( (ActionEvent e) -> this.makeSimpleCreatureEnv() );
         testMenu.add(testNewWorld_1C);
+
+        //makeDefaultEnvCreatureN()
+        JMenuItem testNewWorldD_nC = new JMenuItem("Create new enviroment Type 100x100- N Creatures");
+        testNewWorldD_nC.addActionListener( (ActionEvent e) -> this.makeDefaultEnvCreatureN() );
+        testMenu.add(testNewWorldD_nC);
+
         
         //
         
@@ -676,7 +682,27 @@ public class Evo_ALife extends JFrame{
         //Env_ALife temp_env_ALife = new Env_ALife(this,land_Temp,null,env_Vars);
         this.set_Env_Alive(temp_env_ALife);        
         
-    } //End private void makeDefaulLandtEnv()    
+    } //End private void makeDefaulLandtEnv()
+
+    /**
+     * Make a environment for simple creature test
+     */
+    private void makeDefaultEnvCreatureN(){
+        //java.util.List<Object> env_Vars = null; // List in java.util and java.awt
+        
+        if (env_ALife != null) {
+            this.env_ALife.killThread();
+        } else {
+            //env_Vars = null previusly fixed
+        }
+        
+        //Remove old enviroment
+        
+        //this.set_Env_Alive(createEnv_ALife_d_nCre(Evo_ALife e, int width, int height, int nCre) );
+        this.set_Env_Alive(Env_ALife.createEnv_ALife_d_nCre(this , 100, 100, 2) );
+    } //End private void makeDefaulLandtEnv()
+    
+    
     // Main if needed --------------------------------------------------------------------    
     
     /**

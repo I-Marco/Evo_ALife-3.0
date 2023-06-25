@@ -1,3 +1,6 @@
+import java.util.ArrayList;
+import java.util.Arrays;
+
 /**
  * Description of class ALifeCalcUtil:
  * This class is a utility class for ALifeCalc.
@@ -272,6 +275,56 @@ public class ALifeCalcUtil {
         return Math.sqrt(distance);
     } // End of method arrayDistance
 
+    /**
+     * public static double totalValuesSum(double[] array)
+     * @param array: array of values
+     * @return: sum of the values of the array
+     */
+
+    public static double totalValuesSum(double[] array){
+        //make this in lambda
+        return Arrays.stream(array).sum();
+    } // End of method totalValuesSum
+     
+    /**
+     * public static double[] multiplyArrayByCte(double[] array, double cte)
+     * 
+     * @param array: array of values
+     * @param cte: constant
+     * @return array of values multiplied by a constant
+     */
+    public static double[] multiplyArrayByCte(double[] array, double cte){
+        return Arrays.stream(array)
+                .map(value -> value * cte)
+                .toArray();
+    } // End of method multiplyArrayByCte
+
+    /**
+     * public static double[] normalizeArrayToTotal_1(double[] array)
+     * @param array: array of values
+     * @return: array of values normalized to total 1
+     */
+    public static double[] normalizeArrayToTotal_1(double[] array){
+        double total = totalValuesSum(array);
+        return multiplyArrayByCte(array, 1 / total);
+    } // End of method normalizeArrayToTotal_1
+
+    public static <T> ArrayList<T> arrayToArrayList(T[] array) {
+        ArrayList<T> arrayList = new ArrayList<>();
+        for (T value : array) {
+            arrayList.add(value);
+        }
+        return arrayList;
+    }
+    
+    public static <T> T[] arrayListToArray(ArrayList<T> arrayList) {
+        @SuppressWarnings("unchecked")
+        T[] array = (T[]) new Object[arrayList.size()];
+        for (int i = 0; i < arrayList.size(); i++) {
+            array[i] = arrayList.get(i);
+        }
+        return array;
+    }
 
     //Generate test data and examples
     public static void main(String[] args){

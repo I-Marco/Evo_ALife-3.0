@@ -36,7 +36,7 @@ public class Creature extends Int_ALife_Creature
     {1, 1, 100, 100, 5, 1, 200, //hidden, tamComplex, attack, def, detectionRange, umbralDetection, humgryUmbral, 
         100, 10000, 200, 10, 3, //lifeDelay, lifeExp, livePointMax, maxDescendants, minReproductionGroup, 
         1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, //minfoodResourceOwn, maxfoodResourceOwn, foodResourceNeed,
-        25, 15, 25, 5 //mind.getInnerN(), mind.getMidN(), mind.getOutN(), mind.getStatusN()
+        25, 15, Mind_ALife.Action.values().length, 5 //mind.getInnerN(), mind.getMidN(), mind.getOutN(), mind.getStatusN()
     };
     //Note: 2º value is TamComplex. Be care on changes same on MIND values
     
@@ -94,7 +94,7 @@ public class Creature extends Int_ALife_Creature
         //foodResourceOwn = {0,0,0};
         MultiTaskUtil.copyIntArrayContent(minfoodResourceOwn, foodResourceOwn);
         Random random = new Random();
-        double fac = 3 + random.nextInt(126)/100; //Factor of maxfoodResourceOwn from foodResourceOwn
+        double fac = 3 + ( (double) random.nextInt(126) )/100; //Factor of maxfoodResourceOwn from foodResourceOwn
         for (int i = 0; i< foodResourceOwn.length; i++){maxfoodResourceOwn[i] = (int)(foodResourceOwn[i] * fac);}
 
         //foodResourceNeed = {0,0,0};            
@@ -112,7 +112,8 @@ public class Creature extends Int_ALife_Creature
         tamComplex = evaluateTamComplex(this); // Funcion de evaluacion?
         //this.env_ALive.addEvent(env_ALive.getTime() + 1, this); //se añade a la siguiente unidad de tiempo
         //specie = getALife_Specie;
-        env_ALive.getSpecies().addCreature(this); //Automatically assign specieIdNumber    
+        env_ALive.addCreature(this); 
+        //env_ALive.getSpecies().addCreature(this); //Automatically assign specieIdNumber    
     }// Ene public Creature(Env_ALife env)
         
     /**
@@ -277,7 +278,8 @@ public class Creature extends Int_ALife_Creature
         //reproductionGroup = new Int_ALife_Creature[this.minReproductionGroup];
         //reproductionGroup[0] = (Int_ALife_Creature)this; //(Int_ALife_Creature)this;
         this.mutateCreature();
-        env_ALive.getSpecies().addCreature(this); //Automatically assign specieIdNumber
+        env_ALive.addCreature(this); 
+        //env_ALive.getSpecies().addCreature(this); //Automatically assign specieIdNumber
     } // End public Creature(ArrayList<Int_ALife_Creature> progenitors)
     
     Creature(){
@@ -289,8 +291,9 @@ public class Creature extends Int_ALife_Creature
      * Make a duplication of creature
      * @param   - Creature
      */
-    private Creature(Creature c){
+    protected Creature(Creature c){
         //Dupe creature
+        super(c); //Int_ALife_Creature(c)
         this.backLand = c.backLand; //private BufferedImage backLand = null;
         this.frontLand = c.frontLand; // private BufferedImage frontLand = null;
         this.semaphore = c.semaphore; // private Semaphore semaphore;
@@ -357,7 +360,6 @@ public class Creature extends Int_ALife_Creature
             //    semaphore.availablePermits()+").................");
             //Run 
             //1.- Eventos involuntarios como morir
-            this.statusChangeEvolution(); //Register status changes for mind learning and evolution
             
             if (this.hungry < this.humgryUmbral)
                 this.livePoints -= (this.humgryUmbral - this.hungry);          
@@ -368,7 +370,9 @@ public class Creature extends Int_ALife_Creature
                 this.livePoints = 0; //standarize
                 die(); // Morir
                 return; //End fo this thread and no more scheduled events for this creature
-            }         
+            }
+
+            this.statusChangeEvolution(); //Register status changes for mind learning and evolution
             //2.- Think and do voluntary actions
             Mind_ALife mal = this.mind; //For test
             Mind_ALife.Action decidedAction = this.mind.run();
@@ -526,25 +530,64 @@ public class Creature extends Int_ALife_Creature
      * @return   None
      */
     public void doAction(Mind_ALife.Action ac){
-        // UP,DOWN,RIGHT,LEFT,EAT,REPRODUCE,ATTACK
+        // UP,DOWN,RIGHT,LEFT,EAT,REPRODUCE,ATTACK,ADDREPGROUP,MAKETRACE
         switch(ac){
-            case UP: break;
-            case DOWN: break;
-            case RIGHT: break;
-            case LEFT: break;
+            case UP: 
+                actionMove(0, -1); //UP
+                break;
+            case DOWN:
+                actionMove(0, 1); //DOWN 
+                break;
+            case RIGHT: 
+                actionMove(1, 0); //RIGHT
+                break;
+            case LEFT: 
+                actionMove(-1, 0); //LEFT
+                break;
             case EAT: 
                 actionEat(this.pos, this.foodResourceNeed, null);//if eat someone null--> creature ate
                 break;
             case REPRODUCE: 
                 actionReproduce(this.reproductionGroup); // more progenitors?
                 break;
-            case ATTACK: break;
+            case ATTACK: 
+                //Attack to other creature 
+                break;
+
+            case ADDREPGROUP: 
+                //Add to reproduction group, who?
+                break;
+
+            case MAKETRACE: 
+                //Create a voluntary trace
+                break;
             
             default : break;
             
         }
     } // End private void doAction(Mind_ALife.Action ac)
     
+    /**
+     * private void actionMove(int x, int y)
+     * 
+     * Try to move creature to x points in x axis and y points in y axis
+     * @param    int x, int y
+     */
+    private void actionMove(int x, int y){
+        //Check if can move
+        if (this.env_ALive.getLogical_Env().detectColision(this, new Point((this.pos.x + x + this.env_ALive.getEnv_Width()) % this.env_ALive.getEnv_Width(),
+            (this.pos.y + y + this.env_ALive.getEnv_Height()) % this.env_ALive.getEnv_Height()), 0)) return;
+        //Move
+        //this.pos.x = (this.pos.x + x + this.env_ALive.getEnv_Width()) % this.env_ALive.getEnv_Width();
+        //this.pos.y = (this.pos.y + y + this.env_ALive.getEnv_Height()) % this.env_ALive.getEnv_Height();
+        //update logical enviroment
+        this.env_ALive.getLogical_Env().moveCreature(this,this.pos.x + x, this.pos.y + y);
+        //move creature udates creature position
+        //Visualize FALTA!!
+
+    } // End private void actionMove(int x, int y)
+    
+
     /**
      * private void actionEat(Point pos, int[] foodResourceEat, Creature cr)
      * where Point, what int[] how much resource, what creature -- Want eat
@@ -651,16 +694,41 @@ public class Creature extends Int_ALife_Creature
         
         if (this.timeOfDeccision.isEmpty() || 
             this.actions.isEmpty() || this.statusValue.isEmpty()){
-            MultiTaskUtil.threadMsg("Error in Creature statusChangeEvolution: Any ArrayList is empty");
+            if (this.lifeTime > this.lifeDelay)
+                MultiTaskUtil.threadMsg("Error in Creature statusChangeEvolution: Any ArrayList is empty");
             return;
         }
         
         // Fast minimal updates
-        this.mind.updateMind(actions.get(actions.size()-1), statusValue.get(statusValue.size()-1)-actualStatus, 
-            WEIGHT * (timeOfDeccision.get(timeOfDeccision.size()-1) - this.env_ALive.getTime()));
+        if (this.actions.size() > 1 && this.timeOfDeccision.size() > 1 && 
+            this.statusValue.size() > 1)
+        {
+            this.mind.updateMind(
+                actions.get(actions.size()-2),
+                actualStatus - statusValue.get(statusValue.size()-2),
+                Mind_ALife.DEFAULT_Weight_changeFraction / LONG_TIME_UPDATE
+            );
+        }
+        //this.mind.updateMind(actions.get(actions.size()-1), statusValue.get(statusValue.size()-1)-actualStatus, 
+        //    WEIGHT * (timeOfDeccision.get(timeOfDeccision.size()-1) - this.env_ALive.getTime()));
         // Medium updates
-
+        if (this.actions.size() > MEDIUM_TIME_UPDATE && this.timeOfDeccision.size() > MEDIUM_TIME_UPDATE && 
+            this.statusValue.size() > MEDIUM_TIME_UPDATE){
+            this.mind.updateMind(
+                actions.get(actions.size()-(int)MEDIUM_TIME_UPDATE - 1),
+                 actualStatus - statusValue.get(statusValue.size()-(int)MEDIUM_TIME_UPDATE - 1),
+                Mind_ALife.DEFAULT_Weight_changeFraction / (int)LONG_TIME_UPDATE * MEDIUM_TIME_UPDATE
+            );
+        }
         // Long time updates
+        if (this.actions.size() > LONG_TIME_UPDATE && this.timeOfDeccision.size() > LONG_TIME_UPDATE && 
+            this.statusValue.size() > LONG_TIME_UPDATE){
+            this.mind.updateMind(
+                actions.get(actions.size()-(int)LONG_TIME_UPDATE - 1),
+                 actualStatus - statusValue.get(statusValue.size()-(int)LONG_TIME_UPDATE - 1),
+                Mind_ALife.DEFAULT_Weight_changeFraction
+            );
+        }
 
         // Remove old useless datas
         if (actions.size() > LONG_TIME_UPDATE && timeOfDeccision.size() > LONG_TIME_UPDATE && 

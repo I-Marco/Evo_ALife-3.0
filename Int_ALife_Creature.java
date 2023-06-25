@@ -21,6 +21,7 @@ public abstract class Int_ALife_Creature extends Thread
     public static double DEFAULT_max_minReproductionGroup = 5;
     public static double DEFAULT_max_descendants = 10;
     public static double DEFAULT_max_detectRange = 10;
+    public static Long MARKREMANECE = 5L; //5 turns of mark detectable
     
     public static long DEFAULT_Hungry_Humbral = 100;
     public static long DEFAULT_Life_Turns = 100;
@@ -55,6 +56,7 @@ public abstract class Int_ALife_Creature extends Thread
     double hidden = 0L; //0..1, 0 = No hidden
     int detectionRange = 1; //in pixels min 1
     double umbralDetection = 0L; //0..1, 0 = Min detection
+    ArrayList<Trace> detectedTraces = new ArrayList<Trace>();
     
     long humgryUmbral = DEFAULT_Hungry_Humbral;
     long hungry = DEFAULT_Hungry_Humbral;
@@ -86,7 +88,7 @@ public abstract class Int_ALife_Creature extends Thread
      * 
      * @param    Int_ALife_Creature c the Int_ALife_Creature to copy
     */
-    private Int_ALife_Creature(Int_ALife_Creature c){
+    protected Int_ALife_Creature(Int_ALife_Creature c){
         this.attack = c.attack; // long def, attack;
         this.creatureTrace = c.creatureTrace; //Trace creatureTrace = null;
         this.def = c.def; //long def, attack;
@@ -112,7 +114,8 @@ public abstract class Int_ALife_Creature extends Thread
         this.maxDescendants = c.maxDescendants; //int maxDescendants = 1; //max descendants to have in 1 reproduction
         this.maxfoodResourceOwn = new int[c.maxfoodResourceOwn.length];
         MultiTaskUtil.copyIntArrayContent(this.maxfoodResourceOwn, c.maxfoodResourceOwn);
-        this.mind = c.mind; //FALTA dupe // Mind_ALife mind = null;
+        //this.mind = c.mind; //FALTA dupe // Mind_ALife mind = null;
+        this.mind = Mind_ALife.dupeMind_ALife(c.mind);
         this.minfoodResourceOwn = new int[c.minfoodResourceOwn.length]; //  int[] minfoodResourceOwn = {0,0,0}; // when born and need to born
         MultiTaskUtil.copyIntArrayContent(this.minfoodResourceOwn, c.minfoodResourceOwn);
         this.minReproductionGroup = c.minReproductionGroup; // int minReproductionGroup = 1;//min progenitors to have a baby
@@ -208,7 +211,7 @@ public abstract class Int_ALife_Creature extends Thread
         
         //for test
         //Trace t = new Trace(mark,this,this.pos);
-        this.creatureTrace = new Trace(mark,this,this.pos);
+        this.creatureTrace = new Trace(mark,this,this.pos, MARKREMANECE);
         return this.creatureTrace;
     } // End public Trace getCreatureTrace()
 
@@ -242,6 +245,16 @@ public abstract class Int_ALife_Creature extends Thread
         return this.pos;
     } // End public synchronized Point getPos()
     
+    /** 
+     * public synchronized void setPos(Point p)
+     * 
+     * @param    Point, the position of the creature in the environment
+     * @return   None
+     */
+    public synchronized void setPos(Point p){
+        this.pos = p;
+    } // End public synchronized void setPos(Point p)
+
     /**
      * public long getSpecieIdNumber()
      * 
@@ -274,6 +287,47 @@ public abstract class Int_ALife_Creature extends Thread
     } // End public synchronized double getStatus()
     
     // END Getter and Setters ----------------------------
+    
+    /**
+     * public int addDetectedTrace(Trace t)
+     * 
+     * Add detected trace from ALife_Logical_Environment by observer system
+     * @param   Trace t, the trace to add
+     * @return  int, the number of traces detected
+     */
+    public synchronized int addDetectedTrace(Trace t){
+        if (t == null) return -1;
+        if (this.detectedTraces == null) this.detectedTraces = new ArrayList<Trace>();
+        this.detectedTraces.add(t);
+        return this.detectedTraces.size();
+    } // End public synchronized int addDetectedTrace(Trace t)
+    
+    /**
+     * public synchronized int addDetectedTraces(ArrayList<Trace> ts)
+     * May be later
+    */
+    
+    /**
+     * public synchronized int removeDetectedTraces(Trace t)
+     * 
+     * Remove detected trace from ALife_Logical_Environment by observer system
+     * @param  Trace t, the trace to remove
+     * @return int, the number of traces detected
+     */
+    public synchronized int removeDetectedTrace(Trace t){
+        int MAX_TRACES = 10;
+        //if trace is null just ajust the size
+        if (this.detectedTraces == null) {
+            this.detectedTraces = new ArrayList<Trace>();
+            return -1;
+        }
+        if (t == null && this.detectedTraces.size() > MAX_TRACES) 
+            removeDetectedTrace(this.detectedTraces.get(this.detectedTraces.size()-1));
+        if (this.detectedTraces.contains(t) )this.detectedTraces.remove(t);
+        else return -1;
+        return this.detectedTraces.size();
+    }  // End public synchronized int removeDetectedTrace(Trace t)
+
     /**
      * public static Int_ALife_Creature dupeInt_ALife_Creature(Int_ALife_Creature c)
      * 
@@ -418,16 +472,23 @@ public abstract class Int_ALife_Creature extends Thread
         // Variable status
         //for test
         double VarTemporaldStatus = 0;
-        VarTemporaldStatus = (double)c.lifeTime; //may be we need to normalize this values
-        VarTemporaldStatus += ((double)c.hungry - 100)/DEFAULT_max_Hungry;
+        //lifeTime  more better
+        VarTemporaldStatus = (double)c.lifeTime / c.lifeExp; //may be we need to normalize this values
+        //hungry more better 
+        VarTemporaldStatus += ((double)c.hungry - DEFAULT_Hungry_Humbral)/DEFAULT_max_Hungry;
+        //livePoints more better MAX 1
         VarTemporaldStatus += (double)c.livePoints / (double)c.livePointMax;
-        double tempBody = 0, tempMinBody = 0;
+        //Reproduction group full better MAX 1
+        VarTemporaldStatus += (double)c.reproductionGroup.size() / c.minReproductionGroup;
+        //Body dimension more better
+        double tempBody = 0, tempMinBody = 0, tempMaxBody = 0;
         for (int i = 0; i < c.foodResourceOwn.length; i++){
             tempBody += (double)c.foodResourceOwn[i];
             tempMinBody += (double)c.minfoodResourceOwn[i];
+            tempMaxBody += (double)c.maxfoodResourceOwn[i];
         }
         //(tempBody - tempMinBody) /(DEFAULT_max_foodResourceNeed*100);
-        VarTemporaldStatus += tempBody - tempMinBody;//DEFAULT_max_foodResourceNeed
+        VarTemporaldStatus += (tempBody - tempMinBody) / (tempMaxBody - tempMinBody);//DEFAULT_max_foodResourceNeed
         synchronized (c){
             c.status = VarTemporaldStatus + ownedStatus;
         }   

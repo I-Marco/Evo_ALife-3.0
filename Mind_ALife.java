@@ -22,7 +22,10 @@ public class Mind_ALife
     public static final double DEFAULT_Weight = 0.2;
     public static final double TRUE_in_double = 1;
     public static final double FALSE_in_double = 0;
-    public static enum Action {UP,DOWN,RIGHT,LEFT,EAT,REPRODUCE,ATTACK};//add to reproductionGroup
+    public static enum Action {UP,DOWN,RIGHT,LEFT,EAT,REPRODUCE,ATTACK,ADDREPGROUP,MAKETRACE};//add to reproductionGroup
+    public static final double DEFAULT_u_changeFraction = 0.05;
+    public static final double DEFAULT_Weight_changeFraction = 0.1;
+    public static final double DEFAULT_weight_changeUnderFraction = 0.5;
     
     // Fields ----------------------------------------------------------------------------
     
@@ -342,18 +345,18 @@ public class Mind_ALife
      * @param m Mind_ALife the mind to copy
      * @return Mind_ALife the new mind
      */
-    public Mind_ALife(Mind_ALife m) throws IllegalArgumentException{
+    protected Mind_ALife(Mind_ALife m) throws IllegalArgumentException{
         //carefull with owner. During construction owner has 2 minds
-        this.creature = m.creature; //??
+        this.creature = m.creature;
         this.outNeuron = m.outNeuron.dupeNeuron_ALife(m.outNeuron); //?? //this Neuron is from other Mind
-        this.output = m.output; //??
+        this.output = m.output;
 
         this.allNeurons = new ArrayList <Neuron_ALife>();
         this.inputNeurons = new ArrayList <Neuron_ALife>();
         this.midNeurons = new ArrayList <Neuron_ALife>();
         this.outputNeurons = new ArrayList <Out_Neuron_ALife>();
         this.statusNeurons = new ArrayList <Neuron_ALife>();
-        this.creature = m.creature;
+        //this.creature = m.creature;
         
         for (Neuron_ALife n:m.inputNeurons){
             //Neuron_ALife auxN = n.dupeInputNeuron();dupeNeuron_ALife(
@@ -391,6 +394,150 @@ public class Mind_ALife
         }
 
     } // End public Mind_ALife(this.creature)
+
+    public Mind_ALife(int inN, int miN, int stN, int ouN, Int_ALife_Creature creature) throws IllegalArgumentException
+    {//int st2N, int ou2N
+        //Check
+        if (creature == null) throw new IllegalArgumentException("No se puede crear Mind_ALifem creature = NULL.");
+
+        setCreature(creature);
+        creature.setMind(this); //update creature mind
+        this.output = null;
+        this.outNeuron = null;
+        //Add inputNeurons
+        allNeurons = new ArrayList <Neuron_ALife>();
+        inputNeurons = new ArrayList <Neuron_ALife>();
+        outputNeurons = new ArrayList <Out_Neuron_ALife>();
+        statusNeurons = new ArrayList <Neuron_ALife>();
+        midNeurons = new ArrayList <Neuron_ALife>();
+
+        ArrayList <Neuron_ALife> auxNList = new ArrayList <Neuron_ALife>();
+        if (inN < 0) inN = (int) Creature.creature_maxCaracteristics[Creature.creature_maxCaracteristics.length - 4];
+        if (miN < 0) miN = (int) Creature.creature_maxCaracteristics[Creature.creature_maxCaracteristics.length - 3];
+        if (ouN < 0) ouN = (int) Creature.creature_maxCaracteristics[Creature.creature_maxCaracteristics.length - 2];
+        if (stN < 0) stN = (int) Creature.creature_maxCaracteristics[Creature.creature_maxCaracteristics.length - 1];
+
+
+        //all posible input neurons
+        //Own status detection
+        auxNList.add(new Reproductable_Neuron_ALife(creature));
+        auxNList.add(new RResourceDetection_Neuron_ALife(creature));
+        auxNList.add(new GResourceDetection_Neuron_ALife(creature));
+        auxNList.add(new BResourceDetection_Neuron_ALife(creature));
+        //auxNList.add(new Hunger_Neuron_ALife(creature));
+        //auxNList.add(new reproductionGroupFull_Neuron_ALife(creature));
+        //auxNList.add(new liveTimeFraction_Neuron_ALife(creature));
+        //auxNList.add(new livePointsFraction_Neuron_ALife(creature));
+        //auxNList.add(new attackPoints_Neuron_ALife(creature));
+        //auxNList.add(new defPoints_Neuron_ALife(creature));
+        //auxNList.add
+        //proximity
+        //auxNList.add(new ); //nearest neighbour x, -x, y, -y distance
+        //auxNList.add(new ); //nearest neighbour same specie x, -x, y, -y distance
+        //auxNList.add(new ); //nearest neighbour enemy x, -x, y, -y distance
+        //auxNList.add(new );//nearest neighbour family x, -x, y, -y distance
+        //auxNList.add(new );//nearest neighbour foodspecie x, -x, y, -y distance
+        //auxNList.add(new );//neighbour count
+        //auxNList.add(new );//neighbour count same specie
+        //auxNList.add(new );//neighbour count enemy
+        //auxNList.add(new );//neighbour count family
+        //auxNList.add(new );//neighbour count foodspecie
+        //Trace detection
+
+        //For test
+        int breakPoint = auxNList.size();
+        while (auxNList.size() > inN){
+            auxNList.remove((int)( (Math.random()*auxNList.size()*100 - 1)/100 ) );
+        }
+        //remove randomly till size() == inN. If inN<0 no removes
+            //this.addNeuron form auxNList
+
+        for(Neuron_ALife n:auxNList){
+            this.addNeuron((Input_Neuron_ALife)n);
+        }
+
+        //Create miN midNeurons
+        auxNList= new ArrayList <Neuron_ALife>();
+        for (int num = 0; num < miN; num++ ){
+            auxNList.add(new Neuron_ALife()); // May be other constructor
+        }
+        for(Neuron_ALife n:auxNList){
+            this.addNeuron(n);
+        }
+        //Create stN statusNeurons
+        auxNList= new ArrayList <Neuron_ALife>();
+        for (int num = 0; num < miN; num++ ){
+            auxNList.add(new Status_Neuron_ALife()); // May be other constructor
+        }
+        for(Neuron_ALife n:auxNList){
+            this.addNeuron((Status_Neuron_ALife)n);
+        }
+
+        //Create all posible outNeurons
+        auxNList= new ArrayList <Neuron_ALife>();
+        //create neuron for all actions
+        for(Action a:Mind_ALife.Action.values()){
+            auxNList.add(new Out_Neuron_ALife(this.inputNeurons,creature,a));//bad inputs we fix them later
+        }
+        //remove randomly till size() == ouN
+        while (auxNList.size() > ouN){
+            auxNList.remove((int)( (Math.random()*auxNList.size()*100 - 1)/100 ) );
+        }
+        for(Neuron_ALife n:auxNList){
+            this.addNeuron((Out_Neuron_ALife)n);
+        }
+
+        //make connections inputs and weights and neuronsids
+        //if Mid Neuron inputs include a mid neuron with lower index than itself endless cicle
+        auxNList = new ArrayList <Neuron_ALife>();
+        for(Neuron_ALife n:this.allNeurons){
+            if ( !(n instanceof Out_Neuron_ALife) ){ //no back inputs of output signals
+                auxNList.add(n);
+            }
+        } // auxNList contains now all posible inputs neurons out outputs neurons
+        
+        //If finally we make multilayer we must change this !!!
+        
+        for(Neuron_ALife n:this.allNeurons){
+            if ( !(n instanceof Input_Neuron_ALife) ){
+                //if (n.inputs == null) 
+                    n.inputs = new ArrayList <Neuron_ALife>();
+                //if (n.weights == null)
+                    n.weights = new ArrayList <Double>();
+                for(Neuron_ALife n_: auxNList){
+                    if(n.inputs.contains(n_)) 
+                        continue; //already connected
+                    if (this.midNeurons.contains(n) && this.midNeurons.contains(n_)){
+                            continue; //no back inputs of midNeurons
+                    }
+                    if ( !(n_ instanceof Status_Neuron_ALife) && this.allNeurons.indexOf(n) < this.allNeurons.indexOf(n_) ){
+                            //endelss cicle in activacion prevention, statusNeurons are different
+                            continue;
+                    }
+                    n.inputs.add(n_);
+                    n.weights.add(Mind_ALife.DEFAULT_Weight);
+                    n.u = Mind_ALife.DEFAULT_u;
+                }
+                double[] aux = ALifeCalcUtil.normalizeArrayToTotal_1(n.weights.stream().mapToDouble(Double::doubleValue).toArray());
+                ArrayList <Double> auxAL = new ArrayList <Double>();
+                Arrays.stream(aux).forEach(value -> auxAL.add(value));
+                n.weights = auxAL;
+                
+                //n.weights = ALifeCalcUtil.normalizeArrayToTotal_1(n.weights.stream().mapToDouble(Double::doubleValue).toArray());
+                //ALifeCalcUtil.standard_deviation(n.weights.stream().mapToDouble(Double::doubleValue).toArray()); // arrayList.stream().mapToDouble(Double::doubleValue).toArray();
+                double sum =Arrays.stream(n.weights.stream().mapToDouble(Double::doubleValue).toArray()).reduce(0, (a, b) -> a + b); 
+                int breakpoint = 1;
+            }
+            //normalize weights
+            //for test
+
+        }
+
+        this.setNeuronsCount();
+        if (!checkNeurons()){
+            throw new IllegalArgumentException("No se puede crear el objeto debido a una condición inválida.");
+        }
+    } // End public Mind_ALife(int inN, int miN, int stN, int ouN, Int_ALife_Creature creature)
 
     /**
      * private boolean createInnerNeurons(Mind_ALife m, ArrayList <Mind_ALife> progenitorsMinds)
@@ -751,14 +898,19 @@ public class Mind_ALife
     
     public void reset(){
         synchronized (this){
+            //Status neurons first to update status values
+            for (Neuron_ALife n:statusNeurons){
+                n.reset(); 
+            }
             for (Neuron_ALife n:allNeurons){
+                if (n instanceof Status_Neuron_ALife) continue; //done first
                 n.reset();
             }
         }
     }
     
     public double activation(){
-        //Max o sumatorio?? FAlta calcularlo
+        //Reset output and outNeuron
         output = Double.valueOf(0);
         outNeuron = null;
         ArrayList<Out_Neuron_ALife> outOptions = new ArrayList<Out_Neuron_ALife>();
@@ -809,8 +961,23 @@ public class Mind_ALife
      * @param weightOfActionVsTime double
      */
     public void updateMind(Action action, Double statusChange, Double weightOfActionVsTime){
+        //check
+        if (action == null || statusChange == null || weightOfActionVsTime == null){
+            //for test
+            MultiTaskUtil.threadMsg("Creator of Mind" + this.creature.idCreature + 
+                "Mind_ALife: updateMind parameters null.");
+            return;
+        }
+        if (statusChange == 0) return;
+
         //Find the neuron that has the action and update it and its inputs
         
+        for(Out_Neuron_ALife oN:this.outputNeurons){
+            if (oN.action == action){
+                oN.updateLearn(weightOfActionVsTime, statusChange);
+                break;
+            }
+        }
     } // End public void updateMind(Action action, Double statusChange, Double weightOfActionVsTime)
     
     /**
@@ -965,7 +1132,15 @@ public class Mind_ALife
      * @return None
      */
     public void addNeuron(Neuron_ALife n) throws IllegalArgumentException{
+        //check 
         if (n == null) return;
+        if (this.allNeurons == null) this.allNeurons = new ArrayList <Neuron_ALife>();
+        if (this.inputNeurons == null) this.allNeurons = new ArrayList <Neuron_ALife>();
+        if (this.midNeurons == null) this.allNeurons = new ArrayList <Neuron_ALife>();
+        if (this.outputNeurons == null) this.allNeurons = new ArrayList <Neuron_ALife>();
+        if (this.statusNeurons == null) this.allNeurons = new ArrayList <Neuron_ALife>();
+        if(this.allNeurons.contains(n)) return; //Already added
+
         this.allNeurons.add(n);
         this.getNewNeuronID(n);
         n.setMind(this);

@@ -86,7 +86,8 @@ public class Input_Neuron_ALife extends Neuron_ALife{
         if (n == null) return null;
         if (n instanceof Reproductable_Neuron_ALife) 
             return Reproductable_Neuron_ALife.dupeNeuron_ALife((Reproductable_Neuron_ALife) n);
-        return Input_Neuron_ALife.dupeNeuron_ALife((Input_Neuron_ALife) n); //May be crash
+        return new Input_Neuron_ALife(n); //May be crash
+        //return new Input_Neuron_ALife( (Input_Neuron_ALife) n); //May be crash
     } // End public static Reproductable_Neuron_ALife dupeNeuron_ALife(Reproductable_Neuron_ALife n)
     
 } // End public class Input_Neuron_ALife extends Neuron_ALife

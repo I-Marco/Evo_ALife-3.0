@@ -10,8 +10,8 @@ public class Neuron_ALife
 {
     // Fields ----------------------------------------------------------------------------
      double u = Mind_ALife.DEFAULT_u;
-     ArrayList <Neuron_ALife> inputs;
-     ArrayList<Double> weights;
+     ArrayList <Neuron_ALife> inputs =  new ArrayList <Neuron_ALife>();
+     ArrayList<Double> weights = new ArrayList<Double>();
      Double output = null;
      long neuron_ID = -1; // creature_ID + type(1 = inn, 2 = mid, 3 = status, 4 = out) + neuron_number (<1000)
      Int_ALife_Creature creature = null;
@@ -85,7 +85,8 @@ public class Neuron_ALife
             }
         }
         this.u = n.u;
-        this.output = Double.valueOf(n.output);
+        if (n.output == null) this.output = null;
+        else this.output = Double.valueOf(n.output);
         this.neuron_ID = n.neuron_ID; // For full dupe, we have change in mind
         //Any more??
     }// End public Neuron_ALife (Neuron_ALife n)
@@ -123,15 +124,20 @@ public class Neuron_ALife
      * @return double the activation value of the neuron 0..1
      */
     public double activation(){
+        if (this.output != null) return output;
         int i = 0;//Psoble checkeo nully empty 
         double sum = u;
         for(Neuron_ALife n:inputs){
-            if (n.getOutput() != null) {
-                sum += n.getOutput() * weights.get(i);
-            } else {
-                sum += n.activation() * weights.get(i);
-            }
-        }
+            //for test
+            MultiTaskUtil.threadMsg("("+this.neuron_ID+")Neuron_ALife.activation() n = "+n.neuron_ID);
+            if (n != this){
+                if (n.getOutput() != null) {
+                    sum += n.getOutput() * weights.get(i);
+                } else {
+                    sum += n.activation() * weights.get(i);
+                }
+            } // End if (n != this)
+        }// End for(Neuron_ALife n:inputs) all inputs neurons
         output = sum;
         return sum;
     } // End public double activation()
@@ -147,10 +153,37 @@ public class Neuron_ALife
     public void updateLearn(Double enhanced, Double change){
         // En funcion de enhanced y change el peso mejora. Debo ACOTARLOS
         // Based in back propagation algorithm
-        this.u += u*enhanced * change;
-        for (Double d: weights){
-            d += d*enhanced * change;
+        // Based in back propagation algorithm
+        if (enhanced == null || change == null || enhanced == 0L || change == 0L) return;
+        if (this.inputs == null || this.inputs.isEmpty()) return; //No inputs neurons
+        /* DE OUT NEURON
+        this.u += u*enhanced * change * Mind_ALife.DEFAULT_u_changeFraction;
+        weights.replaceAll(d -> d + d * enhanced * change * Mind_ALife.DEFAULT_u_changeFraction);
+        */
+        //u modificación por decidir
+        //weights los que aportan mas de la media mejoran un x% y luego se acota para que la suma total de pesos sea 1
+
+        
+        double chageValue = enhanced * change;
+        for(int i = 0; i < this.inputs.size(); i++){
+            Neuron_ALife n = this.inputs.get(i);
+            n.updateLearn(enhanced, change*weights.get(i));
         }
+
+        this.u = this.u + this.u* enhanced * change * Mind_ALife.DEFAULT_u_changeFraction;
+        double[] aux = this.weights.stream().mapToDouble(Double::doubleValue).toArray();
+        double mean = ALifeCalcUtil.mean(aux);
+        for (int i = 0; i < aux.length; i++){
+            if (aux[i] > mean) aux[i] = aux[i] + aux[i]* chageValue * Mind_ALife.DEFAULT_u_changeFraction;  
+            else aux[i] = aux[i] + aux[i]* chageValue * Mind_ALife.DEFAULT_Weight_changeFraction * Mind_ALife.DEFAULT_weight_changeUnderFraction;
+        }
+        //ALifeCalcUtil.multiplyArrayByCte(null, chageValue)
+        aux = ALifeCalcUtil.normalizeArrayToTotal_1(aux);
+
+        ArrayList <Double> auxAL = new ArrayList <Double>();
+        Arrays.stream(aux).forEach(value -> auxAL.add(value));
+        this.weights = auxAL;
+        
     } // End public void updateLearn(Double enhanced, Double change)
     
     /**
@@ -161,17 +194,24 @@ public class Neuron_ALife
      * @return Neuron_ALife the copy of the neuron
      */
     public static Neuron_ALife dupeNeuron_ALife(Neuron_ALife n){
-        // Returns a copy of this neuron
-        Neuron_ALife n2 = new Neuron_ALife(n);
-        // for test
-        System.out.println(n.getClass());
-        System.out.println((n.dupeNeuron_ALife(n2)).getClass());
-        n2 = n.dupeNeuron_ALife(n); //
-        //End test
+         // Returns a copy of this neuron
+         //Check
+        if (n == null) return null;
         if (n instanceof Out_Neuron_ALife){
             Out_Neuron_ALife n_Out = Out_Neuron_ALife.dupeNeuron_ALife((Out_Neuron_ALife)n);
             return n_Out;
-        }       
+        }
+        if (n instanceof Status_Neuron_ALife){
+            Status_Neuron_ALife n_Status = Status_Neuron_ALife.dupeNeuron_ALife((Status_Neuron_ALife)n);
+            return n_Status;
+        }
+        //inn and mid can be cloned with the standar method
+        if(n instanceof Input_Neuron_ALife){
+            Input_Neuron_ALife n_In = Input_Neuron_ALife.dupeNeuron_ALife((Input_Neuron_ALife)n);
+            return n_In;
+        }
+        //Default
+        Neuron_ALife n2 = new Neuron_ALife(n);     
         return n2;
     } // End public static Neuron_ALife dupeNeuron_ALife(Neuron_ALife n)
 
@@ -201,12 +241,46 @@ public class Neuron_ALife
     /**
      * public void setMind(Mind_ALife mind)
      * 
-     * Set the mind of the neuron
+     * Set the mind of the neuron and check if all inputs neurons are into the mind 
+     * other way force it
      * @param mind Mind_ALife the mind of the neuron
      * @return None
      */
     public synchronized void setMind(Mind_ALife mind){
-        this.mind = mind;
+        //Check
+        if (mind == null) return;
+        //Check if all inputs neurons are into the mind other way force it
+        boolean inputsIntoMind = true;
+        for (Neuron_ALife n: this.inputs){
+            if (n.mind != mind) inputsIntoMind = false;
+        }
+        if (inputsIntoMind) this.mind = mind;
+        else{
+            //New inputs and weights on this mind
+            ArrayList <Neuron_ALife> newInputs = new ArrayList <Neuron_ALife>();
+            ArrayList <Double> newWeights = new ArrayList <Double>();
+            if (this.inputs.size() == mind.allNeurons.size() - mind.outputNeurons.size()){
+                //All inputs neurons are into the mind
+                for (Neuron_ALife n: mind.allNeurons){
+                    if ( !(n instanceof Out_Neuron_ALife) ){
+                        newInputs.add(n);
+                        //weights are ok;
+                    };
+                }
+                inputs = newInputs;
+                //weights are ok (No need weights = newWeights;)
+            } else { //diferente number or correct inputs and weights
+                for (Neuron_ALife n: mind.allNeurons){
+                    if ( !(n instanceof Out_Neuron_ALife) ){
+                        newInputs.add(n);
+                        newWeights.add((double)(1/(mind.allNeurons.size() - mind.outputNeurons.size())));
+                    };
+                }
+                inputs = newInputs;
+                weights = newWeights;
+            }
+           
+        }// end else of  if (inputsIntoMind)
     } // End public void setMind(Mind_ALife mind)
 
     /**

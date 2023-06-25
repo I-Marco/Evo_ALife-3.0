@@ -37,19 +37,6 @@ public class Out_Neuron_ALife extends Neuron_ALife
         //Checks
         super(ns,c);
         
-        /*
-        if (c==null) return; //(For moment we dont contemps unowned neurons
-        if (ns == null) return; else if (ns.isEmpty()) return;
-        //double u = Mind_ALife.DEFAULT_u;
-        //Double output = null; 
-        creature = c;
-        inputs = new ArrayList <Neuron_ALife>();
-        weights = new ArrayList<Double>();
-        for(Neuron_ALife n: ns){
-            inputs.add(n);
-            weights.add(Mind_ALife.DEFAULT_Weight);
-        }
-        */
         this.action = action;   
     } // public Out_Neuron_ALife(ArrayList <Neuron_ALife> ns, Int_ALife_Creature c, Mind_ALife.Action action)
 
@@ -59,11 +46,14 @@ public class Out_Neuron_ALife extends Neuron_ALife
      * private constructor for copy pr dupe a neuron
      * @param n Out_Neuron_ALife the neuron to copy
      */
-    private Out_Neuron_ALife(Out_Neuron_ALife n) throws IllegalArgumentException{
+    protected Out_Neuron_ALife(Out_Neuron_ALife n) throws IllegalArgumentException{
+        super(n);
         this.action = n.action;
+        /*
         this.creature = n.creature;
         this.mind = n.mind;
-        this.output = Double.valueOf(n.output);
+        if (n.output == null ) this.output = null; 
+        else this.output = Double.valueOf(n.output);
         this.u = n.u;
         this.weights = new ArrayList<Double>();
         this.inputs = new ArrayList <Neuron_ALife>();
@@ -78,6 +68,8 @@ public class Out_Neuron_ALife extends Neuron_ALife
                 this.weights.add(Double.valueOf(n.weights.get(i))); //test if its new or copy
             }
         }
+
+        */
         //Any more??
     } // private Out_Neuron_ALife(n)
 
@@ -135,6 +127,7 @@ public class Out_Neuron_ALife extends Neuron_ALife
      */
     @Override
     public double activation(){
+        if (output != null) return output;
         //For test
         if (this.action ==  Mind_ALife.Action.REPRODUCE){
             int breack = 1;
@@ -146,21 +139,26 @@ public class Out_Neuron_ALife extends Neuron_ALife
         int i = 0;
         double sum = u;
         for(Neuron_ALife n:inputs){
-            if (n.getOutput() != null) {
-                //for test
-                double aux = n.getOutput(); 
-                double aux2 = weights.get(i);
-                sum = aux * aux2;
-                //End test the good is next line
-                //sum += n.getOutput() * weights.get(i); //on when test out
-            } else {
-                //for test
-                double aux = n.activation();
-                double aux2 = weights.get(i);
-                sum = aux * aux2;
-                //End test the good is next line
-                //sum += n.activation() * weights.get(i); //on when test out
-            }
+            //for test
+            MultiTaskUtil.threadMsg("("+this.neuron_ID+")Neuron_ALife.activation() n = "+n.neuron_ID); 
+
+            if (n!= this){
+                if (n.getOutput() != null) {
+                    //for test
+                    double aux = n.getOutput(); 
+                    double aux2 = weights.get(i);
+                    sum = aux * aux2;
+                    //End test the good is next line
+                    //sum += n.getOutput() * weights.get(i); //on when test out
+                } else {
+                    //for test
+                    double aux = n.activation();
+                    double aux2 = weights.get(i);
+                    sum = aux * aux2;
+                    //End test the good is next line
+                    //sum += n.activation() * weights.get(i); //on when test out
+                }
+            } // End if (n!= this)
         }
         output = sum;
         return sum;
@@ -177,12 +175,19 @@ public class Out_Neuron_ALife extends Neuron_ALife
      */
     @Override
     public void updateLearn(Double enhanced, Double change){
-        // En funcion de enhanced y change el peso mejora. Debo ACOTARLOS
         // Based in back propagation algorithm
-        this.u += u*enhanced * change;
+        super.updateLearn(enhanced, change);
+        /*
+        if (enhanced == null || change == null || enhanced == 0L || change == 0L) return;
+        this.u += u*enhanced * change * Mind_ALife.DEFAULT_u_changeFraction;
+        weights.replaceAll(d -> d + d * enhanced * change * Mind_ALife.DEFAULT_u_changeFraction);
+        */
+        /*
         for (Double d: weights){
-            d += d*enhanced * change;
+            d =d + d*enhanced * change;
+            int breackpoint = 1;
         }
+        */
     }
     
     // Getter and setters -----------------------

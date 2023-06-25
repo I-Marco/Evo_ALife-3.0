@@ -130,7 +130,7 @@ public class Env_ALife extends Thread
     public Env_ALife(Evo_ALife e,BufferedImage l, Object liveEnv, java.util.List<Object> envVars){
         LocalDateTime fechaHoraActual = LocalDateTime.now();
         DateTimeFormatter formateador = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        this.env_Name = this.env_Name + fechaHoraActual.format(formateador);
+        this.env_Name = this.env_Name +"_"+ fechaHoraActual.format(formateador);
         caller = e;
         isPaused = true;
         semaphore = new Semaphore(maxThreads);
@@ -189,7 +189,7 @@ public class Env_ALife extends Thread
                     if (o instanceof Int_ALife_Creature) {
                         //Asignamos la cretura a este enviroment
                         this.addCreature(((Creature)o));//Add to enviroment adding to eventList
-                        this.species.addCreature(((Creature)o)); //Add to species
+                        //this.species.addCreature(((Creature)o)); //Add to species
                         //((Creature)o).setEnv_ALife(this);
                         //((Creature)o).setIdCreature(this.getCreatureID());                        
                         //addEvent(getTime()+1,(Creature)o);
@@ -291,7 +291,7 @@ public class Env_ALife extends Thread
             //For concurrency Log
             //MultiTaskUtil.threadMsg("Env Run ("+this.getTime()+") "+ semaphore.availablePermits()); //For test
             
-            this.backLifeImage = Env_Panel.getDefaultEnvTransparentImage(); //Blinck efect
+            //this.backLifeImage = Env_Panel.getDefaultEnvTransparentImage(); //Blinck efect
             
             //Do something ...
             synchronized (eventList){
@@ -1041,6 +1041,8 @@ public class Env_ALife extends Thread
         this.logical_Env.addCreature(c, c.getPos());
         //Add in life image
         c.paint(getBackLifeImage(), Color.YELLOW); //CAUTION we have to pass to front image to be seen
+        //add Creature to specie system
+        this.species.addCreature(c);
         
     } //End public addCreature(Int_ALife_Creature c)
     
@@ -1056,6 +1058,71 @@ public class Env_ALife extends Thread
         this.species.removeCreature(c);
         this.logical_Env.removeCreature(c);
     } // End public void removeCreature(Int_ALife_Creature c)
+
+    //Some test enviroments creators.
+
+    /**
+     * public static Env_ALife createEnv_ALife_d_nCre(Evo_ALife e, int width, int height, int nCre)
+     * 
+     * Create a defined enviroment with a defined number of creatures and land dimension
+     * @param   - int width, enviroment width
+     * @param   - int height, enviroment height
+     * @param   - int nCre, number of creatures to be created
+     * @return  - Env_ALife, the new enviroment
+     * (Evo_ALife e,BufferedImage l, Object liveEnv, java.util.List<Object> envVars)
+     */
+    public static Env_ALife createEnv_ALife_d_nCre(Evo_ALife e, int width, int height, int nCre){
+        ArrayList<Point> creaturePositions = new ArrayList<Point>(); //List of creature positions
+        //Create land environment
+        BufferedImage land_Temp = new BufferedImage(
+            width, height, BufferedImage.TYPE_INT_ARGB);
+        while (creaturePositions.size() < nCre){
+            int x = (int) (Math.random() * width);
+            int y = (int) (Math.random() * height);
+            Point p = new Point(x,y);
+            if (!creaturePositions.contains(p)){
+                creaturePositions.add(p);
+            }
+        } //Random positions for creatures
+
+        //food spots for creatures.
+        Graphics2D g2d = land_Temp.createGraphics();
+        for (Point pos:creaturePositions){
+            for (int i = pos.x - 1; i < pos.x + 1; i++){
+                for (int j = (pos.y - 1); j < (pos.y + 1) ; j++){
+                    //Random color
+                    g2d.setColor(new Color(
+                        (int) (Math.random() * 230),
+                        (int) (Math.random() * 230), 
+                        (int) (Math.random() * 230)
+                    )); // fix background to BLACK 0, 0, 0
+                    int x= (i + width) % width;
+                    g2d.fillRect((i + width) % width, (j + height) % height , 1, 1);
+                }
+            }
+            g2d.setColor(new Color(50,50,50));
+            g2d.fillRect(pos.x, pos.y , 1, 1);
+        }
+
+        //Create creatures
+        ArrayList<Int_ALife_Creature> creatures = new ArrayList<Int_ALife_Creature>();
+        int lifeExpectancy = 2000;
+
+        for (Point pos:creaturePositions){
+            int[] foodNeed = {(int) (Math.random() * 199)/100,(int) (Math.random() * 199)/100,(int) (Math.random() * 199)/100};
+            int[] foodOwn = {foodNeed[0]*250,foodNeed[1]*250,foodNeed[2]*250};
+            Int_ALife_Creature c = new Creature(e.get_Env_Alife(), pos, null, lifeExpectancy, foodOwn, foodNeed);
+            Mind_ALife m = new Mind_ALife(-1, 3, 3, -1, c);
+            c.setPos(pos);
+            c.setMind(m);
+            creatures.add(c);
+        }
+
+        //Env_ALife(Evo_ALife e,BufferedImage l, Object liveEnv, java.util.List<Object> envVars)
+        return new Env_ALife(e,land_Temp, creatures, e.get_Env_Alife().getEnvVars());
+        //Env_ALife e = new Env_ALife();
+    } // End public static Env_ALife createEnv_ALife_d_nCre(Evo_ALife e, int width, int height, int nCre)
+
     // Private Methods and Fuctions ====================================================================
 
     // Serialización de un objeto en un archivo

@@ -14,12 +14,16 @@ public class Trace
     double umbral; // Umbral minimo de detección necesario
     Int_ALife_Creature source;
     Point pos;
+    Long timeRest = 0L;
+    Long time = 0L;
     // Methods ---------------------------------------------------------------------------
     // Construcotors ============================
-    public Trace(double u, Int_ALife_Creature s, Point p){
+    public Trace(double u, Int_ALife_Creature s, Point p, long trest){
             umbral = u;
             source = s;
             pos = p;
+            timeRest = trest;
+            time = s.getEnv_ALife().getTime();
     } // End public Trace(int u, Int_ALife_Creature s, Point p)
     // End Constructors ========================
     // Public Methods and Fuctions ==============
@@ -81,6 +85,12 @@ public class Trace
 
 
     // End Getter and Setters - - - - - - - - - -
+
+    public Long run(){
+        this.timeRest = this.timeRest - 1;
+        return this.timeRest;
+        //if 0 need to be removed
+    }
     // Private Methods and Fuctions =============
     
     

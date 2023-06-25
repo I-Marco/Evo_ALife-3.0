@@ -166,7 +166,8 @@ public class ALife_Nutrient_Environment implements Runnable
             synchronized (this){
                 grownMap();
             }
-            
+            // Updare logical enviroment (for traces)
+            this.env_ALive.getLogical_Env().run(); 
             try{
                 Thread.sleep(Env_ALife.CTE_TIEMPO_CEDER); // ceder tiempo de computo
                 //Thread.currentThread().sleep(Env_ALife.CTE_TIEMPO_ESPERA_LARGA); // ceder tiempo de computo
@@ -186,7 +187,7 @@ public class ALife_Nutrient_Environment implements Runnable
             //MultiTaskUtil.threadMsg("Finalizado Thread !!"+semaphore.availablePermits()); //For concurrency log
             this.env_ALive.MyNotifyAll();
         }
-
+        
         //env_ALive.removeWaitForThreads();
     } // End public void run()    
 

@@ -1,5 +1,4 @@
-import java.util.*;
-import java.util.concurrent.RunnableScheduledFuture;
+import java.awt.Point;
 
 /**
  * Write a description of class Neuron_Alife here.
@@ -7,7 +6,7 @@ import java.util.concurrent.RunnableScheduledFuture;
  * @author Iñigo Marco 
  * @version 20-05-2023
  */
-public class Reproductable_Neuron_ALife extends Input_Neuron_ALife
+public class RResourceDetection_Neuron_ALife extends Input_Neuron_ALife
 {
     // Fields ----------------------------------------------------------------------------
      
@@ -15,30 +14,28 @@ public class Reproductable_Neuron_ALife extends Input_Neuron_ALife
 
     // Constructors ============================
     /**
-     * public Reproductable_Neuron_ALife(Reproductable_Neuron_ALife n)
+     * public RResourceDetection_Neuron_ALife(RResourceDetection_Neuron_ALife n)
      * 
      * Constructor to help in dupeNeuron_ALife methods
-     * @param n Reproductable_Neuron_ALife the neuron to copy
+     * @param n RResourceDetection_Neuron_ALife the neuron to copy
      */
-    public Reproductable_Neuron_ALife(Reproductable_Neuron_ALife n){
+    public RResourceDetection_Neuron_ALife(RResourceDetection_Neuron_ALife n){
         super(n);
-    } // End public Reproductable_Neuron_ALife(Reproductable_Neuron_ALife n)
+    } // End public RResourceDetection_Neuron_ALife(RResourceDetection_Neuron_ALife n)
 
-    // necesitamos varios constructores un por defecto, otro que marque las entradas....
-    // .... y otro que mezcle varias redes
     /**
-     * public Reproductable_Neuron_ALife(Int_ALife_Creature c)
+     * public RResourceDetection_Neuron_ALife(Int_ALife_Creature c)
      * 
      * Default constructor of the class
      * @param c Int_ALife_Creature the creature that owns the neuron
      */
-    public Reproductable_Neuron_ALife(Int_ALife_Creature c){
+    public RResourceDetection_Neuron_ALife(Int_ALife_Creature c){
         //Checks
         if (c==null) {
             return; //(For moment we dont contemps unowned neurons
         }
         this.creature = c;
-    } // End public Reproductable_Neuron_ALife(Int_ALife_Creature c)
+    } // End public RResourceDetection_Neuron_ALife(Int_ALife_Creature c)
     
     // Public Methods and Fuctions ==============
 
@@ -53,26 +50,28 @@ public class Reproductable_Neuron_ALife extends Input_Neuron_ALife
         if (this.output != null) return output;
         
         output = Mind_ALife.FALSE_in_double;
-        if (creature.getReproductable()) output = Mind_ALife.TRUE_in_double;
-        return output; //this.output" is null" java.lang.NullPointerException ?????
+        Point pos = this.creature.getPos();
+        int[] food = this.creature.getEnv_ALife().getLand().nutrient(pos.x, pos.y);
+        if (food[0] > 0) output = Mind_ALife.TRUE_in_double;
+        return output;
     }
         
     /**
-     * public static Reproductable_Neuron_ALife dupeNeuron_ALife(Reproductable_Neuron_ALife n)
+     * public static RResourceDetection_Neuron_ALife dupeNeuron_ALife(RResourceDetection_Neuron_ALife n)
      * 
      * Copy a neuron of this class 
-     * @param  n Reproductable_Neuron_ALife the neuron to copy
-     * @return Reproductable_Neuron_ALife the copy of the neuron
+     * @param  n RResourceDetection_Neuron_ALife the neuron to copy
+     * @return RResourceDetection_Neuron_ALife the copy of the neuron
      */
-    public static Reproductable_Neuron_ALife dupeNeuron_ALife(Reproductable_Neuron_ALife n){
+    public static RResourceDetection_Neuron_ALife dupeNeuron_ALife(RResourceDetection_Neuron_ALife n){
         //Its not override since input and output parameters classes are diferent
         if (n.creature == null) return null;
-        Reproductable_Neuron_ALife newN = new Reproductable_Neuron_ALife(n);
+        RResourceDetection_Neuron_ALife newN = new RResourceDetection_Neuron_ALife(n);
         return newN;
-    } // End public static Reproductable_Neuron_ALife dupeNeuron_ALife(Reproductable_Neuron_ALife n)
+    } // End public static RResourceDetection_Neuron_ALife dupeNeuron_ALife(RResourceDetection_Neuron_ALife n)
 
     // Getter and setters
 
     // Private Methods and Fuctions =============
     
-} // End Class Reproductable_Neuron_ALife
+} // End Class
