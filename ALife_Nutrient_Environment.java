@@ -167,7 +167,7 @@ public class ALife_Nutrient_Environment implements Runnable
                 grownMap();
             }
             // Updare logical enviroment (for traces)
-            this.env_ALive.getLogical_Env().run(); 
+            //this.env_ALive.getLogical_Env().run(); 
             try{
                 Thread.sleep(Env_ALife.CTE_TIEMPO_CEDER); // ceder tiempo de computo
                 //Thread.currentThread().sleep(Env_ALife.CTE_TIEMPO_ESPERA_LARGA); // ceder tiempo de computo

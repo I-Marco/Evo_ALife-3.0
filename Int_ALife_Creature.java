@@ -204,10 +204,11 @@ public abstract class Int_ALife_Creature extends Thread
     public Trace getCreatureTrace(){
         double mark=0;
         //int weight = 0;
-        for (int res:foodResourceOwn) 
-            mark+=((double)res)/Env_ALife.TRACE_PODENRACION_PESO_DETECCIÓN;
-            
-        //mark = this.hidden * weight/Env_ALife.TRACE_PODENRACION_PESO_DETECCIÓN;
+        synchronized(foodResourceNeed){
+            for (int res:foodResourceOwn) 
+                mark+=((double)res)/Env_ALife.TRACE_PODENRACION_PESO_DETECCIÓN;
+        }    
+        mark = this.hidden * mark / Env_ALife.TRACE_PODENRACION_PESO_DETECCIÓN;
         
         //for test
         //Trace t = new Trace(mark,this,this.pos);

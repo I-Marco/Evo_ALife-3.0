@@ -346,6 +346,12 @@ public class Env_ALife extends Thread
             //synchronized (maxThreadSignal) {
 
             threadManager.waitForThreadsToFinish();       
+            //eventList.get(time)
+            /* Necesario
+            if (eventList.get(time).contains(this.getLand())) {
+                        this.logical_Env.run(); //Run logical enviroment. Prevent cuncurrency errors
+            }
+            */
             removeEvent(time);
             
             //For concurrency Log
@@ -354,9 +360,6 @@ public class Env_ALife extends Thread
 
             synchronized (eventList){
                 Long l= eventList.firstKey();
-                if (eventList.get(l).contains(this.getLand())) {
-                        this.logical_Env.run(); //Run logical enviroment. Prevent cuncurrency errors
-                }
                 if (l < getTime()){
                     int breakpoint = 1;
                     MultiTaskUtil.threadMsg("Time CICLE("+this.timeCicles+") ENDED!!! Time :"+getTime());
@@ -1037,8 +1040,16 @@ public class Env_ALife extends Thread
         int lifeExpectancy = 2000;
 
         for (Point pos:creaturePositions){
-            int[] foodNeed = {(int) (Math.random() * 199)/100,(int) (Math.random() * 199)/100,(int) (Math.random() * 199)/100};
-            int[] foodOwn = {foodNeed[0]*250,foodNeed[1]*250,foodNeed[2]*250};
+            boolean valid = false;
+            int[] foodNeed = {0 , 0 , 0}, foodOwn= {0 , 0 , 0};
+            while (!valid){
+                int[] foodNeed_aux = {(int) (Math.random() * 199)/100, (int) (Math.random() * 199)/100, (int) (Math.random() * 199)/100};
+                foodNeed = foodNeed_aux;
+                int[] foodOwn_aux = {foodNeed[0]*250,foodNeed[1]*250,foodNeed[2]*250};
+                foodOwn = foodOwn_aux;
+                valid = !Arrays.equals(foodNeed_aux, foodOwn_aux);
+            }
+            
             Int_ALife_Creature c = new Creature(e.get_Env_Alife(), pos, null, lifeExpectancy, foodOwn, foodNeed);
             Mind_ALife m = new Mind_ALife(-1, 3, 3, -1, c);
             c.setPos(pos);

@@ -104,8 +104,8 @@ public class ALife_Logical_Environment extends Thread
             
             int x,y; 
             //observers updating --> this.addCreature(c, p); detection range + 1 para limpiar anteriores
-            for (int i = p.x - r - 1; i < (p.x +  r + 1); i++)
-                for (int j = p.y - r - 1; j < (p.y +  r + 1); j++)
+            for (int i = p.x - r - 1; i <= (p.x +  r + 1); i++)
+                for (int j = p.y - r - 1; j <= (p.y +  r + 1); j++)
             {   x = (i + w) % w;
                 y = (j + h) % h;
                 if ((double)r >= p.distance(x, y)){
@@ -179,12 +179,14 @@ public class ALife_Logical_Environment extends Thread
         }
         //check if the new position is valid
         int w = c.getEnv_ALife().getEnv_Width();
-        int h = c.getEnv_ALife().getEnv_Height();        
+        int h = c.getEnv_ALife().getEnv_Height();
         Point newPos = new Point(
             (c.pos.x + x + w) % w,
             (c.pos.y + y + h) % h);
         if (this.ocupiers[newPos.x ][newPos.y].size() > 0) {
             //colision
+            //for test
+            ArrayList<Int_ALife_Creature> breakpoint = this.ocupiers[newPos.x ][newPos.y];
             return; //may be eat or fight
         }
         //Change position in the ocupiers array

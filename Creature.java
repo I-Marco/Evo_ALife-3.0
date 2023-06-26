@@ -345,7 +345,7 @@ public class Creature extends Int_ALife_Creature
      * @return   No returned value
      */    
     @Override 
-    public void run(){
+    public void run(){ //Creature Run
         try{
             if (semaphore == null) {
                 MultiTaskUtil.threadMsg("Error in Creature Run: semaphore == null");
@@ -572,7 +572,8 @@ public class Creature extends Int_ALife_Creature
      */
     private void actionMove(int x, int y){
         //Check if can move
-        if (this.env_ALive.getLogical_Env().detectColision(this, new Point((this.pos.x + x + this.env_ALive.getEnv_Width()) % this.env_ALive.getEnv_Width(),
+        if (this.env_ALive.getLogical_Env().detectColision(this, 
+            new Point((this.pos.x + x + this.env_ALive.getEnv_Width()) % this.env_ALive.getEnv_Width(),
             (this.pos.y + y + this.env_ALive.getEnv_Height()) % this.env_ALive.getEnv_Height()), 0)) return;
         //Move
         //this.pos.x = (this.pos.x + x + this.env_ALive.getEnv_Width()) % this.env_ALive.getEnv_Width();
