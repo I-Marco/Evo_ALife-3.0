@@ -324,16 +324,13 @@ public class Creature extends Int_ALife_Creature
      */   
     public boolean getReproductable(){
         boolean r = true;
+        if(this.reproductionGroup.size() < minReproductionGroup) return false;
         for(int i = 0; i < foodResourceOwn.length ; i++){
-            if (foodResourceOwn[i] < minfoodResourceOwn[i] * this.maxDescendants) r = false;
+            if (foodResourceOwn[i] < minfoodResourceOwn[i] * (this.maxDescendants + 1)) r = false;
         }
         //for test
         if (r) {
-            int breackpoint = 1;}
-        if(this.reproductionGroup.size() < minReproductionGroup) r = false;
-        //for test
-        if (r) {
-            int breackpoint = 1;}
+            int breackpoint = 1;}        
         return r;
     } // End public boolean getReproductable()
 
