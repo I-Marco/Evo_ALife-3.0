@@ -930,7 +930,7 @@ public class Mind_ALife
         }
         Random r = new Random();
         //for test
-        int r1 = r.nextInt(outOptions.size());
+        int r1 = ( (r.nextInt(outOptions.size()*100)) - 1 )/ 100;
         outNeuron = (Out_Neuron_ALife) outOptions.get(r1);
         
         // outNeuron = (Out_Neuron_ALife) outOptions.get(r.nextInt(outOptions.size()));//Activate when test out

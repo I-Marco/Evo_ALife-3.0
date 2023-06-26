@@ -43,14 +43,18 @@ public class ALife_Logical_Environment extends Thread
     // End Construcotors ========================
 
     // Public Methods and Fuctions ==============
-    public void run(){
+    public synchronized void run(){
         //update traces life time
         //ArrayList<Trace>[][] traces;
         for (int i = 0; i < this.traces.length; i++)
             for (int j = 0; j < this.traces[0].length; j++)
         {   
             for (Trace t : this.traces[i][j]){
-                if (t.run() <= 0) this.removeTrace(t, new Point(i,j));
+                try{
+                    if (t.run() <= 0) this.removeTrace(t, new Point(i,j));
+                }catch (Exception e){
+                    MultiTaskUtil.threadMsg("Error en run de trace."+e.getMessage());
+                }
             }
         }
 
@@ -104,7 +108,7 @@ public class ALife_Logical_Environment extends Thread
                 for (int j = p.y - r - 1; j < (p.y +  r + 1); j++)
             {   x = (i + w) % w;
                 y = (j + h) % h;
-                if (r >= p.distance(x, x)){
+                if ((double)r >= p.distance(x, y)){
                     observers[x][y].add(c);
                 }else {
                     if (observers[x][y].contains(c)) observers[x][y].remove(c);
@@ -211,11 +215,15 @@ public class ALife_Logical_Environment extends Thread
             MultiTaskUtil.threadMsg("No podemos añadir rastro, falta creature o Point.");
             return;
         }
-        traces[p.x][p.y].add(t);
+        synchronized(this.traces[p.x][p.y]){
+            this.traces[p.x][p.y].add(t);
+        }
         //notify to observers
         if(this.observers[p.x][p.y] != null){
             for (Int_ALife_Creature o : this.observers[p.x][p.y]){
-                o.addDetectedTrace(t);
+                synchronized(o){
+                    if(t.source != o) o.addDetectedTrace(t);
+                }
             }
         }
     } // End public void addTrace(Trace t, Point p)
@@ -240,7 +248,7 @@ public class ALife_Logical_Environment extends Thread
         //notify to observers
         if(this.observers[p.x][p.y] != null){
             for (Int_ALife_Creature o : this.observers[p.x][p.y]){
-                o.removeDetectedTrace(c);
+                if(c.source != o) o.removeDetectedTrace(c);
             }
         }
     }// End public void removeTrace(Trace c, Point p)

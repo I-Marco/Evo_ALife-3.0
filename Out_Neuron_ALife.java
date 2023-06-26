@@ -147,14 +147,14 @@ public class Out_Neuron_ALife extends Neuron_ALife
                     //for test
                     double aux = n.getOutput(); 
                     double aux2 = weights.get(i);
-                    sum = aux * aux2;
+                    sum += aux * aux2;
                     //End test the good is next line
                     //sum += n.getOutput() * weights.get(i); //on when test out
                 } else {
                     //for test
                     double aux = n.activation();
                     double aux2 = weights.get(i);
-                    sum = aux * aux2;
+                    sum += aux * aux2;
                     //End test the good is next line
                     //sum += n.activation() * weights.get(i); //on when test out
                 }

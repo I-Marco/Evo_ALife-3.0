@@ -148,7 +148,7 @@ public class Creature extends Int_ALife_Creature
         int w = getEnv_ALife().getEnv_Width();
         int h = getEnv_ALife().getEnv_Height();
         
-        for(int lo = 1;lo < 3; lo++){
+        for(int lo = 1;lo < 3; lo++){//Birth pos range increassing
             if (pos != null) break;
             for (int i = auxP.x-lo; i < auxP.x+lo ; i++){
                 if (pos != null) break;
@@ -168,7 +168,7 @@ public class Creature extends Int_ALife_Creature
         //MEJORA lista posibles sitios y random
         if (this.pos == null){
             this.livePoints = 0; //born death as alternative
-            this.pos = progenitors.get(0).getPos(); //born in same place but death MISSBIRTH
+            this.pos = progenitors.get(0).getPos(); //born in same place but death MISBIRTH
             if (this.env_ALive == null) this.env_ALive = progenitors.get(0).getEnv_ALife();
             this.lifeDelay = progenitors.get(0).lifeDelay;
             MultiTaskUtil.copyIntArrayContent(this.foodResourceOwn, 
@@ -325,7 +325,7 @@ public class Creature extends Int_ALife_Creature
     public boolean getReproductable(){
         boolean r = true;
         for(int i = 0; i < foodResourceOwn.length ; i++){
-            if (foodResourceOwn[i] < minfoodResourceOwn[i] * 2) r = false;
+            if (foodResourceOwn[i] < minfoodResourceOwn[i] * this.maxDescendants) r = false;
         }
         //for test
         if (r) {
@@ -389,7 +389,7 @@ public class Creature extends Int_ALife_Creature
             //3.- Generacion de consecuncias en entorno.
             //if alive add next event.
             this.lifeTime += this.lifeDelay;
-            env_ALive.addEvent(env_ALive.getTime()+lifeDelay, this);
+            env_ALive.addEvent(env_ALive.getTime() + lifeDelay, this);
 
             // Time to learn and evolve
             this.statusChangesUpdate(decidedAction);
@@ -694,7 +694,7 @@ public class Creature extends Int_ALife_Creature
         
         if (this.timeOfDeccision.isEmpty() || 
             this.actions.isEmpty() || this.statusValue.isEmpty()){
-            if (this.lifeTime > this.lifeDelay)
+            if (this.lifeTime > this.lifeDelay) //If this is not first execution them error
                 MultiTaskUtil.threadMsg("Error in Creature statusChangeEvolution: Any ArrayList is empty");
             return;
         }
@@ -748,23 +748,31 @@ public class Creature extends Int_ALife_Creature
     public void actionReproduce(ArrayList<Int_ALife_Creature> progenitors){
         if(!this. getReproductable()) return;
         if (progenitors.size() < this.minReproductionGroup) return;
-        for(int i = 0; i < foodResourceOwn.length ; i++){
-            this.foodResourceOwn[i] = this.foodResourceOwn[i] - this.minfoodResourceOwn[i];
-        }
-        Int_ALife_Creature baby;
-        //body reproduce + mutate
-        try{
-            baby = new Creature(progenitors, this.env_ALive.getAllowMutate());
-        } catch (Exception e){
-            MultiTaskUtil.threadMsg("Error in Creature actionReproduce: "+e.getMessage());
-            return;
-        } 
-        if (baby == null) return;
-        if (descendents == null) descendents = new ArrayList<Int_ALife_Creature>(); //For security
-        this.descendents.add(baby);
-        //mind reproduce + mutate /// ---> creo que ahora mind lo invoca el constructor de creature
-        //baby.setMind(new Mind_ALife(progenitors, baby, this.env_ALive.getAllowMutate()));
-        this.getEnv_ALife().addCreature(baby);
+        for(int d = 0; d < this.maxDescendants; d++){
+            int body = 0;
+            for(int i = 0; i < foodResourceOwn.length ; i++){
+                this.foodResourceOwn[i] = this.foodResourceOwn[i] - this.minfoodResourceOwn[i];
+                body += this.foodResourceOwn[i];
+            }
+            if (body < 0) {
+                MultiTaskUtil.threadMsg("Error in Creature actionReproduce: body < 0 before all descendats");
+                return;
+            }
+            Int_ALife_Creature baby;
+            //body reproduce + mutate
+            try{
+                baby = new Creature(progenitors, this.env_ALive.getAllowMutate());
+            } catch (Exception e){
+                MultiTaskUtil.threadMsg("Error in Creature actionReproduce: "+e.getMessage());
+                return;
+            } 
+            if (baby == null) return;
+            if (descendents == null) descendents = new ArrayList<Int_ALife_Creature>(); //For security
+            this.descendents.add(baby);
+            //mind reproduce + mutate /// ---> creo que ahora mind lo invoca el constructor de creature
+            //baby.setMind(new Mind_ALife(progenitors, baby, this.env_ALive.getAllowMutate()));
+            this.getEnv_ALife().addCreature(baby);
+        } //End for maxDescendants 
     } // End private void actionReproduce(ArrayList<Int_ALife_Creature> progenitors)
     
     // Method from abstras still dont implemented --------------------------------------------------------------------

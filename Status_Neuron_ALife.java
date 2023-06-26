@@ -55,7 +55,9 @@ public class Status_Neuron_ALife extends Neuron_ALife {
      */
     @Override
     public double activation(){
-        return this.neuron_status;
+        if (output != null) return output;
+        this.output = Double.valueOf(this.neuron_status);
+        return this.output;
     } // End public double activation()}
 
     public void reset(){
@@ -68,7 +70,7 @@ public class Status_Neuron_ALife extends Neuron_ALife {
             }
             //End test
 
-        int i = 0;//Posible checkeo nully empty 
+        int i = 0;
         double sum = 0;
         for(Neuron_ALife n:inputs){
             sum += n.activation() * weights.get(i);

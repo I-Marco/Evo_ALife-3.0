@@ -230,46 +230,11 @@ public class Env_ALife extends Thread
      **/ 
     @Override
     public void run(){ // synchronized ??
-        /*
-        //Codigo de testeo
-        for (int i = 0; i < 10000; i++) {
-        for (int j = 0; j < 10000; j++) {
-        // hacer algo aquí...
-        if (j%100 ==0){
-        System.out.println(i+"- "+j+" Running in "+this.getName());
-        }
-
-        synchronized (pauseSignal) {
-        while (isPaused) {
-        try {
-        System.out.println(i+"- "+j+" Esperando ... "+this.getName());
-        pauseSignal.wait(); // esperar señal de continuación
-        } catch (InterruptedException e) {
-        e.printStackTrace();
-        }
-        System.out.println(i+"- "+j+" Continuando ... "+this.getName());
-        try{
-        sleep(300);
-        } catch (InterruptedException e) {
-        e.printStackTrace();
-        }
-        }
-        }
-        }
-        try {
-        Thread.sleep(1); // esperar 1 milisegundo
-        } catch (InterruptedException e) {
-        e.printStackTrace();
-        }
-        }
-
-        // Fin codigo de testeo
-         */
-
+    
         while(true){ //Forever
             synchronized (pauseSignal) {
                 while (isPaused) {
-                    try {
+                    try { //Force manual wait if concurrence problems
                         MultiTaskUtil.threadMsg(" Esperando... "+this.getName());
                         //System.out.println(" Esperando... "+this.getName());
                         pauseSignal.wait(); // esperar señal de continuación
@@ -380,55 +345,18 @@ public class Env_ALife extends Thread
             //    "). AvaliableP "+ semaphore.availablePermits());//For test
             //synchronized (maxThreadSignal) {
 
-            threadManager.waitForThreadsToFinish();
-            /*
-            synchronized (this) {    
-            while (semaphore.availablePermits() != maxThreads) {
-            try {
-            System.out.println(" Esperando SEmaphore... "+this.getName());
-            //maxThreadSignal.wait(); // esperar señal de continuación
-            wait();
-            } catch (InterruptedException e) {
-            e.printStackTrace();
-            }
-            System.out.println(" Continuando SEmaphore... "+this.getName());
-            try{
-            sleep(500);
-            } catch (InterruptedException e) {
-            e.printStackTrace();
-            }
-            }            
-            }
-
-             */            
-
-            
-            //No funciona   
-            /*
-            synchronized (this) {
-            int i = semaphore.availablePermits();
-            while (semaphore.availablePermits() != maxThreads) {
-            try {
-            wait();//como se despertara?
-            } catch (InterruptedException e) {
-            e.printStackTrace();
-            }
-            }
-            MultiTaskUtil.threadMsg("NOW Event Threas Finished. ("+this.getTime()+")");//For test
-            }
-             */
-
-            //Remove done events listaAhora        
+            threadManager.waitForThreadsToFinish();       
             removeEvent(time);
-            //eventList.remove(time);
             
             //For concurrency Log
             //MultiTaskUtil.threadMsg("Event List remove item");
             //MultiTaskUtil.threadMsg("Env Run ("+this.getTime()+") END CICLE");//For test
 
-            //setTime(getTime()+1);
             synchronized (eventList){
                 Long l= eventList.firstKey();
+                if (eventList.get(l).contains(this.getLand())) {
+                        this.logical_Env.run(); //Run logical enviroment. Prevent cuncurrency errors
+                }
                 if (l < getTime()){
                     int breakpoint = 1;
                     MultiTaskUtil.threadMsg("Time CICLE("+this.timeCicles+") ENDED!!! Time :"+getTime());
