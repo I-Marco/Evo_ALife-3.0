@@ -132,7 +132,7 @@ public class ALife_Nutrient_Environment implements Runnable
      * @param    int y - Position y
      * @return   int[] - array with the nutrient in the position
     */
-    public synchronized int[] nutrient(int x,int y){
+    public synchronized int[] getNutrientIn(int x,int y){
         /*
                 Color pixelColor = new Color(frontLand.getRGB(x, y));
    
@@ -140,6 +140,9 @@ public class ALife_Nutrient_Environment implements Runnable
         int sg = 0, g = pixelColor.getGreen();
         int sb = 0, b = pixelColor.getBlue();
         */
+        //Get x, y into land bounds
+        x = (x + this.frontLand.getWidth() ) % this.frontLand.getWidth();
+        y = (y + this.frontLand.getHeight() ) %  this.frontLand.getHeight();
         Color pixelColor = new Color(getLandImg().getRGB(x, y));
         int[] ground = {pixelColor.getRed(), pixelColor.getGreen(),pixelColor.getBlue()};
         return ground;
@@ -196,10 +199,10 @@ public class ALife_Nutrient_Environment implements Runnable
      * Try to get fResN reources from enviroment
      * @param    Point the position on ALife_Nutrient_Evironment where we want get resource
      * @param    int[] the resource cuantity that want to get
-     * @param    Creature the creature that's trying to eat
+     * @param    Active_ALife_Creature the creature that's trying to eat
      * @return   int that cratures got succesfully to grown
      */
-    public int[] getNutrient(Point p, int[] fResN, Creature eater){
+    public int[] getNutrient(Point p, int[] fResN, Active_ALife_Creature eater){
         int[] fResNeed = new int[fResN.length];//Copy of fResN parámeter
         MultiTaskUtil.copyIntArrayContent(fResNeed, fResN);
         synchronized (this){
@@ -232,7 +235,7 @@ public class ALife_Nutrient_Environment implements Runnable
      * Try to drop foodResourceDrop resources in the enviroment
      * @param    Point the position on ALife_Nutrient_Evironment where we want get resource
      * @param    int[] the resource cuantity that want to get
-     * @param    Creature the creature that's trying to eat
+     * @param    Active_ALife_Creature the creature that's trying to eat
      * @return   int that cratures got succesfully
      */
     public int[] dropNutrient(Point p, int[] foodResourceDrop, Int_ALife_Creature eater){

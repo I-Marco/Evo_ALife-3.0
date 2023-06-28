@@ -38,7 +38,7 @@ public class ALife_Specie
         this.medTamComplex = tam;
         //timeOfCreation = time;
         this.reMutateCreation.add(time);
-        if ( c instanceof Creature) this.representativeCreature = Creature.dupeCreature((Creature)c);
+        if ( c instanceof Active_ALife_Creature) this.representativeCreature = Active_ALife_Creature.dupeCreature((Active_ALife_Creature)c);
         else this.representativeCreature = c;//mejor clonarlo
         //add to  species list
     } // End public ALife_Specie(long number, long tam, long time)

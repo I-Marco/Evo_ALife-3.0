@@ -6,7 +6,7 @@ import java.awt.Point;
  * @author Iñigo Marco 
  * @version 20-05-2023
  */
-public class GResourceDetection_Neuron_ALife extends Input_Neuron_ALife
+public class Detect_RResource_Neuron_ALife extends Input_Neuron_ALife
 {
     // Fields ----------------------------------------------------------------------------
      
@@ -14,28 +14,28 @@ public class GResourceDetection_Neuron_ALife extends Input_Neuron_ALife
 
     // Constructors ============================
     /**
-     * public GResourceDetection_Neuron_ALife(GResourceDetection_Neuron_ALife n)
+     * public RResourceDetection_Neuron_ALife(RResourceDetection_Neuron_ALife n)
      * 
      * Constructor to help in dupeNeuron_ALife methods
-     * @param n GResourceDetection_Neuron_ALife the neuron to copy
+     * @param n RResourceDetection_Neuron_ALife the neuron to copy
      */
-    public GResourceDetection_Neuron_ALife(GResourceDetection_Neuron_ALife n){
+    public Detect_RResource_Neuron_ALife(Detect_RResource_Neuron_ALife n){
         super(n);
-    } // End public GResourceDetection_Neuron_ALife(GResourceDetection_Neuron_ALife n)
+    } // End public RResourceDetection_Neuron_ALife(RResourceDetection_Neuron_ALife n)
 
     /**
-     * public GResourceDetection_Neuron_ALife(Int_ALife_Creature c)
+     * public RResourceDetection_Neuron_ALife(Int_ALife_Creature c)
      * 
      * Default constructor of the class
      * @param c Int_ALife_Creature the creature that owns the neuron
      */
-    public GResourceDetection_Neuron_ALife(Int_ALife_Creature c){
+    public Detect_RResource_Neuron_ALife(Int_ALife_Creature c){
         //Checks
         if (c==null) {
             return; //(For moment we dont contemps unowned neurons
         }
         this.creature = c;
-    } // End public GResourceDetection_Neuron_ALife(Int_ALife_Creature c)
+    } // End public RResourceDetection_Neuron_ALife(Int_ALife_Creature c)
     
     // Public Methods and Fuctions ==============
 
@@ -51,24 +51,24 @@ public class GResourceDetection_Neuron_ALife extends Input_Neuron_ALife
         
         output = Mind_ALife.FALSE_in_double;
         Point pos = this.creature.getPos();
-        int[] food = this.creature.getEnv_ALife().getLand().nutrient(pos.x, pos.y);
-        if (food[1] > 0) output = Mind_ALife.TRUE_in_double;
+        int[] food = this.creature.getEnv_ALife().getLand().getNutrientIn(pos.x, pos.y);
+        if (food[0] > 0) output = Mind_ALife.TRUE_in_double;
         return output;
     }
         
     /**
-     * public static GResourceDetection_Neuron_ALife dupeNeuron_ALife(GResourceDetection_Neuron_ALife n)
+     * public static RResourceDetection_Neuron_ALife dupeNeuron_ALife(RResourceDetection_Neuron_ALife n)
      * 
      * Copy a neuron of this class 
-     * @param  n GResourceDetection_Neuron_ALife the neuron to copy
-     * @return GResourceDetection_Neuron_ALife the copy of the neuron
+     * @param  n RResourceDetection_Neuron_ALife the neuron to copy
+     * @return RResourceDetection_Neuron_ALife the copy of the neuron
      */
-    public static GResourceDetection_Neuron_ALife dupeNeuron_ALife(GResourceDetection_Neuron_ALife n){
+    public static Detect_RResource_Neuron_ALife dupeNeuron_ALife(Detect_RResource_Neuron_ALife n){
         //Its not override since input and output parameters classes are diferent
         if (n.creature == null) return null;
-        GResourceDetection_Neuron_ALife newN = new GResourceDetection_Neuron_ALife(n);
+        Detect_RResource_Neuron_ALife newN = new Detect_RResource_Neuron_ALife(n);
         return newN;
-    } // End public static GResourceDetection_Neuron_ALife dupeNeuron_ALife(GResourceDetection_Neuron_ALife n)
+    } // End public static RResourceDetection_Neuron_ALife dupeNeuron_ALife(RResourceDetection_Neuron_ALife n)
 
     // Getter and setters
 

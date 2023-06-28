@@ -12,7 +12,7 @@ import java.util.*;
  * @author Iñigo Marco 
  * @version 20-06-2023
  */
-public class Creature extends Int_ALife_Creature
+public class Active_ALife_Creature extends Int_ALife_Creature
 {
     public static final int DEFAULT_LifeDelayPerNutrient = 10;
     public static final Color CREATURE_DEFAULT_COLOR =new Color (199,199,199);
@@ -55,8 +55,15 @@ public class Creature extends Int_ALife_Creature
     ArrayList <Double> statusValue = new ArrayList<Double>(); // Status of creature
 
     //Make a variable with 3 fields long time field, double statusvalue and Mind_ALife.Action doneAction
+    //Known species ....
+    ArrayList <ALife_Specie> enemySpecieList = new ArrayList<ALife_Specie>(); // List of enemy species
+    ArrayList <Int_ALife_Creature> friendlySpecieList = new ArrayList<Int_ALife_Creature>(); // List of friendly species
+    //Not defined especies ??
 
-
+    //Known creatures ....
+    ArrayList <Int_ALife_Creature> enemyCreatureList = new ArrayList<Int_ALife_Creature>(); // List of enemy creatures
+    ArrayList <Int_ALife_Creature> friendlyCreatureList = new ArrayList<Int_ALife_Creature>(); // List of friendly creatures
+    ArrayList <Int_ALife_Creature> familyCreatureList = new ArrayList<Int_ALife_Creature>(); // List of neutral creatures
 
         
     // Methods ---------------------------------------------------------------------------
@@ -68,7 +75,7 @@ public class Creature extends Int_ALife_Creature
      */
     //Creature(this.env_ALife,new Point(170,170),null,1000,haveR,needR
     //public Creature(Env_ALife env, Semaphore s, Point p){
-    public Creature(Env_ALife env, Point p, Mind_ALife m, long lifeexp, int[] frOwn, int[] frNeed){
+    public Active_ALife_Creature(Env_ALife env, Point p, Mind_ALife m, long lifeexp, int[] frOwn, int[] frNeed){
         super();
         env_ALive = env;
         idCreature = this.env_ALive.getNewCreatureID();
@@ -124,7 +131,7 @@ public class Creature extends Int_ALife_Creature
      */
     //Creature(this.env_ALife,new Point(170,170),null,1000,haveR,needR
     //public Creature(Env_ALife env, Semaphore s, Point p){
-    public Creature(ArrayList<Int_ALife_Creature> progenitors, boolean mutate) throws Exception{
+    public Active_ALife_Creature(ArrayList<Int_ALife_Creature> progenitors, boolean mutate) throws Exception{
         //Caracteristicas mix progenitores
         if (progenitors == null) {
             //Error msg.
@@ -282,7 +289,7 @@ public class Creature extends Int_ALife_Creature
         //env_ALive.getSpecies().addCreature(this); //Automatically assign specieIdNumber
     } // End public Creature(ArrayList<Int_ALife_Creature> progenitors)
     
-    Creature(){
+    Active_ALife_Creature(){
         //env_ALive.getSpecies().addCreature(null); //Automatically assign specieIdNumber ??
     }//Just to can make subclass constructors
     
@@ -291,7 +298,7 @@ public class Creature extends Int_ALife_Creature
      * Make a duplication of creature
      * @param   - Creature
      */
-    protected Creature(Creature c){
+    protected Active_ALife_Creature(Active_ALife_Creature c){
         //Dupe creature
         super(c); //Int_ALife_Creature(c)
         this.backLand = c.backLand; //private BufferedImage backLand = null;
@@ -315,6 +322,16 @@ public class Creature extends Int_ALife_Creature
     
     // Getter and Setters
 
+    /**
+     * public int getDetectionRange()
+     * 
+     * Return the detection range of creature
+     * @param    None
+     * @return   int the detection range of creature
+     */
+    public synchronized int getDetectionRange(){
+        return this.detectionRange;
+    } // End public getDetectionRange()
     /**
      * public boolean getReproductable()
      * 
@@ -356,8 +373,12 @@ public class Creature extends Int_ALife_Creature
             //MultiTaskUtil.threadMsg("===== Semaphore ADQUIRED BY CREATURE("+
             //    semaphore.availablePermits()+").................");
             //Run 
-            //1.- Eventos involuntarios como morir
-            
+            //1.- Eventos involuntarios como morir envejecer ...
+            this.lifeTime += this.lifeDelay;
+            this.hungry -= 1; //aumentar hambre
+            //this create or vanish resources
+            //Arrays.setAll(this.foodResourceOwn, i -> foodResourceOwn[i] - foodResourceNeed[i]);
+
             if (this.hungry < this.humgryUmbral)
                 this.livePoints -= (this.humgryUmbral - this.hungry);          
             //Check if dead
@@ -384,8 +405,7 @@ public class Creature extends Int_ALife_Creature
             doAction(decidedAction);
             //this.doAction(this.mind.run());  // Real code
             //3.- Generacion de consecuncias en entorno.
-            //if alive add next event.
-            this.lifeTime += this.lifeDelay;
+            //if alive add next event.            
             env_ALive.addEvent(env_ALive.getTime() + lifeDelay, this);
 
             // Time to learn and evolve
@@ -432,11 +452,11 @@ public class Creature extends Int_ALife_Creature
     /**
      * public static Creature dupeCreature(Creature c)
      * 
-     * @param    Creature c
+     * @param    Active_ALife_Creature c
      * @return   Creature
      */
-    public static Creature dupeCreature(Creature c){
-        Creature newC = new Creature(c);
+    public static Active_ALife_Creature dupeCreature(Active_ALife_Creature c){
+        Active_ALife_Creature newC = new Active_ALife_Creature(c);
         return newC;
     } // End public static Creature dupeCreature(Creature c)
 
@@ -519,6 +539,30 @@ public class Creature extends Int_ALife_Creature
     */
 
     // Public Methods and Fuctions ==============
+    /**
+     * public boolean evaluateReproductionGroupAceptation(Acrive_ALife_Creature c)
+     * 
+     * Return true if creature c can be acepted in reproduction group 
+     * and it will make this creature be added to c's reproduction group
+     * @param    Active_ALife_Creature c
+     * @return   boolean
+     */
+    public boolean evaluateReproductionGroupAceptation(Active_ALife_Creature c, double status){
+        //Check
+        if (c == null) return false;
+        boolean acceptation = false;
+        //FALTA !!!
+        // Same specie or proximity.
+        
+
+        //Status proximity
+        
+        //Place on reproduction group or better than the other
+
+        return acceptation;
+    } // End public boolean evaluateReproductionGroupAceptation(Active_ALife_Creature c)
+
+
     // Private Methods and Fuctions =============
     /**
      * private void doAction(Mind_ALife.Action ac)
@@ -571,17 +615,14 @@ public class Creature extends Int_ALife_Creature
      * @param    int x, int y
      */
     private void actionMove(int x, int y){
-        //Check if can move
+        //Check if can move //No need check inide FALTA
         if (this.env_ALive.getLogical_Env().detectColision(this, 
             new Point((this.pos.x + x + this.env_ALive.getEnv_Width()) % this.env_ALive.getEnv_Width(),
             (this.pos.y + y + this.env_ALive.getEnv_Height()) % this.env_ALive.getEnv_Height()), 0)) return;
         //Move
-        //this.pos.x = (this.pos.x + x + this.env_ALive.getEnv_Width()) % this.env_ALive.getEnv_Width();
-        //this.pos.y = (this.pos.y + y + this.env_ALive.getEnv_Height()) % this.env_ALive.getEnv_Height();
-        //update logical enviroment
-        this.env_ALive.getLogical_Env().moveCreature(this,this.pos.x + x, this.pos.y + y);
-        //move creature udates creature position
-        //Visualize FALTA!!
+        //remove old creature imagen
+        this.env_ALive.getLogical_Env().moveCreature(this,this.pos.x + x, this.pos.y + y); //update inside creature.pos
+        //Add new creature imagen
 
     } // End private void actionMove(int x, int y)
     
@@ -590,7 +631,7 @@ public class Creature extends Int_ALife_Creature
      * private void actionEat(Point pos, int[] foodResourceEat, Creature cr)
      * where Point, what int[] how much resource, what creature -- Want eat
      */
-    public void actionEat(Point pos, int[] foodResourceEat, Creature cr){
+    public void actionEat(Point pos, int[] foodResourceEat, Active_ALife_Creature cr){
         if (cr == null){
             //remove from nutrient            
             foodResourceEat = this.env_ALive.getLand().getNutrient(pos, foodResourceEat, this); 
@@ -759,7 +800,7 @@ public class Creature extends Int_ALife_Creature
             Int_ALife_Creature baby;
             //body reproduce + mutate
             try{
-                baby = new Creature(progenitors, this.env_ALive.getAllowMutate());
+                baby = new Active_ALife_Creature(progenitors, this.env_ALive.getAllowMutate());
             } catch (Exception e){
                 MultiTaskUtil.threadMsg("Error in Creature actionReproduce: "+e.getMessage());
                 return;
@@ -821,18 +862,26 @@ public class Creature extends Int_ALife_Creature
     
     //@Override
     public void paint(BufferedImage g, Color col){
-        //super.paint(g);
-        if (col == null) col = CREATURE_DEFAULT_COLOR;
         if (g == null) return;
+
+        if (col == null) col = CREATURE_DEFAULT_COLOR;
+        double scaleW = (double) g.getWidth() / this.getEnv_ALife().getLand().getLandImg().getWidth();
+        double scaleH =  (double) g.getHeight() / this.getEnv_ALife().getLand().getLandImg().getHeight();
+        //int scale = Math.min(scaleW, scaleH);        
         try{
             Graphics2D g2d = g.createGraphics();
             Color creatureColor = col; // Color del círculo
             g2d.setColor(creatureColor);
-            if (this.tamComplex > 1){
-                g2d.drawOval(this.pos.x - (int)this.tamComplex, this.pos.y - (int)this.tamComplex,
+            if (this.tamComplex > 1){ //Scale by tamComplex obsolete for moment
+                //g2d.drawOval(this.pos.x - (int)this.tamComplex, this.pos.y - (int)this.tamComplex,
+                //    (int)this.tamComplex * 1, (int)this.tamComplex * 1);
+                g2d.fillOval(this.pos.x - (int)this.tamComplex, this.pos.y - (int)this.tamComplex,
                     (int)this.tamComplex * 1, (int)this.tamComplex * 1);
             } else {
-                g2d.drawOval(this.pos.x, this.pos.y, 1, 1); // If it's too big them we draw a point
+                g2d.fillOval((int) (this.pos.x * scaleW), (int) (this.pos.y * scaleH),
+                     (int) (1*scaleW), (int) (1 * scaleH));
+                //g2d.drawOval((int) (this.pos.x * scaleW), (int) (this.pos.y * scaleH),
+                //     (int) (1*scaleW), (int) (1 * scaleH));                     
             }
             //Env_Panel.imageDisplay(g,"From Creature paint() - LIVE Image");
         }catch (NullPointerException npe){

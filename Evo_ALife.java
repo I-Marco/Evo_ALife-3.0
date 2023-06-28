@@ -290,7 +290,19 @@ public class Evo_ALife extends JFrame{
         testNewWorldD_nC.addActionListener( (ActionEvent e) -> this.makeDefaultEnvCreatureN() );
         testMenu.add(testNewWorldD_nC);
 
-        
+        //Vews Menu
+        JMenu viewMenu = new JMenu ("View");
+        menu.add(viewMenu);
+
+        JMenuItem viewLiveMI = new JMenuItem("View Live enviroment image.");
+        viewLiveMI.addActionListener( (ActionEvent e) -> Env_Panel.imageDisplay(this.env_ALife.getLifeImg(), "Live environment image."));
+        viewMenu.add(viewLiveMI);
+
+        JMenuItem viewLandMI = new JMenuItem("View nutrient enviroment image.");
+        viewLandMI.addActionListener( (ActionEvent e) -> Env_Panel.imageDisplay(this.env_ALife.getLandImg(), "Live environment image."));
+        viewMenu.add(viewLandMI);
+
+        viewMenu.addSeparator();
         //
         
     } // End private void makeMenuBar(JFrame frame)
@@ -301,9 +313,9 @@ public class Evo_ALife extends JFrame{
         btnBar.setBackground(Color.blue);
         
         JButton btnPlay = new JButton("Go!!!");
-        JButton btnStop = new JButton("RE-Start ||");
+        JButton btnHidde = new JButton("Hidde resources.");
         btnBar.add(btnPlay);
-        btnBar.add(btnStop);
+        btnBar.add(btnHidde);
         btnPlay.addActionListener((ActionEvent e) -> {
             //Poner en marcha
             //MultiTaskUtil.isThreadAlive(this.env_ALife,Thread.currentThread());
@@ -319,23 +331,15 @@ public class Evo_ALife extends JFrame{
             }
         });
 
-        btnStop.addActionListener((ActionEvent e) -> {
-            //Detener marcha
-            /*
-            if (!this.env_ALife.get_isPaused() ) { //si esta en marcha hay que pararlo
-                this.env_ALife.pauseThread();
+        btnHidde.addActionListener((ActionEvent e) -> {
+            boolean b = this.env_Panel.getHiddeLand();
+            if (b) {
+                btnHidde.setText("Hidde resources.");
+            } else {
+                btnHidde.setText("Show resources.");
             }
-            */
-            this.env_ALife.start();
+            this.env_Panel.setHiddeLand(!b);
         });
-        /*
-        btnStop.addActionListener(new ActionListener() { 
-            public void actionPerformed(ActionEvent e) { 
-                // Parar simulación
-                // Si conseguimos despertar al Thread Env_ALife habria que notificarlo aqui. Ahora se despierta solo
-            } 
-        } );      
-        */
     } // End private void makeBtnBar(JFrame frame)
     
     //Dessing de "World" displayed image
@@ -520,35 +524,35 @@ public class Evo_ALife extends JFrame{
         // Default land done
         
         //Create some creatures.
-        ArrayList<Creature> listOfCreatures = new ArrayList<Creature>();
+        ArrayList<Active_ALife_Creature> listOfCreatures = new ArrayList<Active_ALife_Creature>();
         int[] haveR = {100,0,0};
         int[] needR = {1,0,0};
         int liveExp = 10000;
         
         //Mid
-        listOfCreatures.add(new Creature(this.env_ALife,new Point(width/2, height/2),null,liveExp,haveR,needR));
-        listOfCreatures.add(new Creature(this.env_ALife,new Point(width/2+2, height/2),null,liveExp,haveR,needR));
-        listOfCreatures.add(new Creature(this.env_ALife,new Point(width/2-2, height/2),null,liveExp,haveR,needR));
-        listOfCreatures.add(new Creature(this.env_ALife,new Point(width/2, height/2+2),null,liveExp,haveR,needR));
-        listOfCreatures.add(new Creature(this.env_ALife,new Point(width/2, height/2-2),null,liveExp,haveR,needR));
+        listOfCreatures.add(new Active_ALife_Creature(this.env_ALife,new Point(width/2, height/2),null,liveExp,haveR,needR));
+        listOfCreatures.add(new Active_ALife_Creature(this.env_ALife,new Point(width/2+2, height/2),null,liveExp,haveR,needR));
+        listOfCreatures.add(new Active_ALife_Creature(this.env_ALife,new Point(width/2-2, height/2),null,liveExp,haveR,needR));
+        listOfCreatures.add(new Active_ALife_Creature(this.env_ALife,new Point(width/2, height/2+2),null,liveExp,haveR,needR));
+        listOfCreatures.add(new Active_ALife_Creature(this.env_ALife,new Point(width/2, height/2-2),null,liveExp,haveR,needR));
 
         int [] haveG = {0,100,0};
         int[] needG = {0,1,0};
         
-        listOfCreatures.add(new Creature(this.env_ALife,new Point(width/3, height/2),null,liveExp,haveG,needG));
-        listOfCreatures.add(new Creature(this.env_ALife,new Point(width/3+2, height/2),null,liveExp,haveG,needG));
-        listOfCreatures.add(new Creature(this.env_ALife,new Point(width/3-2, height/2),null,liveExp,haveG,needG));
-        listOfCreatures.add(new Creature(this.env_ALife,new Point(width/3, height/2+2),null,liveExp,haveG,needG));
-        listOfCreatures.add(new Creature(this.env_ALife,new Point(width/3, height/2-2),null,liveExp,haveG,needG));
+        listOfCreatures.add(new Active_ALife_Creature(this.env_ALife,new Point(width/3, height/2),null,liveExp,haveG,needG));
+        listOfCreatures.add(new Active_ALife_Creature(this.env_ALife,new Point(width/3+2, height/2),null,liveExp,haveG,needG));
+        listOfCreatures.add(new Active_ALife_Creature(this.env_ALife,new Point(width/3-2, height/2),null,liveExp,haveG,needG));
+        listOfCreatures.add(new Active_ALife_Creature(this.env_ALife,new Point(width/3, height/2+2),null,liveExp,haveG,needG));
+        listOfCreatures.add(new Active_ALife_Creature(this.env_ALife,new Point(width/3, height/2-2),null,liveExp,haveG,needG));
 
         int [] haveB = {0,0,100};
         int[] needB = {0,0,1};
         
-        listOfCreatures.add(new Creature(this.env_ALife,new Point(2*width/3, height/2),null,liveExp,haveB,needB));
-        listOfCreatures.add(new Creature(this.env_ALife,new Point(2*width/3+2, height/2),null,liveExp,haveB,needB));
-        listOfCreatures.add(new Creature(this.env_ALife,new Point(2*width/3-2, height/2),null,liveExp,haveB,needB));
-        listOfCreatures.add(new Creature(this.env_ALife,new Point(2*width/3, height/2+2),null,liveExp,haveB,needB));
-        listOfCreatures.add(new Creature(this.env_ALife,new Point(2*width/3, height/2-2),null,liveExp,haveB,needB));
+        listOfCreatures.add(new Active_ALife_Creature(this.env_ALife,new Point(2*width/3, height/2),null,liveExp,haveB,needB));
+        listOfCreatures.add(new Active_ALife_Creature(this.env_ALife,new Point(2*width/3+2, height/2),null,liveExp,haveB,needB));
+        listOfCreatures.add(new Active_ALife_Creature(this.env_ALife,new Point(2*width/3-2, height/2),null,liveExp,haveB,needB));
+        listOfCreatures.add(new Active_ALife_Creature(this.env_ALife,new Point(2*width/3, height/2+2),null,liveExp,haveB,needB));
+        listOfCreatures.add(new Active_ALife_Creature(this.env_ALife,new Point(2*width/3, height/2-2),null,liveExp,haveB,needB));
         
         lifeEnv = listOfCreatures; // For easy reading
         Env_ALife temp_env_ALife = new Env_ALife(this,land,lifeEnv,env_Vars);
@@ -656,13 +660,13 @@ public class Evo_ALife extends JFrame{
         // Default land_Temp done
         
         //Create some creatures.
-        ArrayList<Creature> listOfCreatures = new ArrayList<Creature>();
+        ArrayList<Active_ALife_Creature> listOfCreatures = new ArrayList<Active_ALife_Creature>();
         int[] haveR = {100,0,0};
         int[] needR = {1,0,0};
         int liveExp = 4500;
         
         //Red Creature ...
-        listOfCreatures.add(new Creature(this.env_ALife,new Point(1, 1),null,liveExp,haveR,needR));
+        listOfCreatures.add(new Active_ALife_Creature(this.env_ALife,new Point(1, 1),null,liveExp,haveR,needR));
         /*
         int [] haveG = {0,100,0};
         int[] needG = {0,1,0};

@@ -49,12 +49,14 @@ public class ALife_Logical_Environment extends Thread
         for (int i = 0; i < this.traces.length; i++)
             for (int j = 0; j < this.traces[0].length; j++)
         {   
-            for (Trace t : this.traces[i][j]){
-                try{
-                    if (t.run() <= 0) this.removeTrace(t, new Point(i,j));
-                }catch (Exception e){
-                    MultiTaskUtil.threadMsg("Error en run de trace."+e.getMessage());
+            try{
+                synchronized (this.traces){
+                    for (Trace t : this.traces[i][j]){    
+                        if (t != null && t.run() <= 0) this.removeTrace(t, new Point(i,j));
+                    }
                 }
+            }catch (Exception e){
+                    MultiTaskUtil.threadMsg("Error en run de trace."+e.getMessage());
             }
         }
 
@@ -67,7 +69,7 @@ public class ALife_Logical_Environment extends Thread
      * @param  None
      * @return None
      */
-    public void getTraces(){
+    public synchronized void getTraces(){
             int i;//get all traces around a Point.
     }
     
@@ -79,7 +81,7 @@ public class ALife_Logical_Environment extends Thread
      * @param c
      * @param p
      */
-    public void addCreature(Int_ALife_Creature c,Point p){
+    public synchronized void addCreature(Int_ALife_Creature c,Point p){
         //Check
         if (c == null || p == null){
             int breakpoint = 1 ;
@@ -103,7 +105,7 @@ public class ALife_Logical_Environment extends Thread
             int r = c.getDetectionRange();
             
             int x,y; 
-            //observers updating --> this.addCreature(c, p); detection range + 1 para limpiar anteriores
+            //observers updating (self) --> this.addCreature(c, p); detection range + 1 --> clenning old self observer marks
             for (int i = p.x - r - 1; i <= (p.x +  r + 1); i++)
                 for (int j = p.y - r - 1; j <= (p.y +  r + 1); j++)
             {   x = (i + w) % w;
@@ -129,7 +131,7 @@ public class ALife_Logical_Environment extends Thread
      * 
      * @param c
      */
-    public void removeCreature(Int_ALife_Creature c){
+    public synchronized void removeCreature(Int_ALife_Creature c){
         //Check
         if (c == null) {
             MultiTaskUtil.threadMsg("Fallo, falta creature para borrar.");
@@ -154,8 +156,8 @@ public class ALife_Logical_Environment extends Thread
             
             int x,y;
             //observers updating
-            for (int i = p.x - r - 1; i < (p.x +  r + 1); i++)
-                for (int j = p.y - r - 1; j < (p.y +  r + 1); j++)
+            for (int i = p.x - r - 1; i <= (p.x +  r + 1); i++)
+                for (int j = p.y - r - 1; j <= (p.y +  r + 1); j++)
             {   x = (i + w) % w;
                 y = (j + h) % h;
                 if (observers[x][y].contains(c)) observers[x][y].remove(c);                    
@@ -172,7 +174,7 @@ public class ALife_Logical_Environment extends Thread
      * @param x int 
      * @param y int
      */
-    public void moveCreature(Creature c, int x, int y){
+    public synchronized void moveCreature(Active_ALife_Creature c, int x, int y){
         if (c == null) {
             MultiTaskUtil.threadMsg("Fallo, falta creature para mover.");
             return;
@@ -181,8 +183,8 @@ public class ALife_Logical_Environment extends Thread
         int w = c.getEnv_ALife().getEnv_Width();
         int h = c.getEnv_ALife().getEnv_Height();
         Point newPos = new Point(
-            (c.pos.x + x + w) % w,
-            (c.pos.y + y + h) % h);
+            (x + w) % w,
+            (y + h) % h);
         if (this.ocupiers[newPos.x ][newPos.y].size() > 0) {
             //colision
             //for test
@@ -209,7 +211,7 @@ public class ALife_Logical_Environment extends Thread
      * @param p Point
      * @return None
      */
-    public void addTrace(Trace t, Point p){
+    public synchronized void addTrace(Trace t, Point p){
         //Add trace and avise observers
         //Check
         if (t == null || p == null){
@@ -238,7 +240,7 @@ public class ALife_Logical_Environment extends Thread
      * @param p Point
      * @return None
      */
-    public void removeTrace(Trace c, Point p){
+    public synchronized void removeTrace(Trace c, Point p){
         //Remove trace and avise observers
         //Check
         if (c == null || p == null){
@@ -256,7 +258,7 @@ public class ALife_Logical_Environment extends Thread
     }// End public void removeTrace(Trace c, Point p)
     
     
-    public  boolean detectColision(Int_ALife_Creature c, Point p, int radio){
+    public  synchronized boolean detectColision(Int_ALife_Creature c, Point p, int radio){
         //int radio = 0;
         boolean colision = false;
         int w = c.getEnv_ALife().getEnv_Width();
@@ -272,7 +274,7 @@ public class ALife_Logical_Environment extends Thread
         return colision;
     }
     
-    public Int_ALife_Creature collisionWith(Int_ALife_Creature c, Point p){
+    public synchronized Int_ALife_Creature collisionWith(Int_ALife_Creature c, Point p){
         boolean colision = false;
         Int_ALife_Creature colisioner = null;
         int radio = 1; // May be we have to take in count the creature dimensions Owned food resources and tamcomplex

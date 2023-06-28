@@ -204,11 +204,11 @@ public abstract class Int_ALife_Creature extends Thread
     public Trace getCreatureTrace(){
         double mark=0;
         //int weight = 0;
-        synchronized(foodResourceNeed){
+        synchronized(foodResourceOwn){
             for (int res:foodResourceOwn) 
                 mark+=((double)res)/Env_ALife.TRACE_PODENRACION_PESO_DETECCIÓN;
         }    
-        mark = this.hidden * mark / Env_ALife.TRACE_PODENRACION_PESO_DETECCIÓN;
+        mark = (1 - this.hidden) * mark / Env_ALife.TRACE_PODENRACION_PESO_DETECCIÓN;
         
         //for test
         //Trace t = new Trace(mark,this,this.pos);
@@ -300,7 +300,7 @@ public abstract class Int_ALife_Creature extends Thread
         if (t == null) return -1;
         if (this.detectedTraces == null) this.detectedTraces = new ArrayList<Trace>();
         this.detectedTraces.add(t);
-        return this.detectedTraces.size();
+        return this.detectedTraces.size(); //max traces?? FALTA
     } // End public synchronized int addDetectedTrace(Trace t)
     
     /**
@@ -388,7 +388,7 @@ public abstract class Int_ALife_Creature extends Thread
         caracArrayList.add((double)cfrn);
         */
         //Mind_ALife
-        if (c instanceof Creature && c.mind != null){
+        if (c instanceof Active_ALife_Creature && c.mind != null){
             caracArrayList.add((double)c.mind.getInnerN());
             caracArrayList.add((double)c.mind.getMidN());
             caracArrayList.add((double)c.mind.getOutN());
@@ -410,12 +410,12 @@ public abstract class Int_ALife_Creature extends Thread
             carac[i] = caracArrayList.get(i);
         }
         //For test
-        if (carac.length != Creature.creature_minCaracteristics.length) {
+        if (carac.length != Active_ALife_Creature.creature_minCaracteristics.length) {
             int breakpoint = 1;
         }
         else{
-            int breakpoint = Creature.creature_minCaracteristics.length;
-            breakpoint = Creature.creature_maxCaracteristics.length;
+            int breakpoint = Active_ALife_Creature.creature_minCaracteristics.length;
+            breakpoint = Active_ALife_Creature.creature_maxCaracteristics.length;
             breakpoint = 1;
         }
         return carac;
@@ -429,9 +429,9 @@ public abstract class Int_ALife_Creature extends Thread
      * @return
     */ 
     public static double evaluateTamComplex(Int_ALife_Creature c){
-        double[] carac = Creature.serializeCreature(c);
-        carac = ALifeCalcUtil.min_max_Array_Normalization(carac, Creature.creature_minCaracteristics, 
-            Creature.creature_maxCaracteristics);
+        double[] carac = Active_ALife_Creature.serializeCreature(c);
+        carac = ALifeCalcUtil.min_max_Array_Normalization(carac, Active_ALife_Creature.creature_minCaracteristics, 
+            Active_ALife_Creature.creature_maxCaracteristics);
         //carac = ALifeCalcUtil.ponderation_Array(carac, ponderationArray);
         //double tamComplex = ALifeCalcUtil.arrayDistance(v1,v2);
         double tamComplex = ALifeCalcUtil.mean(carac);
@@ -506,7 +506,7 @@ public abstract class Int_ALife_Creature extends Thread
     public static double[] mutateCreaturebySerialization(double[] carac){
         //Serialized but not necessarily normalized
         if (carac == null) return null;
-        if (carac.length != Creature.creature_minCaracteristics.length) return null; // Unknow creature type
+        if (carac.length != Active_ALife_Creature.creature_minCaracteristics.length) return null; // Unknow creature type
         int l = carac.length;
         // same possibility to mutate all caracteristics other way an array to set the possibilities of each caracteristic
         Random r = new Random();
@@ -515,22 +515,22 @@ public abstract class Int_ALife_Creature extends Thread
         for (int j = 0; j < l; j++){
             if (j == mutateCaracteristic) {
                 double tempMin = 0; //Cuantity of minimum modification, other way if min = 0 modifycantion is always 0
-                if (Creature.creature_minCaracteristics[mutateCaracteristic] == 0) {
-                    tempMin = Creature.creature_maxCaracteristics[mutateCaracteristic] / 100;
+                if (Active_ALife_Creature.creature_minCaracteristics[mutateCaracteristic] == 0) {
+                    tempMin = Active_ALife_Creature.creature_maxCaracteristics[mutateCaracteristic] / 100;
                     /*
                     tempMin = Creature.creature_maxCaracteristics[mutateCaracteristic] / 
                       (Creature.creature_maxCaracteristics[mutateCaracteristic] + 
                         (100 * Creature.creature_maxCaracteristics[mutateCaracteristic])); //may be 1000
                     */
                     if (tempMin == 0) tempMin = 0.01;
-                }else tempMin = Creature.creature_minCaracteristics[mutateCaracteristic];
+                }else tempMin = Active_ALife_Creature.creature_minCaracteristics[mutateCaracteristic];
                 caracMutated[j] = 
                     carac[j] + (r.nextInt(3)-1) * MUTATION_DISTANCE * tempMin;//random +-1 * mutation distance
                 //limits check
-                if (caracMutated[j] < Creature.creature_minCaracteristics[mutateCaracteristic]) 
-                    caracMutated[j] = Creature.creature_minCaracteristics[mutateCaracteristic];
-                if (caracMutated[j] > Creature.creature_maxCaracteristics[mutateCaracteristic]) 
-                    Creature.creature_maxCaracteristics[mutateCaracteristic] = caracMutated[j];
+                if (caracMutated[j] < Active_ALife_Creature.creature_minCaracteristics[mutateCaracteristic]) 
+                    caracMutated[j] = Active_ALife_Creature.creature_minCaracteristics[mutateCaracteristic];
+                if (caracMutated[j] > Active_ALife_Creature.creature_maxCaracteristics[mutateCaracteristic]) 
+                    Active_ALife_Creature.creature_maxCaracteristics[mutateCaracteristic] = caracMutated[j];
                     // This cause diferences un species asignation and can't be backsteps the done asignations
                 
                 //caracMutated[j] = 
@@ -548,8 +548,8 @@ public abstract class Int_ALife_Creature extends Thread
      * @return None
      */
     public void mutateCreature(){
-        double[] carac = Creature.serializeCreature(this);
-        double[] caracMutated = Creature.mutateCreaturebySerialization(carac);
+        double[] carac = Active_ALife_Creature.serializeCreature(this);
+        double[] caracMutated = Active_ALife_Creature.mutateCreaturebySerialization(carac);
         int mutatedCar; //number of caracteristic have been mutated
         for (mutatedCar = 0; mutatedCar < carac.length; mutatedCar ++){
             if (carac[mutatedCar] != caracMutated[mutatedCar]) break;
@@ -559,7 +559,7 @@ public abstract class Int_ALife_Creature extends Thread
 
         if (mutatedCar == carac.length || carac[mutatedCar] == caracMutated[mutatedCar]) return; //No mutation
         //Mutate creature
-        if (mutatedCar < carac.length - Creature.MIND_NEURONS_TYPES){
+        if (mutatedCar < carac.length - Active_ALife_Creature.MIND_NEURONS_TYPES){
         /*
          public static final double[] creature_minCaracteristics =
             {0, 1, 0, 0, 0, 0, 1, //hidden, tamComplex, attack, def, detectionRange, umbralDetection, humgryUmbral, 
@@ -633,8 +633,8 @@ public abstract class Int_ALife_Creature extends Thread
         for (int i = 0; i < food.length; i++) {
             if (returnedFood[i] >= whereMutate){
                 if (totFood > (int)newcarac) 
-                    returnedFood[i] -= Creature.creature_minCaracteristics[15];
-                else returnedFood[i] += Creature.creature_minCaracteristics[15]; //food minumum modification
+                    returnedFood[i] -= Active_ALife_Creature.creature_minCaracteristics[15];
+                else returnedFood[i] += Active_ALife_Creature.creature_minCaracteristics[15]; //food minumum modification
             }
         }
         //for test
@@ -652,7 +652,7 @@ public abstract class Int_ALife_Creature extends Thread
     
     public abstract boolean getReproductable();
 
-    public abstract void actionEat(Point pos, int[] foodResourceEat, Creature cr); //food can be null
+    public abstract void actionEat(Point pos, int[] foodResourceEat, Active_ALife_Creature cr); //food can be null
     
     public abstract void lookForBread(); // Proliferation of life method
     

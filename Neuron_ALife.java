@@ -167,10 +167,13 @@ public class Neuron_ALife
         double chageValue = enhanced * change;
         for(int i = 0; i < this.inputs.size(); i++){
             Neuron_ALife n = this.inputs.get(i);
+            //No propagation for status neurons inputs (endeless loop)
+            if (n instanceof Status_Neuron_ALife) continue; 
             n.updateLearn(enhanced, change*weights.get(i));
         }
-
-        this.u = this.u + this.u* enhanced * change * Mind_ALife.DEFAULT_u_changeFraction;
+        //u makes some Neurons over others so we need change it carefully or we inactivate some neurons
+        //may be when a big update in a single action
+        //this.u = this.u + this.u* enhanced * change * Mind_ALife.DEFAULT_u_changeFraction;
         double[] aux = this.weights.stream().mapToDouble(Double::doubleValue).toArray();
         double mean = ALifeCalcUtil.mean(aux);
         for (int i = 0; i < aux.length; i++){

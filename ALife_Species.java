@@ -180,13 +180,13 @@ public class ALife_Species
         ALifeCalcUtil.arrayDistance(
           ALifeCalcUtil.min_max_Array_Normalization(
             Int_ALife_Creature.serializeCreature(sp_c),
-            Creature.creature_minCaracteristics,
-            Creature.creature_maxCaracteristics
+            Active_ALife_Creature.creature_minCaracteristics,
+            Active_ALife_Creature.creature_maxCaracteristics
           ),
           ALifeCalcUtil.min_max_Array_Normalization(
             Int_ALife_Creature.serializeCreature(c),
-            Creature.creature_minCaracteristics,
-            Creature.creature_maxCaracteristics
+            Active_ALife_Creature.creature_minCaracteristics,
+            Active_ALife_Creature.creature_maxCaracteristics
           )
         );
         

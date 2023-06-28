@@ -23,6 +23,8 @@ public class Env_Panel extends JPanel
     private int x = 0, y = 0; // Position to start display when not full
     private int width = DEFAULT_WIDTH, height =DEFAULT_HEIGHT; // Size to display when not full
 
+    private boolean hiddeLand = false; // Hidde land image
+
     // Methods ---------------------------------------------------------------------------
 
     // Constructors =============================
@@ -43,7 +45,26 @@ public class Env_Panel extends JPanel
     // Public Methods and Fuctions ==============
 
     // Getters and Setters ----------------------
-    
+    /**
+     * public synchronized void setHiddeLand(boolean b)
+     * 
+     * Set hiddeLand as private variable of land enviroment imagen.
+     * @param    - boolean
+     */
+    public synchronized void setHiddeLand(boolean b){
+        hiddeLand = b;
+    } // End public synchronized void setHiddeLand(boolean b)
+
+    /**
+     * public synchronized boolean getHiddeLand()
+     * Get the private variable of land enviroment imagen.
+     * @param   - None
+     * @return  - boolean
+     */
+    public synchronized boolean getHiddeLand(){
+        return hiddeLand;
+    } // End public synchronized boolean getHiddeLand()
+
     /**
      * public void set_landground(BufferedImage land)
      * Set land as private variable of land enviroment imagen.
@@ -137,47 +158,84 @@ public class Env_Panel extends JPanel
         // landground = getDefaultEnvImage();
         if (landground == null) landground = getDefaultEnvImage();
         if (lifeground == null) lifeground = getDefaultEnvTransparentImage();
-        
+        // make a buffered image with the transparency of the landground dimensions
+        BufferedImage aux_landground = null;
+        if (this.hiddeLand)  aux_landground = Env_Panel.getDefaultEnvTransparentImage(landground.getWidth(), landground.getHeight(), false);
+        else aux_landground = landground;
 
-        if (true){
-        this.setSize(landground.getWidth(), landground.getHeight());
-        
-        this.back = new BufferedImage(landground.getWidth(), landground.getHeight(), 
-            BufferedImage.TYPE_INT_ARGB); // Reset back
-        this.back = landground;
-
-        //Mix with Lifeground image 
-        if(landground.getWidth() != lifeground.getWidth() || landground.getHeight() != lifeground.getHeight()){
-            int breakpoint =1;
-            this.lifeground = resizeImage(this.lifeground, landground.getWidth(), landground.getHeight());
-        }
-        
-        Graphics2D g2d = this.back.createGraphics();
-        g2d.drawImage(lifeground, 0, 0, null);
-        g2d.dispose();
-        
-        //Resize back to fit in panel starting in x,y and with width and height
-        if (this.back.getWidth() >= (x + width) && this.back.getHeight() >= (y +height))
-            this.back = this.back.getSubimage(x, y, width, height);
+        //Fix enviroment image to panel size
         int pw =(int)(this.getPreferredSize()).getWidth();
         int ph =(int)(this.getPreferredSize()).getHeight();
+        //Create new back image as landground size and content
+        this.back = new BufferedImage(aux_landground.getWidth(), aux_landground.getHeight(), BufferedImage.TYPE_INT_ARGB); // Reset back
+        this.back.getGraphics().drawImage(aux_landground, 0, 0, null);//put landground in back
+        //Resize back to fit in panel starting in x,y and with width and height 
         if (pw != 0 && ph != 0)
-            this.back = resizeImage(this.back, pw, ph);
-            
+            this.back = resizeImage(aux_landground, pw, ph);
         else 
-            this.back = resizeImage(this.back, DEFAULT_WIDTH, DEFAULT_HEIGHT);
-            
-        //Resize life to fit in panel starting in x,y and with width and height??
-
-        //this.back = resizeImage(this.back, 600, 400);
-        
-
-        //Make it front
-        this.front = this.back;
-        
+            this.back = resizeImage(aux_landground, DEFAULT_WIDTH, DEFAULT_HEIGHT);
+        //Visualize final dimensions.
+        int w = back.getWidth();
+        int h = back.getHeight();
+        this.setSize(w, h);
+        //Adjust life image to visualize size
+        //for test
+        int breakpointLGw = lifeground.getWidth();
+        int breakpointLGh = lifeground.getHeight();
+        if(w != lifeground.getWidth() || h != lifeground.getHeight()){
+                this.lifeground = resizeImage(this.lifeground, w, h);
         }
+        //overlay lifeground over landground
+        Graphics2D g2d = this.back.createGraphics();
+        g2d.drawImage(lifeground, 0, 0, null); //Draw life over land
+        g2d.dispose();
+        //Where must be visualized the enviroment 
+        //(x,y start position to visualize when zoom in and width and height to visualize)
+        //if (aux_landground.getWidth() >= (x + width) || this.back.getHeight() >= (y +height))
+        //    this.back = this.back.getSubimage(x, y, width, height); //better if scroll works
 
+/*
+        if (false){
+            int w = landground.getWidth();
+            int h = landground.getHeight();
+            this.setSize(w, h);
         
+            //put landground in back
+            this.back = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB); // Reset back
+            this.back.getGraphics().drawImage(aux_landground, 0, 0, null);
+
+            //Mix with Lifeground image and resize to landground dimensions
+            if(w != lifeground.getWidth() || h != lifeground.getHeight()){
+                int breakpoint =1;
+                this.lifeground = resizeImage(this.lifeground, w, h);
+            }
+        
+            //overlay lifeground over landground
+            Graphics2D g2d = this.back.createGraphics();
+            g2d.drawImage(lifeground, 0, 0, null);
+            g2d.dispose();
+        
+            //Resize back to fit in panel starting in x,y and with width and height
+            if (this.back.getWidth() >= (x + width) && this.back.getHeight() >= (y +height))
+                this.back = this.back.getSubimage(x, y, width, height);
+            int pw =(int)(this.getPreferredSize()).getWidth();
+            int ph =(int)(this.getPreferredSize()).getHeight();
+            if (pw != 0 && ph != 0)
+                this.back = resizeImage(this.back, pw, ph);
+            
+            else 
+                this.back = resizeImage(this.back, DEFAULT_WIDTH, DEFAULT_HEIGHT);
+            
+            //Resize life to fit in panel starting in x,y and with width and height??
+
+            //this.back = resizeImage(this.back, 600, 400);
+            //for test
+        } // End if (true)
+*/
+        this.front = this.back;
+        int breakpointh = front.getHeight();
+        int breakpointw = front.getWidth();
+        int breakpoint = 1;
         //g2d.dispose(); 
         repaint();
     } // End public void show_Env()
@@ -253,7 +311,20 @@ public class Env_Panel extends JPanel
         return i;
     } //public static BufferedImage getDefaultEnvImage()
     
-    public static BufferedImage getDefaultEnvTransparentImage(int w, int h){
+    public static BufferedImage getDefaultEnvTransparentImage(int w, int h, boolean allowScale){
+        int scale = 1;
+        //for test
+        int breakpoint1 = DEFAULT_WIDTH * DEFAULT_HEIGHT;
+        int breakpoint2 = (DEFAULT_WIDTH * DEFAULT_HEIGHT)/5;
+        int breakpoint3 = w * h;
+        boolean cond1 = (DEFAULT_WIDTH * DEFAULT_HEIGHT)/5 > w * h;
+        boolean cond2 = DEFAULT_WIDTH * DEFAULT_HEIGHT > w * h;
+        if (allowScale){
+            if ( (DEFAULT_WIDTH * DEFAULT_HEIGHT)/5 > w * h ) scale = 10;
+            else if ( DEFAULT_WIDTH * DEFAULT_HEIGHT > w * h ) scale = 4;
+            w = w * scale;
+            h = h * scale;
+        }
         BufferedImage i = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2d = i.createGraphics();
         g2d.setComposite(AlphaComposite.Clear);
@@ -264,7 +335,21 @@ public class Env_Panel extends JPanel
         return i;
     } //public static BufferedImage getDefaultEnvImage()
     
-    
+    /**
+     * public static BufferedImage copyBufferedImage(BufferedImage i)
+     * 
+     * Copy a BufferedImage to a new one
+     * @param i BufferedImage to be copied
+     * @return BufferedImage copy of i
+     */
+    public static BufferedImage copyBufferedImage(BufferedImage i){
+        BufferedImage copy = new BufferedImage(i.getWidth(), i.getHeight(), i.getType());
+        Graphics2D g2d = copy.createGraphics();
+        g2d.drawImage(i, 0, 0, null);
+        g2d.dispose();
+        return copy;
+    } // End public static BufferedImage copyBufferedImage(BufferedImage i)
+
     // Private Methods and Fuctions =============
     
 } // End Class Env_Panel

@@ -7,7 +7,7 @@ import java.util.concurrent.RunnableScheduledFuture;
  * @author Iñigo Marco 
  * @version 20-05-2023
  */
-public class Reproductable_Neuron_ALife extends Input_Neuron_ALife
+public class Detect_Reproductable_Neuron_ALife extends Input_Neuron_ALife
 {
     // Fields ----------------------------------------------------------------------------
      
@@ -20,7 +20,7 @@ public class Reproductable_Neuron_ALife extends Input_Neuron_ALife
      * Constructor to help in dupeNeuron_ALife methods
      * @param n Reproductable_Neuron_ALife the neuron to copy
      */
-    public Reproductable_Neuron_ALife(Reproductable_Neuron_ALife n){
+    public Detect_Reproductable_Neuron_ALife(Detect_Reproductable_Neuron_ALife n){
         super(n);
     } // End public Reproductable_Neuron_ALife(Reproductable_Neuron_ALife n)
 
@@ -32,7 +32,7 @@ public class Reproductable_Neuron_ALife extends Input_Neuron_ALife
      * Default constructor of the class
      * @param c Int_ALife_Creature the creature that owns the neuron
      */
-    public Reproductable_Neuron_ALife(Int_ALife_Creature c){
+    public Detect_Reproductable_Neuron_ALife(Int_ALife_Creature c){
         //Checks
         if (c==null) {
             return; //(For moment we dont contemps unowned neurons
@@ -64,10 +64,10 @@ public class Reproductable_Neuron_ALife extends Input_Neuron_ALife
      * @param  n Reproductable_Neuron_ALife the neuron to copy
      * @return Reproductable_Neuron_ALife the copy of the neuron
      */
-    public static Reproductable_Neuron_ALife dupeNeuron_ALife(Reproductable_Neuron_ALife n){
+    public static Detect_Reproductable_Neuron_ALife dupeNeuron_ALife(Detect_Reproductable_Neuron_ALife n){
         //Its not override since input and output parameters classes are diferent
         if (n.creature == null) return null;
-        Reproductable_Neuron_ALife newN = new Reproductable_Neuron_ALife(n);
+        Detect_Reproductable_Neuron_ALife newN = new Detect_Reproductable_Neuron_ALife(n);
         return newN;
     } // End public static Reproductable_Neuron_ALife dupeNeuron_ALife(Reproductable_Neuron_ALife n)
 

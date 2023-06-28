@@ -57,6 +57,7 @@ public class Mind_ALife
      * @param creature - the creature that owns the mind
      */
     public Mind_ALife(Int_ALife_Creature creature) throws IllegalArgumentException{
+        //Basic Mind Used to tests
         setCreature(creature);
         creature.setMind(this); //update creature mind
         this.output = null;
@@ -68,11 +69,12 @@ public class Mind_ALife
         statusNeurons = new ArrayList <Neuron_ALife>();
         midNeurons = new ArrayList <Neuron_ALife>();
         
-        Neuron_ALife auxN = new Reproductable_Neuron_ALife(this.creature);
-        
-        //allNeurons.add(auxN);
-        //inputNeurons.add(auxN);
+        Neuron_ALife auxN = new Detect_Reproductable_Neuron_ALife(this.creature);
         this.addNeuron(auxN);
+
+        auxN = new Detec_Nearest_R_NorthDist_Neuron_ALife(this.creature);
+        this.addNeuron(auxN);
+        
         //Add status or memory neurons 
         //Add MidNeurons
         //add output Neurons
@@ -412,18 +414,18 @@ public class Mind_ALife
         midNeurons = new ArrayList <Neuron_ALife>();
 
         ArrayList <Neuron_ALife> auxNList = new ArrayList <Neuron_ALife>();
-        if (inN < 0) inN = (int) Creature.creature_maxCaracteristics[Creature.creature_maxCaracteristics.length - 4];
-        if (miN < 0) miN = (int) Creature.creature_maxCaracteristics[Creature.creature_maxCaracteristics.length - 3];
-        if (ouN < 0) ouN = (int) Creature.creature_maxCaracteristics[Creature.creature_maxCaracteristics.length - 2];
-        if (stN < 0) stN = (int) Creature.creature_maxCaracteristics[Creature.creature_maxCaracteristics.length - 1];
+        if (inN < 0) inN = (int) Active_ALife_Creature.creature_maxCaracteristics[Active_ALife_Creature.creature_maxCaracteristics.length - 4];
+        if (miN < 0) miN = (int) Active_ALife_Creature.creature_maxCaracteristics[Active_ALife_Creature.creature_maxCaracteristics.length - 3];
+        if (ouN < 0) ouN = (int) Active_ALife_Creature.creature_maxCaracteristics[Active_ALife_Creature.creature_maxCaracteristics.length - 2];
+        if (stN < 0) stN = (int) Active_ALife_Creature.creature_maxCaracteristics[Active_ALife_Creature.creature_maxCaracteristics.length - 1];
 
 
         //all posible input neurons
         //Own status detection
-        auxNList.add(new Reproductable_Neuron_ALife(creature));
-        auxNList.add(new RResourceDetection_Neuron_ALife(creature));
-        auxNList.add(new GResourceDetection_Neuron_ALife(creature));
-        auxNList.add(new BResourceDetection_Neuron_ALife(creature));
+        auxNList.add(new Detect_Reproductable_Neuron_ALife(creature));
+        auxNList.add(new Detect_RResource_Neuron_ALife(creature));
+        auxNList.add(new Detect_GResource_Neuron_ALife(creature));
+        auxNList.add(new Detect_BResource_Neuron_ALife(creature));
         //auxNList.add(new Hunger_Neuron_ALife(creature));
         //auxNList.add(new reproductionGroupFull_Neuron_ALife(creature));
         //auxNList.add(new liveTimeFraction_Neuron_ALife(creature));

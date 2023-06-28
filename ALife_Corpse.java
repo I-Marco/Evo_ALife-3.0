@@ -94,7 +94,7 @@ public class ALife_Corpse extends Int_ALife_Creature
         return false;
     }
     
-    public void actionEat(Point pos, int[] foodResourceEat, Creature cr){} //food can be null
+    public void actionEat(Point pos, int[] foodResourceEat, Active_ALife_Creature cr){} //food can be null
     
     public void lookForBread(){} // Proliferation of life method
     

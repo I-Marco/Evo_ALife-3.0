@@ -6,7 +6,7 @@ import java.awt.Point;
  * @author Iñigo Marco 
  * @version 20-05-2023
  */
-public class BResourceDetection_Neuron_ALife extends Input_Neuron_ALife
+public class Detect_BResource_Neuron_ALife extends Input_Neuron_ALife
 {
     // Fields ----------------------------------------------------------------------------
      
@@ -19,7 +19,7 @@ public class BResourceDetection_Neuron_ALife extends Input_Neuron_ALife
      * Constructor to help in dupeNeuron_ALife methods
      * @param n BResourceDetection_Neuron_ALife the neuron to copy
      */
-    public BResourceDetection_Neuron_ALife(BResourceDetection_Neuron_ALife n){
+    public Detect_BResource_Neuron_ALife(Detect_BResource_Neuron_ALife n){
         super(n);
     } // End public BResourceDetection_Neuron_ALife(BResourceDetection_Neuron_ALife n)
 
@@ -29,7 +29,7 @@ public class BResourceDetection_Neuron_ALife extends Input_Neuron_ALife
      * Default constructor of the class
      * @param c Int_ALife_Creature the creature that owns the neuron
      */
-    public BResourceDetection_Neuron_ALife(Int_ALife_Creature c){
+    public Detect_BResource_Neuron_ALife(Int_ALife_Creature c){
         //Checks
         if (c==null) {
             return; //(For moment we dont contemps unowned neurons
@@ -51,7 +51,7 @@ public class BResourceDetection_Neuron_ALife extends Input_Neuron_ALife
         
         output = Mind_ALife.FALSE_in_double;
         Point pos = this.creature.getPos();
-        int[] food = this.creature.getEnv_ALife().getLand().nutrient(pos.x, pos.y);
+        int[] food = this.creature.getEnv_ALife().getLand().getNutrientIn(pos.x, pos.y);
         if (food[2] > 0) output = Mind_ALife.TRUE_in_double;
         return output;
     }
@@ -63,10 +63,10 @@ public class BResourceDetection_Neuron_ALife extends Input_Neuron_ALife
      * @param  n BResourceDetection_Neuron_ALife the neuron to copy
      * @return BResourceDetection_Neuron_ALife the copy of the neuron
      */
-    public static BResourceDetection_Neuron_ALife dupeNeuron_ALife(BResourceDetection_Neuron_ALife n){
+    public static Detect_BResource_Neuron_ALife dupeNeuron_ALife(Detect_BResource_Neuron_ALife n){
         //Its not override since input and output parameters classes are diferent
         if (n.creature == null) return null;
-        BResourceDetection_Neuron_ALife newN = new BResourceDetection_Neuron_ALife(n);
+        Detect_BResource_Neuron_ALife newN = new Detect_BResource_Neuron_ALife(n);
         return newN;
     } // End public static BResourceDetection_Neuron_ALife dupeNeuron_ALife(BResourceDetection_Neuron_ALife n)
 

@@ -166,10 +166,12 @@ public class Env_ALife extends Thread
         
         //Need Function generate_lifeTypeList(eventList)
         setLandImg(l); 
-        setLifeImg( Env_Panel.getDefaultEnvTransparentImage(l.getWidth(),l.getHeight())); //Temporal
+        setLifeImg( Env_Panel.getDefaultEnvTransparentImage(l.getWidth(),l.getHeight(),true)); //Temporal
         //Env_Panel.imageDisplay(l,"Constructor imagen");
-        backLandImage = l; //Temporal
-        backLifeImage =  getLifeImg(); //= referencia?
+        
+        //backLandImage = Env_Panel.copyBufferedImage(l); //Temporal
+        backLandImage = Env_Panel.copyBufferedImage(this.getLandImg());
+        backLifeImage = Env_Panel.copyBufferedImage(getLifeImg()); //= referencia?
         
         //Live
         if (liveEnv == null){
@@ -188,7 +190,7 @@ public class Env_ALife extends Thread
             try{for (Object o:(ArrayList)liveEnv) {
                     if (o instanceof Int_ALife_Creature) {
                         //Asignamos la cretura a este enviroment
-                        this.addCreature(((Creature)o));//Add to enviroment adding to eventList
+                        this.addCreature(((Active_ALife_Creature)o));//Add to enviroment adding to eventList
                         //this.species.addCreature(((Creature)o)); //Add to species
                         //((Creature)o).setEnv_ALife(this);
                         //((Creature)o).setIdCreature(this.getCreatureID());                        
@@ -288,6 +290,13 @@ public class Env_ALife extends Thread
             //synchronized (eventList){
             listaAhora = eventList.get(time); // si no hay eventos de time casca
             //}
+            //Refresh live enviroment image
+            if ( listaAhora.size() > 1 || 
+                ( listaAhora.size() > 0 && (listaAhora.get(0) instanceof Int_ALife_Creature) ) ) 
+            {
+                this.backLifeImage = Env_Panel.getDefaultEnvTransparentImage(
+                    getLandImg().getWidth(), getLandImg().getHeight(),true);
+            }
             for(Object event : listaAhora){
                 
                 //For concurrency Log
@@ -347,11 +356,13 @@ public class Env_ALife extends Thread
 
             threadManager.waitForThreadsToFinish();       
             //eventList.get(time)
-            /* Necesario
+            /* Necesario*/
             if (eventList.get(time).contains(this.getLand())) {
-                        this.logical_Env.run(); //Run logical enviroment. Prevent cuncurrency errors
+                synchronized(this){
+                    this.logical_Env.run(); //Run logical enviroment. Prevent cuncurrency errors
+                }
             }
-            */
+            
             removeEvent(time);
             
             //For concurrency Log
@@ -1038,7 +1049,7 @@ public class Env_ALife extends Thread
         //Create creatures
         ArrayList<Int_ALife_Creature> creatures = new ArrayList<Int_ALife_Creature>();
         int lifeExpectancy = 2000;
-
+        if (true) // For test put false to test resource environment
         for (Point pos:creaturePositions){
             boolean valid = false;
             int[] foodNeed = {0 , 0 , 0}, foodOwn= {0 , 0 , 0};
@@ -1050,13 +1061,13 @@ public class Env_ALife extends Thread
                 valid = !Arrays.equals(foodNeed_aux, foodOwn_aux);
             }
             
-            Int_ALife_Creature c = new Creature(e.get_Env_Alife(), pos, null, lifeExpectancy, foodOwn, foodNeed);
+            Int_ALife_Creature c = new Active_ALife_Creature(e.get_Env_Alife(), pos, null, lifeExpectancy, foodOwn, foodNeed);
             Mind_ALife m = new Mind_ALife(-1, 3, 3, -1, c);
             c.setPos(pos);
             c.setMind(m);
             creatures.add(c);
         }
-
+        
         //Env_ALife(Evo_ALife e,BufferedImage l, Object liveEnv, java.util.List<Object> envVars)
         return new Env_ALife(e,land_Temp, creatures, e.get_Env_Alife().getEnvVars());
         //Env_ALife e = new Env_ALife();
