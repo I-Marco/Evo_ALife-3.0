@@ -657,9 +657,7 @@ public class Active_ALife_Creature extends Int_ALife_Creature
             }
             //add to body
             grow(this.pos,foodResourceEat);
-            //actualize hungry value
-            this.hungry += sumRes / minRes; // How much time can survive with got resources
-            
+            //actualize hungry value inside grown
         } else { //cr != null , carnivore
             //Eat other creature
             if(cr instanceof Active_ALife_Creature) actionAttack(cr);
@@ -703,13 +701,23 @@ public class Active_ALife_Creature extends Int_ALife_Creature
                     int breakpoint = 1;
                 }
             }
-            if (foodResourceNeed [i] > foodResourceEated [i]) {
+            if (this.foodResourceNeed [i] > foodResourceEated [i]) {
                 this.hungry += foodResourceEated [i] - foodResourceNeed [i]; //May be too much
                 isHungry = true;
             }
         }
         //Reduce hungry
-        if (!isHungry && this.hungry < 1.1*100) this.hungry += 1; // PENDIENTE
+        //if (!isHungry && this.hungry < 1.1*100) this.hungry += 1; // PENDIENTE
+        if (!isHungry) { // && this.hungry < 1.1*100
+            int sumN = 0, sumG = 0;
+            for (int i = 0; i <  foodResourceEated.length; i++){
+                sumN += foodResourceNeed [i];
+                sumG += foodResourceEated [i];
+            }
+            this.hungry += sumG / sumN;
+            if (this.hungry > this.humgryUmbral * Int_ALife_Creature.DEFAULT_Max_Hungry_factor) 
+                this.hungry = (long) (this.humgryUmbral * Int_ALife_Creature.DEFAULT_Max_Hungry_factor);
+        }
         //ese 100 habria que cambiralo por cte o formula
 
         //return resources to env rest[]

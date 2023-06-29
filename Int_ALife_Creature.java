@@ -21,8 +21,9 @@ public abstract class Int_ALife_Creature extends Thread
     public static double DEFAULT_max_minReproductionGroup = 5;
     public static double DEFAULT_max_descendants = 10;
     public static double DEFAULT_max_detectRange = 10;
-    public static Long MARKREMANECE = 5L; //5 turns of mark detectable
     
+    public static Long MARKREMANECE = 5L; //5 turns of mark detectable
+    public static double DEFAULT_Max_Hungry_factor = 1.1;
     public static long DEFAULT_Hungry_Humbral = 100;
     public static int DEFAULT_MEMArraySize = 5;
     public static long DEFAULT_Life_Turns = 100;
@@ -299,7 +300,98 @@ public abstract class Int_ALife_Creature extends Thread
     public synchronized ArrayList<Trace> getDetectedTraces(){
         return this.detectedTraces;
     } // End public Trace getDetectedTraces()
+
+    /**
+     * public synchronized ArrayList<Int_ALife_Creature> getReproductionGroup()
+     * 
+     * Return the reproduction group of the creature
+     * @param None
+     * @return ArrayList<Int_ALife_Creature>, the reproduction group of the creature
+     */
+    public synchronized ArrayList<Int_ALife_Creature> getReproductionGroup(){
+        return this.reproductionGroup;
+    } // End public synchronized ArrayList<Int_ALife_Creature> getReproductionGroup()
     
+    /**
+     * public synchronized int getMinReproductionGroup()
+     * 
+     * Return the min reproduction group of the creature
+     * @param  None
+     * @return int, the min reproduction group of the creature
+     */
+    public synchronized int getMinReproductionGroup(){
+        return this.minReproductionGroup;
+    } // End public synchronized int getMinReproductionGroup()
+
+    /**
+     * public synchronized long getLifeTime()
+     * 
+     * Return the life time of the creature
+     * @param None
+     * @return long, the life time of the creature
+     */
+    public synchronized long getLifeTime(){
+        return this.lifeTime;
+    } // End public synchronized int getLifeTime()
+
+    /**
+     * public synchronized long getLifeExp()
+     * 
+     * Return the life exp of the creature
+     * @param None
+     * @return long, the life exp of the creature
+     */
+    public synchronized long getLifeExp(){
+        return this.lifeExp;
+    } // End public synchronized int getLifeTime()
+    
+    /**
+     * public synchronized long getMaxLivePoints()
+     * 
+     * Return the Max live points of the creature
+     * @param None
+     * @return long, the Max live points of the creature
+     */
+    public synchronized long getMaxLivePoints(){
+        return this.livePointMax;
+    } // End public synchronized int getLivePoints()
+
+    /**
+     * public synchronized long getLivePoints()
+     * 
+     * Return the live points of the creature
+     * @param None
+     * @return long, the live points of the creature
+     */
+    public synchronized long getLivePoints(){
+        return this.livePoints;
+    } // End public synchronized int getLivePoints()
+
+    /**
+     * public synchronized long getAttack()
+     * 
+     * Return the attack of the creature
+     * @param  None
+     * @return long, the attack of the creature
+     */
+    public synchronized long getAttack(){
+        return this.attack;
+    } // End public synchronized int getAttack()
+
+    /**
+     * public synchronized long getDef()
+     * 
+     * Return the def of the creature
+     * @param  None
+     * @return long, the def of the creature
+     */
+    public synchronized long getDef(){
+        return this.def;
+    } // End public synchronized int getDef()
+
+    public synchronized
+
+
     // END Getter and Setters ----------------------------
     
     /**

@@ -423,15 +423,17 @@ public class Mind_ALife
         //all posible input neurons
         //Own status detection
         auxNList.add(new Detect_Reproductable_Neuron_ALife(creature));
+        auxNList.add(new Detect_Hungry_Neuron_ALife(creature));
+        auxNList.add(new Detect_ReproductionGroupFull_Neuron_ALife(creature));
+
         auxNList.add(new Detect_RResource_Neuron_ALife(creature));
         auxNList.add(new Detect_GResource_Neuron_ALife(creature));
         auxNList.add(new Detect_BResource_Neuron_ALife(creature));
-        //auxNList.add(new Hunger_Neuron_ALife(creature));
-        //auxNList.add(new reproductionGroupFull_Neuron_ALife(creature));
-        //auxNList.add(new liveTimeFraction_Neuron_ALife(creature));
-        //auxNList.add(new livePointsFraction_Neuron_ALife(creature));
-        //auxNList.add(new attackPoints_Neuron_ALife(creature));
-        //auxNList.add(new defPoints_Neuron_ALife(creature));
+        auxNList.add(new Detect_liveTimeFraction_Neuron_ALife(creature));
+        auxNList.add(new Detect_livePointsFraction_Neuron_ALife(creature));
+        auxNList.add(new Detect_attackPoints_Neuron_ALife(creature));
+        auxNList.add(new Detect_defPoints_Neuron_ALife(creature));
+
         //auxNList.add
         //proximity
         //auxNList.add(new ); //nearest neighbour x, -x, y, -y distance
