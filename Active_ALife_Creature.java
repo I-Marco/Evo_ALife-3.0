@@ -58,6 +58,7 @@ public class Active_ALife_Creature extends Int_ALife_Creature
     //Known species ....
     ArrayList <ALife_Specie> enemySpecieList = new ArrayList<ALife_Specie>(); // List of enemy species
     ArrayList <Int_ALife_Creature> friendlySpecieList = new ArrayList<Int_ALife_Creature>(); // List of friendly species
+    ArrayList <Int_ALife_Creature> foodSpecieList = new ArrayList<Int_ALife_Creature>(); // List species that can eat
     //Not defined especies ??
 
     //Known creatures ....
@@ -628,33 +629,59 @@ public class Active_ALife_Creature extends Int_ALife_Creature
     
 
     /**
-     * private void actionEat(Point pos, int[] foodResourceEat, Creature cr)
+     * public void actionEat(Point pos, int[] foodResourceEat, Int_ALife_Creature cr)
+     * 
+     * Implementation of creature eat action abstact in Int_ALife_Creature
      * where Point, what int[] how much resource, what creature -- Want eat
      */
-    public void actionEat(Point pos, int[] foodResourceEat, Active_ALife_Creature cr){
+    public void actionEat(Point pos, int[] foodResourceEat, Int_ALife_Creature cr){
         if (cr == null){
-            //remove from nutrient            
-            foodResourceEat = this.env_ALive.getLand().getNutrient(pos, foodResourceEat, this); 
+            //remove from nutrient
+            int[] foodResourceEatMax = {
+                foodResourceEat[0] * this.maxfoodResourceGetFactor,
+                foodResourceEat[1] * this.maxfoodResourceGetFactor,
+                foodResourceEat[2] * this.maxfoodResourceGetFactor
+            }; // Max resources we can get in TOTAL
+            foodResourceEat = this.env_ALive.getLand().getNutrient(pos, foodResourceEatMax, this); 
                 //Its diferet creature
             //test
-            int sumRes = 0; // how much resources we gett in TOTAL
-            for (int i = 0; i < foodResourceEat.length; i++){
-                sumRes += foodResourceEat[i];
+            int sumRes = 0, minRes = 0; // how much resources we gett in TOTAL
+            for (int i = 0; i < foodResourceEatMax.length; i++){
+                sumRes += foodResourceEatMax[i];
+                minRes += foodResourceEat[i];
             }
             
+            //for test
             if (sumRes == 0) {
                 int breakPoint = 1;
             }
             //add to body
             grow(this.pos,foodResourceEat);
             //actualize hungry value
+            this.hungry += sumRes / minRes; // How much time can survive with got resources
             
-        } else {
+        } else { //cr != null , carnivore
             //Eat other creature
+            if(cr instanceof Active_ALife_Creature) actionAttack(cr);
+            else
+                if(cr instanceof ALife_Corpse) { //(cr.getSpecieIdNumber() == -1)
+                    //get nutrient from corpse FALTA
+                }
         } 
-        
-    } // End private void actionEat(Point pos, int[] foodResourceNeed, Creature cr)
+    } // End public void actionEat(Point pos, int[] foodResourceEat, Int_ALife_Creature cr)
     
+    /**
+     * private void actionAttack(Int_ALife_Creature cr)
+     * 
+     * Attack cr creature
+     * @param    Int_ALife_Creature cr  
+     * @return   None
+     */
+    private void actionAttack(Int_ALife_Creature cr){
+        //FALTA
+        //cr.beAttacked(this, this.attack);
+    }
+
     /**
      * private void grow(Point pos, int[] foodResourceEated)
      * Try to grow creature with foodResourceEated, if not posible return resources to ground

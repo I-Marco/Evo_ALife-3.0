@@ -1,4 +1,3 @@
-
 import java.awt.Point;
 
 /**
@@ -7,7 +6,7 @@ import java.awt.Point;
  * @author Iñigo Marco 
  * @version 28-06-2023
  */
-public class Detec_Nearest_R_NorthDist_Neuron_ALife extends Input_Neuron_ALife
+public class Detect_Nearest_G_NorthDist_Neuron_ALife extends Input_Neuron_ALife
 {
     // Fields ----------------------------------------------------------------------------
      
@@ -20,7 +19,7 @@ public class Detec_Nearest_R_NorthDist_Neuron_ALife extends Input_Neuron_ALife
      * Constructor to help in dupeNeuron_ALife methods
      * @param n BResourceDetection_Neuron_ALife the neuron to copy
      */
-    public Detec_Nearest_R_NorthDist_Neuron_ALife(Detec_Nearest_R_NorthDist_Neuron_ALife n){
+    public Detect_Nearest_G_NorthDist_Neuron_ALife(Detect_Nearest_G_NorthDist_Neuron_ALife n){
         super(n);
     } // End public BResourceDetection_Neuron_ALife(BResourceDetection_Neuron_ALife n)
 
@@ -30,7 +29,7 @@ public class Detec_Nearest_R_NorthDist_Neuron_ALife extends Input_Neuron_ALife
      * Default constructor of the class
      * @param c Int_ALife_Creature the creature that owns the neuron
      */
-    public Detec_Nearest_R_NorthDist_Neuron_ALife (Int_ALife_Creature c) throws IllegalArgumentException{
+    public Detect_Nearest_G_NorthDist_Neuron_ALife (Int_ALife_Creature c) throws IllegalArgumentException{
         super();
         //Checks
         if (c==null) {
@@ -53,22 +52,6 @@ public class Detec_Nearest_R_NorthDist_Neuron_ALife extends Input_Neuron_ALife
         if (this.output != null) return output;
         //MAX if there is desired resource int its position, min i its in max detecion range
         output = Mind_ALife.FALSE_in_double;// not found
-        
-        Point foodPos = ALife_Input_Neuron_Utils.nearestResourceExpand(this.creature, 0);
-        //output = Double.valueOf(ALife_Input_Neuron_Utils.northDistancePtoP(this.creature.getPos(), foodPos));
-        
-        if (foodPos != null){
-            output = (double) ALife_Input_Neuron_Utils.northDistancePtoP(this.creature.getPos(), foodPos);
-            output = (this.creature.getDetectionRange() + 1  - output) / (this.creature.getDetectionRange() + 1); // Normalize
-            output = (Mind_ALife.TRUE_in_double - Mind_ALife.FALSE_in_double) * output; // Scale
-        }
-        return output;        
-    } // End public double activation()
-
-    public double ac(){
-        if (this.output != null) return output;
-        //MAX if there is desired resource int its position, min i its in max detecion range
-        output = Mind_ALife.FALSE_in_double;// not found
         Point foodPos = null;
         Point pos = this.creature.getPos();
         for (int range = 0; range <= this.creature.getDetectionRange(); range++){
@@ -78,7 +61,7 @@ public class Detec_Nearest_R_NorthDist_Neuron_ALife extends Input_Neuron_ALife
                 for (int y = pos.y - range; y <= pos.y; y = y + Math.max(1, 2 * range)){
                     if (foodPos != null) break;
                     int[] food = this.creature.getEnv_ALife().getLand().getNutrientIn(x, y);
-                    if (food[0] > 0) {
+                    if (food[1] > 0) {
                         //double dist = this.creature.getPos().distance(x, y);
                         //output = Double.valueOf((this.creature.getDetectionRange() + 1 - dist) / (this.creature.getDetectionRange() + 1));
                         //output = (Mind_ALife.TRUE_in_double - Mind_ALife.FALSE_in_double) * output;
@@ -105,10 +88,10 @@ public class Detec_Nearest_R_NorthDist_Neuron_ALife extends Input_Neuron_ALife
      * @param  n BResourceDetection_Neuron_ALife the neuron to copy
      * @return BResourceDetection_Neuron_ALife the copy of the neuron
      */
-    public static Detec_Nearest_R_NorthDist_Neuron_ALife dupeNeuron_ALife(Detec_Nearest_R_NorthDist_Neuron_ALife n){
+    public static Detect_Nearest_G_NorthDist_Neuron_ALife dupeNeuron_ALife(Detect_Nearest_G_NorthDist_Neuron_ALife n){
         //Its not override since input and output parameters classes are diferent
         if (n.creature == null) return null;
-        Detec_Nearest_R_NorthDist_Neuron_ALife newN = new Detec_Nearest_R_NorthDist_Neuron_ALife(n);
+        Detect_Nearest_G_NorthDist_Neuron_ALife newN = new Detect_Nearest_G_NorthDist_Neuron_ALife(n);
         return newN;
     } // End public static BResourceDetection_Neuron_ALife dupeNeuron_ALife(BResourceDetection_Neuron_ALife n)
 

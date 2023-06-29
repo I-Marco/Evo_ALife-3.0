@@ -24,6 +24,7 @@ public abstract class Int_ALife_Creature extends Thread
     public static Long MARKREMANECE = 5L; //5 turns of mark detectable
     
     public static long DEFAULT_Hungry_Humbral = 100;
+    public static int DEFAULT_MEMArraySize = 5;
     public static long DEFAULT_Life_Turns = 100;
     
     public static double MUTATION_DISTANCE = 1; //1 * minimum value of caracteristic
@@ -51,6 +52,7 @@ public abstract class Int_ALife_Creature extends Thread
     int[] minfoodResourceOwn = {0,0,0}; // when born and need to born
     int[] maxfoodResourceOwn = {0,0,0};
     int[] foodResourceNeed = {0,0,0};
+    int maxfoodResourceGetFactor = 3;
     
     Trace creatureTrace = null;
     double hidden = 0L; //0..1, 0 = No hidden
@@ -277,15 +279,26 @@ public abstract class Int_ALife_Creature extends Thread
     } // End public void setSpecieIdNumber(long id)
 
     /**
-     * getStatus()
-     * @param c
-     * @return
+     * public synchronized double getStatus()
+     * @param None
+     * @return double, the status of the creature
      */
     public synchronized double getStatus(){
         synchronized (this){
             return this.status;
         }
     } // End public synchronized double getStatus()
+
+    /**
+     * public synchronized ArrayList<Trace> getDetectedTraces()
+     * 
+     * 
+     * @param None
+     * @return ArrayList<Trace>, the detected traces by the creature
+     */
+    public synchronized ArrayList<Trace> getDetectedTraces(){
+        return this.detectedTraces;
+    } // End public Trace getDetectedTraces()
     
     // END Getter and Setters ----------------------------
     
@@ -652,7 +665,7 @@ public abstract class Int_ALife_Creature extends Thread
     
     public abstract boolean getReproductable();
 
-    public abstract void actionEat(Point pos, int[] foodResourceEat, Active_ALife_Creature cr); //food can be null
+    public abstract void actionEat(Point pos, int[] foodResourceEat, Int_ALife_Creature cr); //food can be null
     
     public abstract void lookForBread(); // Proliferation of life method
     

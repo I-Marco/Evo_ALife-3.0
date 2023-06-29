@@ -873,11 +873,7 @@ public class Mind_ALife
             //throw new IllegalArgumentException("No se puede crear el objeto debido a una condición inválida.");
             int breakp =1;
         }        
-        
-        
         //END for test
-        
-        
         this.reset();
         this.activation();
         return  this.outNeuron.getAction();
@@ -930,7 +926,7 @@ public class Mind_ALife
         }catch(NullPointerException npe){
             npe.printStackTrace();
         }
-        Random r = new Random();
+        Random r = new Random(); //Some times random option to dont inactivate unused neurons
         //for test
         int r1 = ( (r.nextInt(outOptions.size()*100)) - 1 )/ 100;
         outNeuron = (Out_Neuron_ALife) outOptions.get(r1);
