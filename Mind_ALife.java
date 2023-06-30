@@ -24,7 +24,7 @@ public class Mind_ALife
     public static final double FALSE_in_double = 0;
     public static enum Action {UP,DOWN,RIGHT,LEFT,EAT,REPRODUCE,ATTACK,ADDREPGROUP,MAKETRACE};//add to reproductionGroup
     public static final double DEFAULT_u_changeFraction = 0.05;
-    public static final double DEFAULT_Weight_changeFraction = 0.1;
+    public static final double DEFAULT_Weight_changeFraction = 0.25; //0.1
     public static final double DEFAULT_weight_changeUnderFraction = 0.5;
     
     // Fields ----------------------------------------------------------------------------
@@ -72,7 +72,7 @@ public class Mind_ALife
         Neuron_ALife auxN = new Detect_Reproductable_Neuron_ALife(this.creature);
         this.addNeuron(auxN);
 
-        auxN = new Detec_Nearest_R_NorthDist_Neuron_ALife(this.creature);
+        auxN = new Detect_Hungry_Neuron_ALife(this.creature);
         this.addNeuron(auxN);
         
         //Add status or memory neurons 
@@ -944,11 +944,11 @@ public class Mind_ALife
      * @param enhanced
      * @param change
      */
-    public void updateLearn(Double enhanced, Double change){
+    public void updateLearn(Double enhanced, Double uupdate, Double change){
         // En funcion de enhanced y el peso mejora.
         synchronized (this){
             for (Neuron_ALife n:allNeurons){
-                n.updateLearn(enhanced, change);
+                n.updateLearn(enhanced, uupdate, change);
             }
         }        
     } // End public void updateLearn(Double enhanced, Double change)
@@ -959,8 +959,10 @@ public class Mind_ALife
      * @param action Mind_ALife.Action
      * @param statusChange double
      * @param weightOfActionVsTime double
+     * @param uOfActionVsTime double
+     * @return void
      */
-    public void updateMind(Action action, Double statusChange, Double weightOfActionVsTime){
+    public void updateMind(Action action, Double statusChange, Double weightOfActionVsTime, Double uOfActionVsTime){
         //check
         if (action == null || statusChange == null || weightOfActionVsTime == null){
             //for test
@@ -974,7 +976,7 @@ public class Mind_ALife
         
         for(Out_Neuron_ALife oN:this.outputNeurons){
             if (oN.action == action){
-                oN.updateLearn(weightOfActionVsTime, statusChange);
+                oN.updateLearn(weightOfActionVsTime, uOfActionVsTime, statusChange);
                 break;
             }
         }

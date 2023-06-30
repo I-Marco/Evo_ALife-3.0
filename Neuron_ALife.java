@@ -146,15 +146,16 @@ public class Neuron_ALife
      * public void updateLearn(Double enhanced, Double change)
      * 
      * Update the neuron weights and u
-     * @param enhanced
-     * @param change
+     * @param weightupdate  - neuron parameters change factor
+     * @param uupdate       - u change
+     * @param stChange    - status change
      * @return None
      */
-    public void updateLearn(Double enhanced, Double change){
+    public void updateLearn(Double weightupdate, Double uupdate, Double stChange){
         // En funcion de enhanced y change el peso mejora. Debo ACOTARLOS
         // Based in back propagation algorithm
         // Based in back propagation algorithm
-        if (enhanced == null || change == null || enhanced == 0L || change == 0L) return;
+        if (weightupdate == null || stChange == null || weightupdate == 0L || stChange == 0L) return;
         if (this.inputs == null || this.inputs.isEmpty()) return; //No inputs neurons
         /* DE OUT NEURON
         this.u += u*enhanced * change * Mind_ALife.DEFAULT_u_changeFraction;
@@ -164,21 +165,40 @@ public class Neuron_ALife
         //weights los que aportan mas de la media mejoran un x% y luego se acota para que la suma total de pesos sea 1
 
         
-        double chageValue = enhanced * change;
+        double changeValue = weightupdate * stChange;
         for(int i = 0; i < this.inputs.size(); i++){
             Neuron_ALife n = this.inputs.get(i);
             //No propagation for status neurons inputs (endeless loop)
             if (n instanceof Status_Neuron_ALife) continue; 
-            n.updateLearn(enhanced, change*weights.get(i));
+            n.updateLearn(weightupdate * weights.get(i), uupdate, stChange);
         }
         //u makes some Neurons over others so we need change it carefully or we inactivate some neurons
         //may be when a big update in a single action
         //this.u = this.u + this.u* enhanced * change * Mind_ALife.DEFAULT_u_changeFraction;
+
+        //Detectar si es solo 1 accion
+            //modificación = modificación prevista / entrada (OJO 0)
+        //si no es 1 acción seguir y modificar u??
+        if (weightupdate == Mind_ALife.DEFAULT_Weight_changeFraction) { //Falla
+            for(int i = 0 ; i<weights.size(); i++){
+                if (inputs.get(i).getOutput() == null) continue;
+                double aux = weights.get(i);
+                //adjust each weight acording to the participation in output of the input neuron
+                //for test 
+                double viewOutputI = inputs.get(i).getOutput();
+                double viewFactor1 = changeValue *( (inputs.get(i).getOutput()*aux));
+                double viewFactor2 = this.output ;
+                double viewFactor3 = changeValue *( (inputs.get(i).getOutput()*aux)/this.output );
+                //end test
+                aux = aux + changeValue *( (inputs.get(i).getOutput()*aux) /this.output ); 
+                weights.set(i, aux);
+            }
+        }
         double[] aux = this.weights.stream().mapToDouble(Double::doubleValue).toArray();
         double mean = ALifeCalcUtil.mean(aux);
         for (int i = 0; i < aux.length; i++){
-            if (aux[i] > mean) aux[i] = aux[i] + aux[i]* chageValue * Mind_ALife.DEFAULT_u_changeFraction;  
-            else aux[i] = aux[i] + aux[i]* chageValue * Mind_ALife.DEFAULT_Weight_changeFraction * Mind_ALife.DEFAULT_weight_changeUnderFraction;
+            if (aux[i] > mean) aux[i] = aux[i] + aux[i]* changeValue * Mind_ALife.DEFAULT_u_changeFraction;  
+            else aux[i] = aux[i] + aux[i]* changeValue * Mind_ALife.DEFAULT_Weight_changeFraction * Mind_ALife.DEFAULT_weight_changeUnderFraction;
         }
         //ALifeCalcUtil.multiplyArrayByCte(null, chageValue)
         aux = ALifeCalcUtil.normalizeArrayToTotal_1(aux);

@@ -128,7 +128,7 @@ public class Out_Neuron_ALife extends Neuron_ALife
     @Override
     public double activation(){
         if (output != null) return output;
-        //For test
+        //For test BIRTH detection
         if (this.action ==  Mind_ALife.Action.REPRODUCE){
             int breack = 1;
             if (this.creature.getReproductable()){
@@ -138,26 +138,17 @@ public class Out_Neuron_ALife extends Neuron_ALife
         // End test
         int i = 0;
         double sum = u;
-        for(Neuron_ALife n:inputs){
+         for(Neuron_ALife n:inputs){
             //for test
             MultiTaskUtil.threadMsg("("+this.neuron_ID+")Neuron_ALife.activation() n = "+n.neuron_ID); 
 
             if (n!= this){
-                if (n.getOutput() != null) {
-                    //for test
-                    double aux = n.getOutput(); 
-                    double aux2 = weights.get(i);
-                    sum += aux * aux2;
-                    //End test the good is next line
-                    //sum += n.getOutput() * weights.get(i); //on when test out
-                } else {
-                    //for test
-                    double aux = n.activation();
-                    double aux2 = weights.get(i);
-                    sum += aux * aux2;
-                    //End test the good is next line
-                    //sum += n.activation() * weights.get(i); //on when test out
-                }
+                //for test - First time run may be weights unnormalized
+                double aux = n.activation();
+                double aux2 = weights.get(i);
+                sum += aux * aux2;
+                //End test the good is next line
+                //sum += n.activation() * weights.get(i); //on when test out
             } // End if (n!= this)
         }
         output = sum;
@@ -169,14 +160,15 @@ public class Out_Neuron_ALife extends Neuron_ALife
      * 
      * Overrided updateLearn method from Neuron_ALife, udate the neuron weights and bias 
      * based in enhanced and change
-     * @param   enhanced Double the enhanced value
+     * @param   weightupdate Double the enhanced value
+     * @param   uupdate Double the change value
      * @param   change Double the change value
      * @return  None
      */
     @Override
-    public void updateLearn(Double enhanced, Double change){
+    public void updateLearn(Double weightupdate, Double uupdate, Double change){
         // Based in back propagation algorithm
-        super.updateLearn(enhanced, change);
+        super.updateLearn(weightupdate, uupdate, change);
         /*
         if (enhanced == null || change == null || enhanced == 0L || change == 0L) return;
         this.u += u*enhanced * change * Mind_ALife.DEFAULT_u_changeFraction;

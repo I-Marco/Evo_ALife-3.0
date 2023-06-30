@@ -209,7 +209,7 @@ public class ALife_Nutrient_Environment implements Runnable
             //int r,g,b;
             //Make new Backland copy of primary imga frontland
             this.backLand = new BufferedImage(this.frontLand.getWidth(),
-            this.frontLand.getHeight(), this.frontLand.getType());
+                this.frontLand.getHeight(), this.frontLand.getType());
             Graphics2D g2d = this.backLand.createGraphics();
             g2d.drawImage(this.frontLand, 0, 0, null);
             //g2d.dispose();

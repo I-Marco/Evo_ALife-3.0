@@ -389,9 +389,6 @@ public abstract class Int_ALife_Creature extends Thread
         return this.def;
     } // End public synchronized int getDef()
 
-    public synchronized
-
-
     // END Getter and Setters ----------------------------
     
     /**

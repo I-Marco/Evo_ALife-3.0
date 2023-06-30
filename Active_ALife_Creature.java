@@ -39,6 +39,9 @@ public class Active_ALife_Creature extends Int_ALife_Creature
         25, 15, Mind_ALife.Action.values().length, 5 //mind.getInnerN(), mind.getMidN(), mind.getOutN(), mind.getStatusN()
     };
     //Note: 2º value is TamComplex. Be care on changes same on MIND values
+    //double WEIGHT = 0.1; //Weight of actual status in evolution
+    public static long MEDIUM_TIME_UPDATE = 5; //Medium time for update data
+    public static long LONG_TIME_UPDATE = 15; //Long time for update data
     
     public static int MIND_NEURONS_TYPES = 4; //Number of caracteristics reffered to Mind_ALife
     //End Constants for normalization Creature
@@ -373,7 +376,8 @@ public class Active_ALife_Creature extends Int_ALife_Creature
             //For concurrency Log
             //MultiTaskUtil.threadMsg("===== Semaphore ADQUIRED BY CREATURE("+
             //    semaphore.availablePermits()+").................");
-            //Run 
+            //Run
+            if(this.lifeTime == 0) statusChangesUpdate(null); //First time in real enviroment
             //1.- Eventos involuntarios como morir envejecer ...
             this.lifeTime += this.lifeDelay;
             this.hungry -= 1; //aumentar hambre
@@ -732,7 +736,7 @@ public class Active_ALife_Creature extends Int_ALife_Creature
      * @return   - None
      */
     private void statusChangesUpdate(Mind_ALife.Action ac){
-        if (ac == null) return;
+        if (ac == null && this.lifeTime != 0) return;
         if (this.timeOfDeccision == null) this.timeOfDeccision = new ArrayList<Long>();
         if (this.actions == null) this.actions = new ArrayList<Mind_ALife.Action>();
         if (this.statusValue == null) this.statusValue = new ArrayList<Double>();
@@ -755,11 +759,8 @@ public class Active_ALife_Creature extends Int_ALife_Creature
      * @param    None
      * @return   None
      */
-    private void statusChangeEvolution(){
-        double WEIGHT = 0.1; //Weight of actual status in evolution
-        long MEDIUM_TIME_UPDATE = 5; //Medium time for update data
-        long LONG_TIME_UPDATE = 15; //Long time for update data
-        double actualStatus = Int_ALife_Creature.evaluateStatus(this);
+    private void statusChangeEvolution(){ //self update creature status
+        double statusNow = Int_ALife_Creature.evaluateStatus(this);
         //Check
         if (this.timeOfDeccision == null || this.actions == null || this.statusValue == null){
             MultiTaskUtil.threadMsg("Error in Creature statusChangeEvolution: arraylist are null");
@@ -777,11 +778,24 @@ public class Active_ALife_Creature extends Int_ALife_Creature
         if (this.actions.size() > 1 && this.timeOfDeccision.size() > 1 && 
             this.statusValue.size() > 1)
         {
-            this.mind.updateMind(
-                actions.get(actions.size()-2),
-                actualStatus - statusValue.get(statusValue.size()-2),
-                Mind_ALife.DEFAULT_Weight_changeFraction / LONG_TIME_UPDATE
-            );
+            //for test 
+            double viewBefore = statusValue.get(statusValue.size()-1);
+            double viewNow = statusNow - statusValue.get(statusValue.size()-1);
+            //End test
+            /*
+            if (this.actions.size() <= 1)
+                this.mind.updateMind(
+                    actions.get(actions.size()-1),
+                    statusNow - statusValue.get(statusValue.size()-1),
+                    Mind_ALife.DEFAULT_Weight_changeFraction, 0
+                ); //For weight update no divided by time (LONG_TIME_UPDATE)
+            else 
+            */
+                this.mind.updateMind(
+                    actions.get(actions.size()-1),
+                    statusValue.get(statusValue.size()-1) - statusValue.get(statusValue.size()-2),
+                    Mind_ALife.DEFAULT_Weight_changeFraction , 0
+                ); //For weight update no divided by time
         }
         //this.mind.updateMind(actions.get(actions.size()-1), statusValue.get(statusValue.size()-1)-actualStatus, 
         //    WEIGHT * (timeOfDeccision.get(timeOfDeccision.size()-1) - this.env_ALive.getTime()));
@@ -790,8 +804,8 @@ public class Active_ALife_Creature extends Int_ALife_Creature
             this.statusValue.size() > MEDIUM_TIME_UPDATE){
             this.mind.updateMind(
                 actions.get(actions.size()-(int)MEDIUM_TIME_UPDATE - 1),
-                 actualStatus - statusValue.get(statusValue.size()-(int)MEDIUM_TIME_UPDATE - 1),
-                Mind_ALife.DEFAULT_Weight_changeFraction / (int)LONG_TIME_UPDATE * MEDIUM_TIME_UPDATE
+                 statusNow - statusValue.get(statusValue.size()-(int)MEDIUM_TIME_UPDATE - 1),
+                Mind_ALife.DEFAULT_Weight_changeFraction / (int)LONG_TIME_UPDATE * MEDIUM_TIME_UPDATE,0
             );
         }
         // Long time updates
@@ -799,8 +813,8 @@ public class Active_ALife_Creature extends Int_ALife_Creature
             this.statusValue.size() > LONG_TIME_UPDATE){
             this.mind.updateMind(
                 actions.get(actions.size()-(int)LONG_TIME_UPDATE - 1),
-                 actualStatus - statusValue.get(statusValue.size()-(int)LONG_TIME_UPDATE - 1),
-                Mind_ALife.DEFAULT_Weight_changeFraction
+                 statusNow - statusValue.get(statusValue.size()-(int)LONG_TIME_UPDATE - 1),
+                Mind_ALife.DEFAULT_Weight_changeFraction,0
             );
         }
 
