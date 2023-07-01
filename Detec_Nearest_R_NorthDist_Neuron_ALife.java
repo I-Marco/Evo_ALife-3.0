@@ -112,6 +112,13 @@ public class Detec_Nearest_R_NorthDist_Neuron_ALife extends Input_Neuron_ALife
         return newN;
     } // End public static BResourceDetection_Neuron_ALife dupeNeuron_ALife(BResourceDetection_Neuron_ALife n)
 
+    //Test Dudoso
+    public Detec_Nearest_R_NorthDist_Neuron_ALife dupeNeuron_ALife(){
+        Detec_Nearest_R_NorthDist_Neuron_ALife newN = new Detec_Nearest_R_NorthDist_Neuron_ALife(this);
+        return newN;
+    } // End public static BResourceDetection_Neuron_ALife dupeNeuron_ALife(BResourceDetection_Neuron_ALife n)
+
+
     // Getter and setters
 
     // Private Methods and Fuctions =============

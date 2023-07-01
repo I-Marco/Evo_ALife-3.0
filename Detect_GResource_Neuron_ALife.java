@@ -70,6 +70,13 @@ public class Detect_GResource_Neuron_ALife extends Input_Neuron_ALife
         return newN;
     } // End public static GResourceDetection_Neuron_ALife dupeNeuron_ALife(GResourceDetection_Neuron_ALife n)
 
+    // Test Dudoso
+    public Detect_GResource_Neuron_ALife dupeNeuron_ALife(){
+        Detect_GResource_Neuron_ALife newN = new Detect_GResource_Neuron_ALife(this);
+        return newN;
+    } // End public static GResourceDetection_Neuron_ALife dupeNeuron_ALife(GResourceDetection_Neuron_ALife n)
+
+
     // Getter and setters
 
     // Private Methods and Fuctions =============

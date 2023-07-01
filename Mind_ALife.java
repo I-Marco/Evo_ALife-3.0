@@ -364,14 +364,16 @@ public class Mind_ALife
         
         for (Neuron_ALife n:m.inputNeurons){
             //Neuron_ALife auxN = n.dupeInputNeuron();dupeNeuron_ALife(
-            Neuron_ALife auxN = Neuron_ALife.dupeNeuron_ALife(n);
+            //Neuron_ALife auxN = Neuron_ALife.dupeNeuron_ALife(n);
+            Neuron_ALife auxN = n.dupeNeuron_ALife();
             this.addNeuron(auxN);
             //this.inputNeurons.add(auxN);
             //this.allNeurons.add(auxN);
         }
         for (Neuron_ALife n:m.midNeurons){
             //Neuron_ALife auxN = n.dupeMidNeuron();
-            Neuron_ALife auxN = Neuron_ALife.dupeNeuron_ALife(n);
+            //Neuron_ALife auxN = Neuron_ALife.dupeNeuron_ALife(n);
+            Neuron_ALife auxN = n.dupeNeuron_ALife();
             this.addNeuron(auxN);
             //this.midNeurons.add(auxN);
             //this.allNeurons.add(auxN);
@@ -386,7 +388,8 @@ public class Mind_ALife
         }
         */
         for (Out_Neuron_ALife n:m.outputNeurons){
-            Out_Neuron_ALife auxN = Out_Neuron_ALife.dupeNeuron_ALife(n);
+            //Out_Neuron_ALife auxN = Out_Neuron_ALife.dupeNeuron_ALife(n);
+            Out_Neuron_ALife auxN = n.dupeNeuron_ALife();
             this.addNeuron(auxN);
             //this.outputNeurons.add((Out_Neuron_ALife)auxN);
             //this.allNeurons.add(auxN);

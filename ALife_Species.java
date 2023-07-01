@@ -107,13 +107,13 @@ public class ALife_Species
      * @param c Int_ALife_Creature
      * @return None
      */
-    public void addCreature(Int_ALife_Creature c){
+    public void addCreatureToSpecies(Int_ALife_Creature c){
         if (c == null) return;
         //Compare to existing species
         Long specieIdNumber = findSpecieForCreature(c);
         if (specieIdNumber == null){
             //Create new specie 
-            this.addSpecie(c);
+            this.createNewSpecie(c);
             //c.setSpecieIdNumber(specieIdNumber); Asigned in addSpecie
         } else {
             //Add creature to specie
@@ -148,7 +148,7 @@ public class ALife_Species
      * @param c Int_ALife_Creature
      * @return None
      */
-    public void addSpecie(Int_ALife_Creature c){
+    public void createNewSpecie(Int_ALife_Creature c){
         if (c == null) return;
         //We asume thar creature has been compared to existing species
         Long specieIdNumber = findSpecieForCreature(c); //temporal for in case of error

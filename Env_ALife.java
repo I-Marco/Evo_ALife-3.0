@@ -116,6 +116,8 @@ public class Env_ALife extends Thread
         if (this.land != null){
             this.logical_Env = new ALife_Logical_Environment(this);
         }
+        Active_ALife_Creature.refreshLiveImage(this.eventList, this.lifeImg);
+        this.backLandImage = Env_Panel.copyBufferedImage(this.getLandImg());
         caller.visualiceEnv(this);
     } // End public Env_ALife(Evo_ALife e) Constructor
 
@@ -214,7 +216,8 @@ public class Env_ALife extends Thread
         //lifeTypeList = new ArrayList<ALife_Specie>(); //Empty need values
         //evaluate lifeTypeList(eventList);
 
-
+        Active_ALife_Creature.refreshLiveImage(this.eventList, this.lifeImg);
+        this.backLandImage = Env_Panel.copyBufferedImage(this.getLandImg());
 
         caller.visualiceEnv(this); //Display de new enviroment
     } // End public Env_ALife(Evo_ALife e,BufferedImage l, Object liveEnv, java.util.List<Object> envVars) Constructor
@@ -285,6 +288,17 @@ public class Env_ALife extends Thread
             //For Concurrency Log
             //MultiTaskUtil.threadMsg("Env Run ("+this.getTime()+")");//For test
 
+            //for test counting control
+            if(this.creatureNumber != this.getCalculateAliveCreatures()){
+                int reakpoint = 1;
+                MultiTaskUtil.threadMsg("Creature Number ("+this.creatureNumber+") != Alive Creatures ("+this.getCalculateAliveCreatures()+")");
+            }
+            if(this.species.getNumberOfDifferentActiveSpecies() != this.getCalculateActiveDifferentSpecies() ) {
+                int reakpoint = 1;
+                MultiTaskUtil.threadMsg("Species Number ("+this.species.getNumberOfDifferentActiveSpecies()+") != Active Different Species ("+this.getCalculateActiveDifferentSpecies()+")");
+            }
+            
+            //end test
             // Make now event succeded
             ArrayList<Object> listaAhora = null;
             //synchronized (eventList){
@@ -1007,7 +1021,7 @@ public class Env_ALife extends Thread
         //Add in life image
         c.paint(this.getBackLifeImage(), Color.YELLOW); //CAUTION we have to pass to front image to be seen
         //add Creature to specie system
-        this.species.addCreature(c);
+        this.species.addCreatureToSpecies(c);
         
     } //End public addCreature(Int_ALife_Creature c)
     
@@ -1114,6 +1128,30 @@ public class Env_ALife extends Thread
         return new Env_ALife(e,land_Temp, creatures, e.get_Env_Alife().getEnvVars());
         //Env_ALife e = new Env_ALife();
     } // End public static Env_ALife createEnv_ALife_d_nCre(Evo_ALife e, int width, int height, int nCre)
+
+    //for test functions
+    public long getCalculateAliveCreatures(){
+        long cont = 0;
+        for (Long t : eventList.keySet()){
+            ArrayList<Object> list = eventList.get(t);
+            for (Object o : list){
+                if (o instanceof Active_ALife_Creature){
+                    cont++;
+                }
+            }
+        }
+        return cont;
+    } // End public long getAliveCreatures()
+
+    public long getCalculateActiveDifferentSpecies(){
+        long cont = 0;
+        ALife_Species species = this.getSpecies();
+        for (ALife_Specie s : species.speciesList){
+            cont += 1;
+        }
+        return cont;
+    } // End public long getActiveDifferentSpecies()
+
 
     // Private Methods and Fuctions ====================================================================
 

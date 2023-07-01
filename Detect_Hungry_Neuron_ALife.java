@@ -72,6 +72,13 @@ public class Detect_Hungry_Neuron_ALife extends Input_Neuron_ALife
         return newN;
     } // End public static BResourceDetection_Neuron_ALife dupeNeuron_ALife(BResourceDetection_Neuron_ALife n)
 
+    //Test Dudoso
+    public Detect_Hungry_Neuron_ALife dupeNeuron_ALife(){
+        //Its not override since input and output parameters classes are diferent
+        Detect_Hungry_Neuron_ALife newN = new Detect_Hungry_Neuron_ALife(this);
+        return newN;
+    } // End public static BResourceDetection_Neuron_ALife dupeNeuron_ALife(BResourceDetection_Neuron_ALife n)
+
     // Getter and setters
 
     // Private Methods and Fuctions =============

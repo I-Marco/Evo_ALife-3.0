@@ -14,7 +14,7 @@ import java.util.*;
  */
 public class Active_ALife_Creature extends Int_ALife_Creature
 {
-    public static final int DEFAULT_LifeDelayPerNutrient = 10;
+    public static final int DEFAULT_LifeDelayPerNutrient = 2;
     public static final Color CREATURE_DEFAULT_COLOR =new Color (199,199,199);
     // Constants for normalization Creature
     /*public static final double[] creature_Caracteristics =

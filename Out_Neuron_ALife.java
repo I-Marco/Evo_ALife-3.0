@@ -88,6 +88,12 @@ public class Out_Neuron_ALife extends Neuron_ALife
         return newN;
     }
 
+    //Test Dudoso
+    public Out_Neuron_ALife dupeNeuron_ALife(){
+        Out_Neuron_ALife newN = new Out_Neuron_ALife(this);
+        return newN;
+    }// End public Out_Neuron_ALife dupeNeuron_ALife()
+
     /**
      * public static boolean isBiggerThan(Out_Neuron_ALife n1, Out_Neuron_ALife n2)
      * 

@@ -96,5 +96,18 @@ public class Input_Neuron_ALife extends Neuron_ALife{
             return null;
         }
     } // End public static Reproductable_Neuron_ALife dupeNeuron_ALife(Reproductable_Neuron_ALife n)
-    
+
+    //Test Dudoso
+    public Input_Neuron_ALife dupeNeuron_ALife(){
+        Input_Neuron_ALife newN = null;
+        try{
+            newN = new Input_Neuron_ALife(this); 
+        } catch (Exception e){
+            System.out.println("Error in dupeNeuron_ALife: " + e);
+            return null;
+        }
+        return newN;
+    } // End public static Reproductable_Neuron_ALife dupeNeuron_ALife(Reproductable_Neuron_ALife n)
+
+
 } // End public class Input_Neuron_ALife extends Neuron_ALife

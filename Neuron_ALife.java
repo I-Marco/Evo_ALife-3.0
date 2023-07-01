@@ -239,6 +239,19 @@ public class Neuron_ALife
         return n2;
     } // End public static Neuron_ALife dupeNeuron_ALife(Neuron_ALife n)
 
+    //Test Dudoso
+    public Neuron_ALife dupeNeuron_ALife(){
+         // Returns a copy of this neuron
+         //Check
+         Neuron_ALife newN = null;
+         try{
+            newN = new Neuron_ALife(this);
+         } catch (IllegalArgumentException e){
+             MultiTaskUtil.threadMsg("Neuron_ALife.dupeNeuron_ALife() IllegalArgumentException e");
+         }
+         return newN;
+    } // End public static Neuron_ALife dupeNeuron_ALife(Neuron_ALife n)
+
     // Getter and setters
 
     /**

@@ -178,7 +178,7 @@ public class ALife_Specie
         if (c.getEnv_ALife() == null) return this.numberOfCreatures;
         if (c.getSpecieIdNumber() != specieIdNumber) return this.numberOfCreatures;
         if (numberOfCreatures == 0) return this.numberOfCreatures;
-        numberOfCreatures--;
+        numberOfCreatures--;// In specie 
         if (numberOfCreatures == 0){
             if (this.reExtintion == null) reExtintion = new ArrayList<Long>();
             reExtintion.add(c.getEnv_ALife().getTime());

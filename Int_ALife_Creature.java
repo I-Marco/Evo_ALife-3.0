@@ -654,7 +654,8 @@ public abstract class Int_ALife_Creature extends Thread
         double[] caracMutated = Active_ALife_Creature.mutateCreaturebySerialization(carac);
         int mutatedCar; //number of caracteristic have been mutated
         for (mutatedCar = 0; mutatedCar < carac.length; mutatedCar ++){
-            if (carac[mutatedCar] != caracMutated[mutatedCar]) break;
+            if (carac[mutatedCar] != caracMutated[mutatedCar]) 
+                break;
         }
         //for test
         double d = ALifeCalcUtil.arrayDistance(carac, caracMutated);
