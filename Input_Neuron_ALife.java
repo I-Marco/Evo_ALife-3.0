@@ -1,3 +1,4 @@
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 
 /**
@@ -82,12 +83,18 @@ public class Input_Neuron_ALife extends Neuron_ALife{
      * @param n Reproductable_Neuron_ALife the neuron to dupe
      * @return Reproductable_Neuron_ALife the new neuron
      */
-    public static Input_Neuron_ALife dupeNeuron_ALife(Input_Neuron_ALife n){
+    //public static Input_Neuron_ALife dupeNeuron_ALife(Input_Neuron_ALife n){
+    public static Input_Neuron_ALife dupeNeuron_ALife(Neuron_ALife n){
         if (n == null) return null;
-        if (n instanceof Detect_Reproductable_Neuron_ALife) 
-            return Detect_Reproductable_Neuron_ALife.dupeNeuron_ALife((Detect_Reproductable_Neuron_ALife) n);
-        return new Input_Neuron_ALife(n); //May be crash
-        //return new Input_Neuron_ALife( (Input_Neuron_ALife) n); //May be crash
+        try{
+            if (n instanceof Detect_Reproductable_Neuron_ALife) 
+                return Detect_Reproductable_Neuron_ALife.dupeNeuron_ALife((Detect_Reproductable_Neuron_ALife) n);
+            return new Input_Neuron_ALife((Input_Neuron_ALife)n); //May be crash
+            //return new Input_Neuron_ALife( (Input_Neuron_ALife) n); //May be crash
+        } catch (Exception e){
+            System.out.println("Error in dupeNeuron_ALife: " + e);
+            return null;
+        }
     } // End public static Reproductable_Neuron_ALife dupeNeuron_ALife(Reproductable_Neuron_ALife n)
     
 } // End public class Input_Neuron_ALife extends Neuron_ALife

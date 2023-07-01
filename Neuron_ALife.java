@@ -52,6 +52,7 @@ public class Neuron_ALife
             inputs.add(n); // Be careful with this adds as imput the neurons in parameter, not a copy
             weights.add(Mind_ALife.DEFAULT_Weight);
         }
+
         //this.neuron_ID = this.mind.getNewNeuronID(this); Autoassing in Mind cration
     } // End public Neuron_ALife(ArrayList <Neuron_ALife> ns, Int_ALife_Creature c)
 
@@ -179,27 +180,27 @@ public class Neuron_ALife
         //Detectar si es solo 1 accion
             //modificación = modificación prevista / entrada (OJO 0)
         //si no es 1 acción seguir y modificar u??
-        if (weightupdate == Mind_ALife.DEFAULT_Weight_changeFraction) { //Falla
-            for(int i = 0 ; i<weights.size(); i++){
-                if (inputs.get(i).getOutput() == null) continue;
-                double aux = weights.get(i);
-                //adjust each weight acording to the participation in output of the input neuron
-                //for test 
-                double viewOutputI = inputs.get(i).getOutput();
-                double viewFactor1 = changeValue *( (inputs.get(i).getOutput()*aux));
-                double viewFactor2 = this.output ;
-                double viewFactor3 = changeValue *( (inputs.get(i).getOutput()*aux)/this.output );
-                //end test
-                aux = aux + changeValue *( (inputs.get(i).getOutput()*aux) /this.output ); 
-                weights.set(i, aux);
-            }
+        
+        for(int i = 0 ; i<weights.size(); i++){
+            if (inputs.get(i).getOutput() == null) continue;
+            double aux = weights.get(i);
+            //adjust each weight acording to the participation in output of the input neuron
+            //for test 
+            double viewOutputI = inputs.get(i).getOutput();
+            double viewFactor1 = changeValue *( (inputs.get(i).getOutput()*aux));
+            double viewFactor2 = this.output ;
+            double viewFactor3 = changeValue *( (inputs.get(i).getOutput()*aux)/this.output );
+            //end test
+            aux = aux + changeValue *( (inputs.get(i).getOutput()*aux) /this.output ); 
+            weights.set(i, aux);
         }
+        
         double[] aux = this.weights.stream().mapToDouble(Double::doubleValue).toArray();
-        double mean = ALifeCalcUtil.mean(aux);
-        for (int i = 0; i < aux.length; i++){
-            if (aux[i] > mean) aux[i] = aux[i] + aux[i]* changeValue * Mind_ALife.DEFAULT_u_changeFraction;  
-            else aux[i] = aux[i] + aux[i]* changeValue * Mind_ALife.DEFAULT_Weight_changeFraction * Mind_ALife.DEFAULT_weight_changeUnderFraction;
-        }
+        //double mean = ALifeCalcUtil.mean(aux);
+        //for (int i = 0; i < aux.length; i++){
+        //    if (aux[i] > mean) aux[i] = aux[i] + aux[i]* changeValue * Mind_ALife.DEFAULT_u_changeFraction;  
+        //    else aux[i] = aux[i] + aux[i]* changeValue * Mind_ALife.DEFAULT_Weight_changeFraction * Mind_ALife.DEFAULT_weight_changeUnderFraction;
+        //}
         //ALifeCalcUtil.multiplyArrayByCte(null, chageValue)
         aux = ALifeCalcUtil.normalizeArrayToTotal_1(aux);
 

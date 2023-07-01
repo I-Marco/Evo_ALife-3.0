@@ -151,7 +151,7 @@ public class Active_ALife_Creature extends Int_ALife_Creature
         
         //Look for place to born
         this.setEnv_ALife(progenitors.get(0).getEnv_ALife()); //progenitors[0] = pregnant
-        
+        //for test
         int auxX = 0, auxY = 0; //Where will be born
         Point auxP = new Point();
         auxP = progenitors.get(0).getPos();
@@ -385,7 +385,11 @@ public class Active_ALife_Creature extends Int_ALife_Creature
             //Arrays.setAll(this.foodResourceOwn, i -> foodResourceOwn[i] - foodResourceNeed[i]);
 
             if (this.hungry < this.humgryUmbral)
-                this.livePoints -= (this.humgryUmbral - this.hungry);          
+                this.livePoints -= (this.humgryUmbral - this.hungry);
+            else {
+                this.livePoints += this.hungry - this.humgryUmbral;
+                if (this.livePoints > this.livePointMax) this.livePoints = this.livePointMax;
+            }
             //Check if dead
             if (this.lifeExp-this.lifeTime < 0) this.livePoints = 0;//Die by age
             if(this.livePoints <= 0) {
@@ -449,7 +453,7 @@ public class Active_ALife_Creature extends Int_ALife_Creature
             paint(this.env_ALive.getBackLifeImage(),Color.YELLOW);
         } else {
             //como borramos? Color(0, 0, 0, 0)
-            paint(this.env_ALive.getBackLifeImage(),new Color(0, 0, 0, 0));
+            paint(this.env_ALive.getBackLifeImage(),null); //new Color(0, 0, 0, 255)
         }
         //Env_Panel.imageDisplay(this.env_ALive.getBackLifeImage(),"From Creature Run (LiveImage) - LIVE Image");
     } // End public void run()    
@@ -722,7 +726,7 @@ public class Active_ALife_Creature extends Int_ALife_Creature
             if (this.hungry > this.humgryUmbral * Int_ALife_Creature.DEFAULT_Max_Hungry_factor) 
                 this.hungry = (long) (this.humgryUmbral * Int_ALife_Creature.DEFAULT_Max_Hungry_factor);
         }
-        //ese 100 habria que cambiralo por cte o formula
+        
 
         //return resources to env rest[]
         if (returFoodToGround) 
@@ -794,7 +798,7 @@ public class Active_ALife_Creature extends Int_ALife_Creature
                 this.mind.updateMind(
                     actions.get(actions.size()-1),
                     statusValue.get(statusValue.size()-1) - statusValue.get(statusValue.size()-2),
-                    Mind_ALife.DEFAULT_Weight_changeFraction , 0
+                    Mind_ALife.DEFAULT_Weight_changeFraction , Double.valueOf(0)
                 ); //For weight update no divided by time
         }
         //this.mind.updateMind(actions.get(actions.size()-1), statusValue.get(statusValue.size()-1)-actualStatus, 
@@ -804,8 +808,8 @@ public class Active_ALife_Creature extends Int_ALife_Creature
             this.statusValue.size() > MEDIUM_TIME_UPDATE){
             this.mind.updateMind(
                 actions.get(actions.size()-(int)MEDIUM_TIME_UPDATE - 1),
-                 statusNow - statusValue.get(statusValue.size()-(int)MEDIUM_TIME_UPDATE - 1),
-                Mind_ALife.DEFAULT_Weight_changeFraction / (int)LONG_TIME_UPDATE * MEDIUM_TIME_UPDATE,0
+                 statusValue.get(statusValue.size()-1) - statusValue.get((int) (statusValue.size()- MEDIUM_TIME_UPDATE - 1)),
+                Mind_ALife.DEFAULT_Weight_changeFraction / (int)LONG_TIME_UPDATE * MEDIUM_TIME_UPDATE,Double.valueOf(0)
             );
         }
         // Long time updates
@@ -813,8 +817,8 @@ public class Active_ALife_Creature extends Int_ALife_Creature
             this.statusValue.size() > LONG_TIME_UPDATE){
             this.mind.updateMind(
                 actions.get(actions.size()-(int)LONG_TIME_UPDATE - 1),
-                 statusNow - statusValue.get(statusValue.size()-(int)LONG_TIME_UPDATE - 1),
-                Mind_ALife.DEFAULT_Weight_changeFraction,0
+                statusValue.get(statusValue.size()-1) - statusValue.get((int) (statusValue.size()- LONG_TIME_UPDATE - 1)),
+                Mind_ALife.DEFAULT_Weight_changeFraction,Double.valueOf(0)
             );
         }
 
@@ -859,7 +863,7 @@ public class Active_ALife_Creature extends Int_ALife_Creature
             this.descendents.add(baby);
             //mind reproduce + mutate /// ---> creo que ahora mind lo invoca el constructor de creature
             //baby.setMind(new Mind_ALife(progenitors, baby, this.env_ALive.getAllowMutate()));
-            this.getEnv_ALife().addCreature(baby);
+            //this.getEnv_ALife().addCreature(baby);
         } //End for maxDescendants 
     } // End private void actionReproduce(ArrayList<Int_ALife_Creature> progenitors)
     
@@ -913,32 +917,104 @@ public class Active_ALife_Creature extends Int_ALife_Creature
     public void paint(BufferedImage g, Color col){
         if (g == null) return;
 
-        if (col == null) col = CREATURE_DEFAULT_COLOR;
         double scaleW = (double) g.getWidth() / this.getEnv_ALife().getLand().getLandImg().getWidth();
         double scaleH =  (double) g.getHeight() / this.getEnv_ALife().getLand().getLandImg().getHeight();
         //int scale = Math.min(scaleW, scaleH);        
         try{
+            g.getType();
             Graphics2D g2d = g.createGraphics();
             Color creatureColor = col; // Color del círculo
             g2d.setColor(creatureColor);
-            if (this.tamComplex > 1){ //Scale by tamComplex obsolete for moment
-                //g2d.drawOval(this.pos.x - (int)this.tamComplex, this.pos.y - (int)this.tamComplex,
-                //    (int)this.tamComplex * 1, (int)this.tamComplex * 1);
-                g2d.fillOval(this.pos.x - (int)this.tamComplex, this.pos.y - (int)this.tamComplex,
-                    (int)this.tamComplex * 1, (int)this.tamComplex * 1);
+            if (col != null){
+                if (this.tamComplex > 1){ //Scale by tamComplex obsolete for moment
+                    //g2d.drawOval(this.pos.x - (int)this.tamComplex, this.pos.y - (int)this.tamComplex,
+                    //    (int)this.tamComplex * 1, (int)this.tamComplex * 1);
+                    g2d.fillOval(this.pos.x - (int)this.tamComplex, this.pos.y - (int)this.tamComplex,
+                        (int)this.tamComplex * 1, (int)this.tamComplex * 1);
+                } else {
+                    g2d.fillOval((int) (this.pos.x * scaleW), (int) (this.pos.y * scaleH),
+                         (int) (1*scaleW), (int) (1 * scaleH));
+                    //g2d.drawOval((int) (this.pos.x * scaleW), (int) (this.pos.y * scaleH),
+                    //     (int) (1*scaleW), (int) (1 * scaleH));                     
+                }
             } else {
+                g = refreshLiveImage(this.getEnv_ALife().getEventList(), this.getEnv_ALife().getBackLifeImage());
+                //AlphaComposite alphaComposite = AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f);
+                //g2d.setComposite(alphaComposite);
+
+                //g2d.setComposite(AlphaComposite.Clear);
+                //g2d.fillRect((int) (this.pos.x * scaleW), (int) (this.pos.y * scaleH),
+                //         (int) (1*scaleW), (int) (1 * scaleH));
+                
+                //g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER));
+                /*
+                Color pixelColor = new Color(g.getRGB(29, 29));
+                int[] ground = {
+                    pixelColor.getRed(), 
+                    pixelColor.getGreen(), 
+                    pixelColor.getBlue(), 
+                    pixelColor.getAlpha()
+                };
+
+                g2d.setColor(new Color(0, 0, 0, 0));
+                
                 g2d.fillOval((int) (this.pos.x * scaleW), (int) (this.pos.y * scaleH),
-                     (int) (1*scaleW), (int) (1 * scaleH));
-                //g2d.drawOval((int) (this.pos.x * scaleW), (int) (this.pos.y * scaleH),
-                //     (int) (1*scaleW), (int) (1 * scaleH));                     
+                         (int) (1*scaleW), (int) (1 * scaleH));
+                */
+                int breakpoint = 1;
+                
+                //g2d.clearRect((int) (this.pos.x * scaleW), (int) (this.pos.y * scaleH),
+                //         (int) (1*scaleW), (int) (1 * scaleH)); // Borrar el rectángulo
+                //g2d.setComposite(AlphaComposite.SrcOver);
             }
-            //Env_Panel.imageDisplay(g,"From Creature paint() - LIVE Image");
+            this.getEnv_ALife().setBackLifeImage(g);
         }catch (NullPointerException npe){
             npe.printStackTrace();
         }catch(Exception e){
             MultiTaskUtil.threadMsg("Error desconocido en Creature.Paint.");
             e.printStackTrace();
         }
-        
-    }    
+    } // End public void paint(BufferedImage g, Color col)
+    
+    /**
+     * public static BufferedImage refreshLiveImage(TreeMap<Long, ArrayList<Object>> eventList, BufferedImage img)
+     * 
+     * Refresh full live image and all creatures from eventList
+     * @param    TreeMap<Long, ArrayList<Object>> eventList
+     * @param    BufferedImage img the original live image
+     * @return   None
+     */
+    public static BufferedImage refreshLiveImage(TreeMap<Long, ArrayList<Object>> eventList, BufferedImage img){
+        if (eventList == null || img == null) return img;
+        BufferedImage i = img;
+        //For test
+        //MultiTaskUtil.threadMsg("Refresh Live Image");
+        //Syste
+        try{
+            i = new BufferedImage(img.getWidth(), img.getHeight(), BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g2d = i.createGraphics();
+            g2d.setComposite(AlphaComposite.Clear);
+            //g2d.setColor(Color.BLACK); // fix background to BLACK 0, 0, 0
+            g2d.fillRect(0, 0, i.getWidth(), i.getHeight()); 
+            //paint all creatures
+            for (Map.Entry<Long, ArrayList<Object>> entry : eventList.entrySet()) {
+                ArrayList<Object> value = entry.getValue();
+                if (value == null) continue;
+                for (Object o : value){
+                    if (o instanceof Active_ALife_Creature){
+                        ((Active_ALife_Creature) o).paint(i, Color.YELLOW);
+                    }
+                }
+            }
+            g2d.dispose();
+        }catch(Exception e){
+            MultiTaskUtil.threadMsg("Error desconocido en Creature.refreshLiveImage."+e.getMessage());
+        }
+    
+        finally{
+        }
+        return i;
+
+    } // End public static BufferedImage refreshLiveImage(TreeMap<Long, ArrayList<Object>> eventList, BufferedImage img)
+
 } // End Class

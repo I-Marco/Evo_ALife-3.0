@@ -146,7 +146,14 @@ public class ALife_Logical_Environment extends Thread
             return;
         }
         if (ocupiers[p.x][p.y].contains(c)){
+            //for test
+            ArrayList<Int_ALife_Creature> breakpoint = this.ocupiers[p.x][p.y];
+            int breakpoint2 = this.ocupiers[p.x][p.y].size();
+            //end for test
             ocupiers[p.x][p.y].remove(c);
+            //for test
+            breakpoint2 = this.ocupiers[p.x][p.y].size();
+            //end for test
             removeTrace(c.getCreatureTrace(),c.getPos());
             //traces[p.x][p.y].removeTrace(c.getCreatureTrace());
             //for faster processing
@@ -160,7 +167,16 @@ public class ALife_Logical_Environment extends Thread
                 for (int j = p.y - r - 1; j <= (p.y +  r + 1); j++)
             {   x = (i + w) % w;
                 y = (j + h) % h;
-                if (observers[x][y].contains(c)) observers[x][y].remove(c);                    
+                if (observers[x][y].contains(c)) {
+                    //for test
+                    breakpoint = this.ocupiers[p.x][p.y];
+                    breakpoint2 = this.ocupiers[p.x][p.y].size();
+                    //end for test
+                    observers[x][y].remove(c);
+                    //for test
+                    breakpoint2 = this.ocupiers[p.x][p.y].size();
+                    //end for test
+                }
             }
             //We should notify to observers any way of change? FALTA
         }

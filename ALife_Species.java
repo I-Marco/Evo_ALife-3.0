@@ -134,7 +134,7 @@ public class ALife_Species
         if (c == null) return;
         try{
             ALife_Specie s = this.speciesList.get((int)c.getSpecieIdNumber() - 1);
-            if (s.removeCreature(c) == 0){
+            if (s.removeCreatureFromSpecie(c) == 0){
                 this.numberOfDifferentActiveSpecies--;
             }
         } catch (Exception e){

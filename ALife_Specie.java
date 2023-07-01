@@ -162,7 +162,7 @@ public class ALife_Specie
             reMutateCreation.add(c.getEnv_ALife().getTime());
         }
         numberOfCreatures++;
-        c.specieNumberID = this.specieIdNumber; //Redundant
+        c.setSpecieIdNumber(this.specieIdNumber); //Redundant
         return numberOfCreatures;
         // reevaluate the the this.representativeCreature atributes?
     } // End public void addCreature(c)
@@ -173,7 +173,7 @@ public class ALife_Specie
      * @param   - Int_ALife_Creature, The creature to remove
      * @return  - long, The number of creatures of the specie after the removal
      */
-    public synchronized long removeCreature(Int_ALife_Creature c){
+    public synchronized long removeCreatureFromSpecie(Int_ALife_Creature c){
         if (c == null) return this.numberOfCreatures;
         if (c.getEnv_ALife() == null) return this.numberOfCreatures;
         if (c.getSpecieIdNumber() != specieIdNumber) return this.numberOfCreatures;

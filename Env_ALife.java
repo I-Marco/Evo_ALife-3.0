@@ -294,8 +294,8 @@ public class Env_ALife extends Thread
             if ( listaAhora.size() > 1 || 
                 ( listaAhora.size() > 0 && (listaAhora.get(0) instanceof Int_ALife_Creature) ) ) 
             {
-                this.backLifeImage = Env_Panel.getDefaultEnvTransparentImage(
-                    getLandImg().getWidth(), getLandImg().getHeight(),true);
+                //this.backLifeImage = Env_Panel.getDefaultEnvTransparentImage(
+                //    getLandImg().getWidth(), getLandImg().getHeight(),true);
             }
             for(Object event : listaAhora){
                 
@@ -637,6 +637,18 @@ public class Env_ALife extends Thread
     }// End public BufferedImage getLifeImg()
 
     /**
+     * public void setBackLifeImage(BufferedImage i)
+     * 
+     * Set new value for backLifeImage variable (Carefull you can assign a null value)
+     * @param   - i BufferedImage New back life image
+     * @return  - None
+     **/
+    public synchronized void setBackLifeImage(BufferedImage i){
+        //Carefull you can assign a null value
+        this.backLifeImage = i;
+    }// End public BufferedImage getLifeImg()
+
+    /**
      * public void setLand(ALife_Nutrient_Environment n_e)
      * 
      * @param   - ALife_Nutrient_Environment the resource ground
@@ -780,6 +792,17 @@ public class Env_ALife extends Thread
     } // End public ALife_Logical_Environment getLogical_Env()
 
     /**
+     * public synchronized TreeMap<Long, ArrayList<Object> getEventList()
+     * 
+     * Retuern de eventList of the environment
+     * @param    None
+     * @return   TreeMap<Long, ArrayList<Object>
+     */
+    public synchronized TreeMap<Long, ArrayList<Object>> getEventList(){
+        return this.eventList;
+    } // End public synchronized TreeMap<Long, ArrayList<Object> getEventList()
+
+    /**
      * public void setLogical_Env(ALife_Logical_Environment l_e)
      * 
      * @param    ALife_Logical_Environment
@@ -894,7 +917,7 @@ public class Env_ALife extends Thread
         ArrayList<Object> list = null;
         if (eventList.containsKey(t)){
             list = eventList.get(t);
-            list.add(obj);
+            if (!list.contains(obj)) list.add(obj);
         }else {
             list = new ArrayList<Object>();
             list.add(obj);
@@ -950,7 +973,7 @@ public class Env_ALife extends Thread
     
     /**
      * public long getNewCreatureID()
-     * 
+     * Get a new creature ID from environment and count new creature
      * @param   - None  
      * @return  - long creatureNumber variable, the number of creatures borned
      */
@@ -982,7 +1005,7 @@ public class Env_ALife extends Thread
         //Add creature to ALife_Logical_Environment
         this.logical_Env.addCreature(c, c.getPos());
         //Add in life image
-        c.paint(getBackLifeImage(), Color.YELLOW); //CAUTION we have to pass to front image to be seen
+        c.paint(this.getBackLifeImage(), Color.YELLOW); //CAUTION we have to pass to front image to be seen
         //add Creature to specie system
         this.species.addCreature(c);
         
@@ -999,7 +1022,26 @@ public class Env_ALife extends Thread
         this.creature_Death += 1;
         this.species.removeCreature(c);
         this.logical_Env.removeCreature(c);
+        //remove creature from this.lifeImg
+        this.removeCreatureFromEventList(c);
+        c.paint(getBackLifeImage(), null); //CAUTION we have to pass to front image to be seen
     } // End public void removeCreature(Int_ALife_Creature c)
+
+    /**
+     * public void removeCreatureFromEventList(Int_ALife_Creature c);
+     * 
+     * @param  - Int_ALife_Creature
+     * @return - None
+     */
+    public void removeCreatureFromEventList(Int_ALife_Creature c){
+        //Remove creature from eventList
+        ArrayList<Object> list = null;
+        for (Long t : eventList.keySet()){
+            list = eventList.get(t);
+            if (list.contains(c)) list.remove(c);
+        }
+    } // End public void removeCreatureFromEventList(Int_ALife_Creature c)
+
 
     //Some test enviroments creators.
 

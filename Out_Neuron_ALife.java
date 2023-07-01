@@ -150,6 +150,7 @@ public class Out_Neuron_ALife extends Neuron_ALife
                 //End test the good is next line
                 //sum += n.activation() * weights.get(i); //on when test out
             } // End if (n!= this)
+            i++;
         }
         output = sum;
         return sum;
@@ -165,22 +166,15 @@ public class Out_Neuron_ALife extends Neuron_ALife
      * @param   change Double the change value
      * @return  None
      */
+    /*
     @Override
     public void updateLearn(Double weightupdate, Double uupdate, Double change){
         // Based in back propagation algorithm
         super.updateLearn(weightupdate, uupdate, change);
-        /*
-        if (enhanced == null || change == null || enhanced == 0L || change == 0L) return;
-        this.u += u*enhanced * change * Mind_ALife.DEFAULT_u_changeFraction;
-        weights.replaceAll(d -> d + d * enhanced * change * Mind_ALife.DEFAULT_u_changeFraction);
-        */
-        /*
-        for (Double d: weights){
-            d =d + d*enhanced * change;
-            int breackpoint = 1;
-        }
-        */
-    }
+
+    } // End public void updateLearn(Double enhanced, Double change)
+
+    */
     
     // Getter and setters -----------------------
 

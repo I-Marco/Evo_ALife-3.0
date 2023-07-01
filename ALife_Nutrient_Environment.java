@@ -356,7 +356,7 @@ public class ALife_Nutrient_Environment implements Runnable
      */
     public void germine (int x, int y, int sr, int sg, int sb,int ctrol){
        
-        if(ctrol >= SPREADMADRADIUS) {
+        if(ctrol >= SPREADMADRADIUS) {//Control to avoid overflow error when all map is full white
             return;
         }
         boolean spread = false;
@@ -368,12 +368,12 @@ public class ALife_Nutrient_Environment implements Runnable
             //return;
         }
         
-        int sr_ = 0, r = 0;
-        int sg_ =0, g = 0;
-        int sb_ = 0, b = 0;
+        int sr_ = 0, r = 0;//sr_ = number of cuantity to spread in red, r = red cuantity detected
+        int sg_ =0, g = 0;//sg_ = number of cuantity to spread in green, g = green cuantity detected
+        int sb_ = 0, b = 0;//sb_ = number of cuantity to spread in blue, b = blue cuantity detected
         
         Color pixelColor;
-        try{
+        try{//try detection of color RGB components in x,y position
             pixelColor = new Color(backLand.getRGB(x, y));
             r = pixelColor.getRed();
             g = pixelColor.getGreen();
@@ -384,7 +384,7 @@ public class ALife_Nutrient_Environment implements Runnable
             return;
         }
 
-        //for test
+        //for test Unusual color detection
         if (sr >= 256 || sg >= 256 || sb >= 256){
             int breakp = 1;
             MultiTaskUtil.threadMsg("* - = * - = ("+x+","+y+") {"+sr+","+sg+","+sb+"} COLOR("+r+","+g+","+b+")-"+ctrol); 

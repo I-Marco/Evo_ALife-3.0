@@ -91,6 +91,7 @@ public class Mind_ALife
         this.addNeuron(auxN);
         this.output = null;
         setNeuronsCount();
+        validateMind();
         if (!checkNeurons()){
             throw new IllegalArgumentException("No se puede crear el objeto debido a una condición inválida.");
         }
@@ -333,6 +334,7 @@ public class Mind_ALife
         
         //Finalmente poda por complexity
         setNeuronsCount();
+        validateMind();
         if (!checkNeurons()){
             throw new IllegalArgumentException("No se puede crear el objeto debido a una condición inválida.");
         }        
@@ -391,6 +393,7 @@ public class Mind_ALife
         }
 
         setNeuronsCount();
+        validateMind();
         if (!checkNeurons()){
             throw new IllegalArgumentException("No se puede crear el objeto debido a una condición inválida.");
         }
@@ -538,6 +541,7 @@ public class Mind_ALife
         }
 
         this.setNeuronsCount();
+        validateMind();
         if (!checkNeurons()){
             throw new IllegalArgumentException("No se puede crear el objeto debido a una condición inválida.");
         }
@@ -920,6 +924,7 @@ public class Mind_ALife
                     if (n.activation() >= output){
                         //Doubs: put the output the max of outputs neurons        
                         //outNeuron = (Out_Neuron_ALife)n;
+                        if (n.getOutput() > output) outOptions.clear();
                         output = n.getOutput();
                         outOptions.add((Out_Neuron_ALife)n);
                     }
@@ -1016,17 +1021,48 @@ public class Mind_ALife
     } //End public void setCreature(Int_ALife_Creatire c)
 
     // Private Methods and Fuctions =============
-    
+
+    /**
+     * private boolean validateMind() throws IllegalArgumentException
+     * 
+     * Validate the mind
+     * @param  None
+     * @return boolean true if success
+     */
+    private boolean validateMind() throws IllegalArgumentException{
+        boolean validMind = true;
+        for (Neuron_ALife n:this.allNeurons){
+            if (n.creature == null || n.mind == null || n.neuron_ID < 0) validMind = false;
+            if (n.creature != n.mind.creature) validMind = false;
+            for (Neuron_ALife n_:n.inputs){//Check minds of inputs neurons
+                if (n_.mind != n.mind) validMind = false;
+            }
+            //normalize input weights
+            double[] aux = n.weights.stream().mapToDouble(Double::doubleValue).toArray();
+            aux = ALifeCalcUtil.normalizeArrayToTotal_1(aux);
+            ArrayList <Double> auxAL = new ArrayList <Double>();
+            Arrays.stream(aux).forEach(value -> auxAL.add(value));
+            n.weights = auxAL;
+        }
+        if (!validMind){
+            //for test
+            MultiTaskUtil.threadMsg("Creator of Mind" + this.creature.idCreature + 
+                "Mind_ALife: Mind not valid.");
+            //throw new IllegalArgumentException("Mind not valid.");
+        }
+        return validMind;
+    } // End private boolean validateMind() throws IllegalArgumentException
+
+
     /**
      * private void setNeuronsCount()
      * 
-     * Set the number of neurons in each type
+     * Set the number of neurons
      * @param  None
      * @return None
      */
-    private void setNeuronsCount(){
+    private void setNeuronsCount() throws IllegalArgumentException{
         this.innerN = this.inputNeurons.size();
-        
         //for (Neuron_ALife n:this.inputNeurons) innerN++;        
         this.midN = this.midNeurons.size();
         //for (Neuron_ALife n:this.midNeurons) midN++;
