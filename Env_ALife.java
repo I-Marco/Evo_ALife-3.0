@@ -290,12 +290,12 @@ public class Env_ALife extends Thread
 
             //for test counting control
             if(this.creatureNumber != this.getCalculateAliveCreatures()){
-                int reakpoint = 1;
                 MultiTaskUtil.threadMsg("Creature Number ("+this.creatureNumber+") != Alive Creatures ("+this.getCalculateAliveCreatures()+")");
+                int reakpoint = 1;                
             }
             if(this.species.getNumberOfDifferentActiveSpecies() != this.getCalculateActiveDifferentSpecies() ) {
-                int reakpoint = 1;
                 MultiTaskUtil.threadMsg("Species Number ("+this.species.getNumberOfDifferentActiveSpecies()+") != Active Different Species ("+this.getCalculateActiveDifferentSpecies()+")");
+                int reakpoint = 1;                
             }
             
             //end test
@@ -1143,11 +1143,11 @@ public class Env_ALife extends Thread
         return cont;
     } // End public long getAliveCreatures()
 
-    public long getCalculateActiveDifferentSpecies(){
+    public synchronized long getCalculateActiveDifferentSpecies(){
         long cont = 0;
         ALife_Species species = this.getSpecies();
         for (ALife_Specie s : species.speciesList){
-            cont += 1;
+            if(s.getNumberOfCreaturesInSpecie() > 0)cont += 1;
         }
         return cont;
     } // End public long getActiveDifferentSpecies()

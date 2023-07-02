@@ -146,7 +146,7 @@ public class Out_Neuron_ALife extends Neuron_ALife
         double sum = u;
          for(Neuron_ALife n:inputs){
             //for test
-            MultiTaskUtil.threadMsg("("+this.neuron_ID+")Neuron_ALife.activation() n = "+n.neuron_ID); 
+            //MultiTaskUtil.threadMsg("("+this.neuron_ID+")Neuron_ALife.activation() n = "+n.neuron_ID); 
 
             if (n!= this){
                 //for test - First time run may be weights unnormalized

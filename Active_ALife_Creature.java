@@ -106,7 +106,9 @@ public class Active_ALife_Creature extends Int_ALife_Creature
         MultiTaskUtil.copyIntArrayContent(minfoodResourceOwn, foodResourceOwn);
         Random random = new Random();
         double fac = 3 + ( (double) random.nextInt(126) )/100; //Factor of maxfoodResourceOwn from foodResourceOwn
-        for (int i = 0; i< foodResourceOwn.length; i++){maxfoodResourceOwn[i] = (int)(foodResourceOwn[i] * fac);}
+        for (int i = 0; i< foodResourceOwn.length; i++){
+            maxfoodResourceOwn[i] = (int)(foodResourceOwn[i] * fac);
+        }
 
         //foodResourceNeed = {0,0,0};            
                 
@@ -209,7 +211,7 @@ public class Active_ALife_Creature extends Int_ALife_Creature
         idCreature = this.env_ALive.getNewCreatureID();
         semaphore = env_ALive.getSemaphore();
         lifeTime = 0;
-        
+
         //Data from progenitor[0]
         //setEnv_ALife(progenitors[0].getEnv_ALife());
         //pos = progenitors[0].pos;

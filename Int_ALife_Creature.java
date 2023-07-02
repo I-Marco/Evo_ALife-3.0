@@ -165,7 +165,9 @@ public abstract class Int_ALife_Creature extends Thread
      * @return   None
      */  
     public void setMind(Mind_ALife m){
-        this.mind = m;
+        synchronized (mind){
+            this.mind = m;
+        }
     } // End public void setMind(Mind_ALife m)
 
     /**

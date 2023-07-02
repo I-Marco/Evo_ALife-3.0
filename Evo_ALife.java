@@ -500,13 +500,14 @@ public class Evo_ALife extends JFrame{
         
         
         // 1 default land
-        land = Env_Panel.getDefaultEnvImage();
+        land = Env_Panel.getDefaultEnvTransparentImage();    
+        //land = Env_Panel.getDefaultEnvImage();
         Graphics2D g2d = land.createGraphics();
         int width = land.getWidth();
         int height =land.getHeight();
         
-        g2d.setColor(Color.BLACK); // fix background to BLACK 0, 0, 0
-        g2d.fillRect(0, 0, width, height);
+        //g2d.setColor(Color.BLACK); // fix background to BLACK 0, 0, 0
+        //g2d.fillRect(0, 0, width, height);
         // draw mid gray rectangle
         g2d.setColor(Color.GRAY); // fix background to BLACK 0, 0, 0
         g2d.fillRect(0 , (height/2)-land.getHeight()/20, width, height/10);
@@ -520,15 +521,18 @@ public class Evo_ALife extends JFrame{
         
         g2d.setColor(new Color(0, 0, 180)); // fix background to BLACK 0, 0, 0
         g2d.fillOval(width*2/3-land.getWidth()/16 , (height/3)-land.getHeight()/20, width/8, height/10);
-        //Env_Panel.imageDisplay(land,"From Boton press...");
         // Default land done
-        
+        Env_ALife temp_env_ALife = new Env_ALife(this,land,null,env_Vars);
         //Create some creatures.
         ArrayList<Active_ALife_Creature> listOfCreatures = new ArrayList<Active_ALife_Creature>();
-        int[] haveR = {100,0,0};
+        int[] haveR = {20,0,0};
         int[] needR = {1,0,0};
-        int liveExp = 10000;
+        int liveExp = 4000;
         
+        Active_ALife_Creature auxC = new Active_ALife_Creature(temp_env_ALife,new Point(width/2, height/2),null,liveExp,haveR,needR);
+        
+        temp_env_ALife.addCreature(auxC);
+        /*
         //Mid
         listOfCreatures.add(new Active_ALife_Creature(this.env_ALife,new Point(width/2, height/2),null,liveExp,haveR,needR));
         listOfCreatures.add(new Active_ALife_Creature(this.env_ALife,new Point(width/2+2, height/2),null,liveExp,haveR,needR));
@@ -553,9 +557,16 @@ public class Evo_ALife extends JFrame{
         listOfCreatures.add(new Active_ALife_Creature(this.env_ALife,new Point(2*width/3-2, height/2),null,liveExp,haveB,needB));
         listOfCreatures.add(new Active_ALife_Creature(this.env_ALife,new Point(2*width/3, height/2+2),null,liveExp,haveB,needB));
         listOfCreatures.add(new Active_ALife_Creature(this.env_ALife,new Point(2*width/3, height/2-2),null,liveExp,haveB,needB));
-        
-        lifeEnv = listOfCreatures; // For easy reading
-        Env_ALife temp_env_ALife = new Env_ALife(this,land,lifeEnv,env_Vars);
+        */
+        //lifeEnv = listOfCreatures; // For easy reading
+        //Env_ALife temp_env_ALife = new Env_ALife(this,land,lifeEnv,env_Vars);
+        temp_env_ALife.setLifeImg(
+            Active_ALife_Creature.refreshLiveImage(
+                temp_env_ALife.getEventList(), 
+                temp_env_ALife.getBackLifeImage()
+            )
+        );
+        temp_env_ALife.setBackLifeImage(temp_env_ALife.getLifeImg());
         this.set_Env_Alive(temp_env_ALife);
     } // End private void makeDefaultEnv()
 

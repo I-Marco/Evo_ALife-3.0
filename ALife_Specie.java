@@ -63,7 +63,7 @@ public class ALife_Specie
      *   @param   - None
      *   @return  - long, The number of creatures
     */
-    public long getNumberOfCreatures(){
+    public long getNumberOfCreaturesInSpecie(){
         return numberOfCreatures;
     }// End public long getNumberOfCreatures()
 

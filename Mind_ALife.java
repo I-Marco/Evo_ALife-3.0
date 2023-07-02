@@ -69,23 +69,23 @@ public class Mind_ALife
         statusNeurons = new ArrayList <Neuron_ALife>();
         midNeurons = new ArrayList <Neuron_ALife>();
         
-        Neuron_ALife auxN = new Detect_Reproductable_Neuron_ALife(this.creature);
+        Neuron_ALife auxN = new Detect_Reproductable_Neuron_ALife(creature);
         this.addNeuron(auxN);
 
-        auxN = new Detect_Hungry_Neuron_ALife(this.creature);
+        auxN = new Detect_Hungry_Neuron_ALife(creature);
         this.addNeuron(auxN);
         
         //Add status or memory neurons 
         //Add MidNeurons
         //add output Neurons
         //public Out_Neuron_ALife(ArrayList <Neuron_ALife> ns, Creature c, Mind_ALife.Action action)
-        auxN = new Out_Neuron_ALife(this.inputNeurons,this.creature, Action.EAT);
+        auxN = new Out_Neuron_ALife(this.inputNeurons,creature, Action.EAT);
         //faltan inpits y pesos
         
         //allNeurons.add(auxN);
         //outputNeurons.add((Out_Neuron_ALife)auxN);
         this.addNeuron(auxN);
-        auxN = new Out_Neuron_ALife(this.inputNeurons,this.creature, Action.REPRODUCE);
+        auxN = new Out_Neuron_ALife(this.inputNeurons,creature, Action.REPRODUCE);
         //allNeurons.add(auxN);
         //outputNeurons.add((Out_Neuron_ALife)auxN);
         this.addNeuron(auxN);
@@ -581,7 +581,7 @@ public class Mind_ALife
                 Mind_ALife mj= progenitorsMinds.get(j); //for text
                 Input_Neuron_ALife nj= (Input_Neuron_ALife)(progenitorsMinds.get(j)).inputNeurons.get(i[j]);
                 //for test
-                MultiTaskUtil.threadMsg(n.getClass()+" vs "+nj.getClass());
+                //MultiTaskUtil.threadMsg(n.getClass()+" vs "+nj.getClass());
                 if (n.getClass() == nj.getClass()) i[j]++; //if same inputNeuron type increase index
                 else if (progenitorsMinds.get(j).allNeurons.contains(n)) {
                     // progenitor mind no ordered
