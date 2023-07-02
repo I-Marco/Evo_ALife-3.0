@@ -43,8 +43,8 @@ public class Env_ALife extends Thread
     
     long last_CreatureID = 0;
     long creatureNumber = 0;
-    long last_SpecieID = 0;//
-    long specieNumber = 0;//
+    //long last_SpecieID = 0;//
+    //long specieNumber = 0;//
     
     //Enviroment variables, we have a next fuction to set and get all variables and a different one for images
     private String env_Name = "Noname";
@@ -979,10 +979,11 @@ public class Env_ALife extends Thread
      * @param   - Object, the event to be added
      * @return  - None
      **/      
-    public long getSpecieIdNumber(){
-        this.specieNumber++;
-        this.last_SpecieID++;
-        return last_CreatureID;  
+    public long getNewSpecieIdNumber(){//this.species.lastSpecieNumberID CORREGIR
+        return this.species.getLastSpecieNumberID();
+        //this.specieNumber++;
+        //this.last_SpecieID++;
+        //return last_SpecieID;  
     }
     
     /**
@@ -1017,7 +1018,7 @@ public class Env_ALife extends Thread
         //"Nueva Criatura"+c.idCreature+" hijo de "+c.progenitors[0].idCreature
         addEvent(getTime()+1,c);   
         //Add creature to ALife_Logical_Environment
-        this.logical_Env.addCreature(c, c.getPos());
+        this.logical_Env.addCreatureToLogEnv(c, c.getPos());
         //Add in life image
         c.paint(this.getBackLifeImage(), Color.YELLOW); //CAUTION we have to pass to front image to be seen
         //add Creature to specie system

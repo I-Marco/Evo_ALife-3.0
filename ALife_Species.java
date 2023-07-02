@@ -119,7 +119,7 @@ public class ALife_Species
             //Add creature to specie
             ALife_Specie s = this.speciesList.get(specieIdNumber.intValue() - 1);
             c.setSpecieIdNumber(specieIdNumber);
-            s.addCreature(c);
+            s.addCreatureToSpecie(c);
             c.setSpecieIdNumber(s.getSpecieIdNumber()); //Redundant ??
         }
     } // End public void addCreature(Int_ALife_Creature c)

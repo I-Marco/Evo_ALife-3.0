@@ -30,6 +30,8 @@ public class Neuron_ALife
      * Empty constructor
      */
     public Neuron_ALife() {}
+
+    
     
     /**
      * public Neuron_ALife(ArrayList <Neuron_ALife> ns, Int_ALife_Creature c)
@@ -51,8 +53,8 @@ public class Neuron_ALife
         for(Neuron_ALife n: ns){
             inputs.add(n); // Be careful with this adds as imput the neurons in parameter, not a copy
             weights.add(Mind_ALife.DEFAULT_Weight);
+            if (n.mind != this.mind || n.creature != this.creature) MultiTaskUtil.threadMsg("Neuron_ALife: Neuron_ALife(ArrayList <Neuron_ALife> ns, Int_ALife_Creature c) n.mind != this.mind || n.creature != this.creature"); //For test
         }
-
         //this.neuron_ID = this.mind.getNewNeuronID(this); Autoassing in Mind cration
     } // End public Neuron_ALife(ArrayList <Neuron_ALife> ns, Int_ALife_Creature c)
 
@@ -211,6 +213,21 @@ public class Neuron_ALife
     } // End public void updateLearn(Double enhanced, Double change)
     
     /**
+    * public synchronized void normalizeWeights()
+    * 
+    * Normalize the weights of the neuron
+    * @param  None
+    * @return None
+    */
+    public synchronized void normalizeWeights(){
+        double[] aux = ALifeCalcUtil.normalizeArrayToTotal_1(this.weights.stream().mapToDouble(Double::doubleValue).toArray());
+        ArrayList <Double> auxAL = new ArrayList <Double>();
+        Arrays.stream(aux).forEach(value -> auxAL.add(value));
+        //Arrays.stream(aux).forEach(value -> auxAL.add(value*(1-this.u))); // for output in 0..1
+        this.weights = auxAL;
+    } // End public Neuron_ALife normalizeWeights()
+
+    /**
      * public static Neuron_ALife dupeNeuron_ALife(Neuron_ALife n)
      * 
      * Returns a copy of this neuron
@@ -275,6 +292,18 @@ public class Neuron_ALife
         this.neuron_ID = neuron_ID; // -1 is a neuron out of any mind for moment
     } // End public void setNeuron_ID(long neuron_ID)
     
+    /**
+     * public synchronized long getNeuron_ID()
+     * 
+     * Returns the neuron_ID of the neuron
+     * @param   - None
+     * @return  - long the neuron_ID of the neuron
+     */
+    public synchronized long getNeuron_ID(){
+        return this.neuron_ID; // -1 is a neuron out of any mind for moment
+    } // End public void setNeuron_ID(long neuron_ID)
+
+
     /**
      * public void setMind(Mind_ALife mind)
      * 

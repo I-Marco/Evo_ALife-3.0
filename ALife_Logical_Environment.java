@@ -45,12 +45,18 @@ public class ALife_Logical_Environment extends Thread
     // Public Methods and Fuctions ==============
     public synchronized void run(){
         //update traces life time
+        int width = this.env_ALife.getLand().getLandImg().getWidth();
+        int height = this.env_ALife.getLand().getLandImg().getHeight();        
         //ArrayList<Trace>[][] traces;
-        for (int i = 0; i < this.traces.length; i++)
-            for (int j = 0; j < this.traces[0].length; j++)
+        for (int i = 0; i < width; i++)
+            for (int j = 0; j < height; j++)
         {   
             try{
                 synchronized (this.traces){
+                    //for test
+                    if (this.traces[i][j] == null) {
+                        int breakpoint = 1;
+                    }
                     for (Trace t : this.traces[i][j]){    
                         if (t != null && t.run() <= 0) this.removeTrace(t, new Point(i,j));
                     }
@@ -81,7 +87,7 @@ public class ALife_Logical_Environment extends Thread
      * @param c
      * @param p
      */
-    public synchronized void addCreature(Int_ALife_Creature c,Point p){
+    public synchronized void addCreatureToLogEnv(Int_ALife_Creature c,Point p){
         //Check
         if (c == null || p == null){
             int breakpoint = 1 ;
@@ -108,8 +114,8 @@ public class ALife_Logical_Environment extends Thread
             //observers updating (self) --> this.addCreature(c, p); detection range + 1 --> clenning old self observer marks
             for (int i = p.x - r - 1; i <= (p.x +  r + 1); i++)
                 for (int j = p.y - r - 1; j <= (p.y +  r + 1); j++)
-            {   x = (i + w) % w;
-                y = (j + h) % h;
+            {   x = (i + w) % w; y = (j + h) % h;
+                if (observers[x][y] == null) observers[x][y] = new ArrayList<Int_ALife_Creature>();
                 if ((double)r >= p.distance(x, y)){
                     observers[x][y].add(c);
                 }else {
@@ -121,6 +127,7 @@ public class ALife_Logical_Environment extends Thread
             //(int u, Int_ALife_Creature s, Point p){
         } // End if (ocupiers[p.x][p.y].isEmpty())
         else {
+            if (ocupiers[p.x][p.y].contains(c)) return;
             MultiTaskUtil.threadMsg("Fallo, ya hay creature en la posicion.");
             return;
         }
@@ -213,7 +220,7 @@ public class ALife_Logical_Environment extends Thread
         
         //Change position in the traces array
         this.removeCreature(c);
-        this.addCreature(c, newPos);
+        this.addCreatureToLogEnv(c, newPos);
 
         //c.setPos(newPos);
         c.setPos(newPos);
@@ -235,6 +242,7 @@ public class ALife_Logical_Environment extends Thread
             MultiTaskUtil.threadMsg("No podemos añadir rastro, falta creature o Point.");
             return;
         }
+        if (this.traces[p.x][p.y] == null) {this.traces[p.x][p.y] = new ArrayList<Trace>();}
         synchronized(this.traces[p.x][p.y]){
             this.traces[p.x][p.y].add(t);
         }

@@ -33,7 +33,7 @@ public class ALife_Specie
      */
     private ALife_Specie(Int_ALife_Creature c, double tam, long time){
         //Asegurarse que no existe ya la especie. Si existe añadir recreación (reMutateCreation) y ya
-        this.specieIdNumber = c.getEnv_ALife().getSpecieIdNumber();
+        this.specieIdNumber = c.getEnv_ALife().getNewSpecieIdNumber();
         this.numberOfCreatures = 1;
         this.medTamComplex = tam;
         //timeOfCreation = time;
@@ -146,7 +146,7 @@ public class ALife_Specie
      * @param   - Int_ALife_Creature, The creature to add
      * @return  - long, The number of creatures of the specie after the addition
      */
-    public synchronized long addCreature(Int_ALife_Creature c){
+    public synchronized long addCreatureToSpecie(Int_ALife_Creature c){
         if (c == null) return this.numberOfCreatures;
         if (c.getEnv_ALife() == null) return this.numberOfCreatures;
         //for test c.getSpecieIdNumber()

@@ -55,7 +55,6 @@ public abstract class Int_ALife_Creature extends Thread
     int[] foodResourceNeed = {0,0,0};
     int maxfoodResourceGetFactor = 3;
     
-    Trace creatureTrace = null;
     double hidden = 0L; //0..1, 0 = No hidden
     int detectionRange = 1; //in pixels min 1
     double umbralDetection = 0L; //0..1, 0 = Min detection
@@ -93,7 +92,6 @@ public abstract class Int_ALife_Creature extends Thread
     */
     protected Int_ALife_Creature(Int_ALife_Creature c){
         this.attack = c.attack; // long def, attack;
-        this.creatureTrace = c.creatureTrace; //Trace creatureTrace = null;
         this.def = c.def; //long def, attack;
         descendents = new ArrayList<Int_ALife_Creature>(); // ArrayList<Int_ALife_Creature> descendents = new ArrayList<Int_ALife_Creature>();//descendents of creature
         for(Int_ALife_Creature cr: c.descendents){
@@ -118,7 +116,12 @@ public abstract class Int_ALife_Creature extends Thread
         this.maxfoodResourceOwn = new int[c.maxfoodResourceOwn.length];
         MultiTaskUtil.copyIntArrayContent(this.maxfoodResourceOwn, c.maxfoodResourceOwn);
         //this.mind = c.mind; //FALTA dupe // Mind_ALife mind = null;
-        this.mind = Mind_ALife.dupeMind_ALife(c.mind);
+        
+        //this.mind = Mind_ALife.dupeMind_ALife(c.mind);
+        this.mind = c.mind.dupeMind_ALife();
+        this.mind.setCreature(c);
+
+
         this.minfoodResourceOwn = new int[c.minfoodResourceOwn.length]; //  int[] minfoodResourceOwn = {0,0,0}; // when born and need to born
         MultiTaskUtil.copyIntArrayContent(this.minfoodResourceOwn, c.minfoodResourceOwn);
         this.minReproductionGroup = c.minReproductionGroup; // int minReproductionGroup = 1;//min progenitors to have a baby
@@ -165,7 +168,11 @@ public abstract class Int_ALife_Creature extends Thread
      * @return   None
      */  
     public void setMind(Mind_ALife m){
-        synchronized (mind){
+        if (mind ==null) {
+            this.mind = m;
+            return;
+        }
+        synchronized (mind){ //Mind change is a critical section
             this.mind = m;
         }
     } // End public void setMind(Mind_ALife m)
@@ -208,6 +215,7 @@ public abstract class Int_ALife_Creature extends Thread
      */  
     public Trace getCreatureTrace(){
         double mark=0;
+        
         //int weight = 0;
         synchronized(foodResourceOwn){
             for (int res:foodResourceOwn) 
@@ -216,9 +224,15 @@ public abstract class Int_ALife_Creature extends Thread
         mark = (1 - this.hidden) * mark / Env_ALife.TRACE_PODENRACION_PESO_DETECCIÓN;
         
         //for test
-        //Trace t = new Trace(mark,this,this.pos);
-        this.creatureTrace = new Trace(mark,this,this.pos, MARKREMANECE);
-        return this.creatureTrace;
+        Trace t = null;
+        t = new Trace(mark,this,this.pos, MARKREMANECE);
+        //For test
+        if(t == null) {
+            int breakpoint = 1;
+        }
+        return t;
+        //End test Uncomment next line
+        // return new Trace(mark,this,this.pos, MARKREMANECE);
     } // End public Trace getCreatureTrace()
 
     /**
@@ -474,7 +488,7 @@ public abstract class Int_ALife_Creature extends Thread
         caracArrayList.add((double)c.livePointMax);
         caracArrayList.add((double)c.maxDescendants);
         caracArrayList.add((double)c.minReproductionGroup);
-        //caracArrayList.add(c.creatureTrace); //Don't know add or not
+    
         for(int i = 0; i < c.minfoodResourceOwn.length; i++){
             caracArrayList.add((double) c.minfoodResourceOwn[i]);
             caracArrayList.add((double) c.maxfoodResourceOwn[i]);

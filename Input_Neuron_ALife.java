@@ -24,6 +24,7 @@ public class Input_Neuron_ALife extends Neuron_ALife{
      */
     public Input_Neuron_ALife(){
         super();
+        if (!input_Neuron_ALife_Order.contains(this)) input_Neuron_ALife_Order.add(this);
     } // End public Input_Neuron_ALife()
 
 

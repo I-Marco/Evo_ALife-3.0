@@ -38,6 +38,7 @@ public class Detect_Reproductable_Neuron_ALife extends Input_Neuron_ALife
             return; //(For moment we dont contemps unowned neurons
         }
         this.creature = c;
+        this.mind = c.getMind();
     } // End public Reproductable_Neuron_ALife(Int_ALife_Creature c)
     
     // Public Methods and Fuctions ==============
@@ -72,9 +73,9 @@ public class Detect_Reproductable_Neuron_ALife extends Input_Neuron_ALife
         return newN;
     } // End public static Reproductable_Neuron_ALife dupeNeuron_ALife(Reproductable_Neuron_ALife n)
 
-    //Test Dudoso
+    @Override
     public Detect_Reproductable_Neuron_ALife dupeNeuron_ALife(){
-        //Its not override since input and output parameters classes are diferent
+        
         Detect_Reproductable_Neuron_ALife newN = new Detect_Reproductable_Neuron_ALife(this);
         return newN;
     } // End public static Reproductable_Neuron_ALife dupeNeuron_ALife(Reproductable_Neuron_ALife n)
