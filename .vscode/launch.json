@@ -6,6 +6,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "Evo_ALife",
+            "request": "launch",
+            "mainClass": "inigo.github.evo_alife.Evo_ALife",
+            "projectName": "Evo_ALife-3.0_a25a947e"
+        },
+        {
+            "type": "java",
             "name": "ALifeCalcUtil",
             "request": "launch",
             "mainClass": "ALifeCalcUtil",
