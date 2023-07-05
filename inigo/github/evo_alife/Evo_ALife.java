@@ -2,7 +2,7 @@
 package inigo.github.evo_alife;
 import javax.swing.*;
 import java.awt.*;
-import java.util.concurrent.*; //For test
+//import java.util.concurrent.*; //For test
 
 //import javafx.event.*;
 import java.awt.event.*; // import java.awt.event.ActionEvent;

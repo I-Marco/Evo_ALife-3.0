@@ -82,8 +82,9 @@ public class ALife_Logical_Environment extends Thread
      * @param  None
      * @return None
      */
-    public synchronized void getTraces(){
-            int i;//get all traces around a Point.
+    public synchronized Object getTraces(){
+            return this.traces;
+            //May be we need new class for traces
     }
     
     // End Getter and Setters - - - - - - - - - -
@@ -245,6 +246,7 @@ public class ALife_Logical_Environment extends Thread
         //Add trace and avise observers
         //Check
         if (t == null || p == null){
+            //for test
             int breakpoint = 1 ;
             MultiTaskUtil.threadMsg("No podemos añadir rastro, falta creature o Point.");
             return;
@@ -313,15 +315,17 @@ public class ALife_Logical_Environment extends Thread
         int h = c.getEnv_ALife().getEnv_Height();
         int x = (p.x - radio + w) % w;
         int y = (p.y - radio + h) % h;
-        for (int i = p.x - radio; i < p.x + radio; i++)
+        for (int i = p.x - radio; i < p.x + radio; i++){
+            if (colision) break;
             for (int j = p.y - radio; j < p.y + radio; j++)
         {   x = (i - radio + w) % w;
             y = (j - radio + h) % h;
             if (this.ocupiers[x][y].size() > 0) {
                 colision = true;
                 colisioner = this.ocupiers[x][y].get(0);
+                break;
             }
-        }
+        }} // End doble for
         return colisioner;
     }
 

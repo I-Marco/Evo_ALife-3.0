@@ -493,20 +493,24 @@ public abstract class Int_ALife_Creature extends Thread
         if (candidate == null) return false;
         if (this.reproductionGroup == null) this.reproductionGroup = new ArrayList<Int_ALife_Creature>();
         if (ALife_Species.getDistancetoCreature(this, candidate) > ALife_Species.SPECIE_DISTANCE) return false;
-        double val = candidate.getStatus() * ALife_Species.getDistancetoCreature(this, candidate);
-        int gap = this.minReproductionGroup;
-        while (this.reproductionGroup.size() > this.minReproductionGroup && gap > 0){
-            for (Int_ALife_Creature c :this.reproductionGroup){
-                if (val < c.status * ALife_Species.getDistancetoCreature(this, c)) {
-                    gap --;
-                }
-            }
-        }
-        if (gap > 0) {
+        //Have we space?
+        if (this.reproductionGroup.size() < this.minReproductionGroup) {
             this.reproductionGroup.add(candidate);
             return true;
-        } 
-        return false;
+        }
+        //Is candidate better than worst of group?
+        double worstStatus = Double.MAX_VALUE;
+        Int_ALife_Creature worst = null;
+        for (Int_ALife_Creature c :this.reproductionGroup){
+            if (c != this && c.getStatus() < worstStatus) {
+                worstStatus = c.getStatus();
+                worst = c;
+            }
+        }
+        if (worst == null) return false;
+        this.reproductionGroup.remove(worst);
+        this.reproductionGroup.add(candidate);
+        return true;
     } // End public synchronized boolean beAddedToReproductionGroup(Int_ALife_Creature candidate, double candidateStatus)
 
     /**
@@ -622,17 +626,19 @@ public abstract class Int_ALife_Creature extends Thread
         }
         
         //Mind_ALife
-        if (this instanceof Active_ALife_Creature && this.mind != null){
-            caracArrayList.add((double)this.mind.getInnerN());
-            caracArrayList.add((double)this.mind.getMidN());
-            caracArrayList.add((double)this.mind.getOutN());
-            caracArrayList.add((double)this.mind.getStatusN());
-        } else {
-            caracArrayList.add(0.0);
-            caracArrayList.add(0.0);
-            caracArrayList.add(0.0);
-            caracArrayList.add(0.0);
-        } //for uniformity
+        synchronized(this.mind){
+            if (this instanceof Active_ALife_Creature && this.mind != null){
+                caracArrayList.add((double)this.mind.getInnerN());
+                caracArrayList.add((double)this.mind.getMidN());
+                caracArrayList.add((double)this.mind.getOutN());
+                caracArrayList.add((double)this.mind.getStatusN());
+            } else {
+                caracArrayList.add(0.0);
+                caracArrayList.add(0.0);
+                caracArrayList.add(0.0);
+                caracArrayList.add(0.0);
+            } //for uniformity
+        }
         //Add all to double[]
         //Make new array abd change from Double to double
         double[] carac = new double[caracArrayList.size()];

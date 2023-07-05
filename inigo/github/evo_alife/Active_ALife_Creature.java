@@ -375,6 +375,7 @@ public class Active_ALife_Creature extends Int_ALife_Creature
 
             this.statusChangeEvolution(); //Register status changes for mind learning and evolution
             //2.- Think and do voluntary actions
+            //For test
             Mind_ALife mal = this.mind; //For test
             Mind_ALife.Action decidedAction = this.mind.run();
 
@@ -497,6 +498,12 @@ public class Active_ALife_Creature extends Int_ALife_Creature
                 actionEat(this.pos, this.foodResourceNeed, null);//if eat someone null--> creature ate
                 break;
             case REPRODUCE: 
+                //Check
+                if (this.reproductionGroup.size() > 0){
+                    if (this.reproductionGroup.get(0) != this){
+                        int breakpoint = 1; // !!!!!!!!!!
+                    }
+                }
                 actionReproduce(this.reproductionGroup); // more progenitors?
                 break;
             case ATTACK: 
@@ -606,6 +613,7 @@ public class Active_ALife_Creature extends Int_ALife_Creature
      */
     private void actionAddToReproductionGroup(Int_ALife_Creature fav){
         //Check
+        // if(this.reproductionGroup.size() >= this.minReproductionGroup) return;
         if (fav == null) {
             //Add to reproduction group a creature near
             fav = ALife_Input_Neuron_Utils.findNearestFavCreature(this);
@@ -812,16 +820,12 @@ public class Active_ALife_Creature extends Int_ALife_Creature
             //body reproduce + mutate
             try{
                 baby = new Active_ALife_Creature(progenitors, this.env_ALive.getAllowMutate());
+                if (descendents == null) descendents = new ArrayList<Int_ALife_Creature>(); //For security
+                this.descendents.add(baby);
             } catch (Exception e){
                 MultiTaskUtil.threadMsg("Error in Creature actionReproduce: "+e.getMessage());
-                return;
-            } 
-            if (baby == null) return;
-            if (descendents == null) descendents = new ArrayList<Int_ALife_Creature>(); //For security
-            this.descendents.add(baby);
+            }
             //mind reproduce + mutate /// ---> creo que ahora mind lo invoca el constructor de creature
-            //baby.setMind(new Mind_ALife(progenitors, baby, this.env_ALive.getAllowMutate()));
-            //this.getEnv_ALife().addCreature(baby);
         } //End for maxDescendants 
     } // End private void actionReproduce(ArrayList<Int_ALife_Creature> progenitors)
     

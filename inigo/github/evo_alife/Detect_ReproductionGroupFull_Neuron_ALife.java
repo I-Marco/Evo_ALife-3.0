@@ -1,6 +1,6 @@
 package inigo.github.evo_alife;
 
-import java.awt.Point;
+//import java.awt.Point;
 import java.util.ArrayList;
 
 /**
@@ -55,15 +55,17 @@ public class Detect_ReproductionGroupFull_Neuron_ALife extends Input_Neuron_ALif
         if (this.output != null) return output;
         //1 if reproduction group is full, 0 if its empty
         //check
-        if (this.creature.getReproductionGroup() == null) {
-            this.creature.reproductionGroup = new ArrayList <Int_ALife_Creature>();
-        }        
+        synchronized (this.creature.getReproductionGroup()){
+            if (this.creature.getReproductionGroup() == null) {
+                this.creature.reproductionGroup = new ArrayList <Int_ALife_Creature>();
+            }        
 
-        output = ALifeCalcUtil.min_max_Normalization(
-            this.creature.getReproductionGroup().size(),
-            0, this.creature.getMinReproductionGroup());
-        output = ALifeCalcUtil.min_max_Normalization(output,
-            Mind_ALife.FALSE_in_double, Mind_ALife.TRUE_in_double);
+            output = ALifeCalcUtil.min_max_Normalization(
+                this.creature.getReproductionGroup().size(),
+                0, this.creature.getMinReproductionGroup());
+            output = ALifeCalcUtil.min_max_Normalization(output,
+                Mind_ALife.FALSE_in_double, Mind_ALife.TRUE_in_double);
+        }
         return output;
     } // End public double activation()
         

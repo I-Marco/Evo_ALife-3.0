@@ -281,7 +281,7 @@ public class ALife_Nutrient_Environment implements Runnable
      */
     private void  grownMap(){
         //read al pixels and "grown them"
-        int r,g,b;
+        //int r,g,b;
         //this.backLand.dispose(); // tratar de liberar memoria
         //Make new Backland copy of primary imga frontland
         this.backLand = new BufferedImage(this.frontLand.getWidth(),

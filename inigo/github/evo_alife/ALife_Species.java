@@ -61,12 +61,25 @@ public class ALife_Species
                 cont++;
             }
         }
-        if (cont != numberOfDifferentSpecies){
-            MultiTaskUtil.threadMsg("Error en el número de especies. Contador distinto que longitud de la lista");  
+        if (cont != this.numberOfDifferentActiveSpecies){
+            MultiTaskUtil.threadMsg("Error en el número de especies VIVAS. Contador distinto que longitud de la lista");  
         }
         //end for test
         return cont;
     } // End public long getNumberOfDifferentActiveSpecies()
+
+    /**
+     * public void setNumberOfDifferentActiveSpecies(long n)
+     * 
+     * Set the number of different active species, the species with at least one creature alive
+     * This is used if count fails
+     * @param n long, the number of different active species
+     * @return None
+     */
+    public void setNumberOfDifferentActiveSpecies(long n){
+        numberOfDifferentActiveSpecies = n;
+    } // End public void setNumberOfDifferentActiveSpecies(long n)
+
 
     /**
      * public long getLastSpecieNumberID()
@@ -185,19 +198,6 @@ public class ALife_Species
         Int_ALife_Creature sp_c= s.getRepresentativeCreature();
         
         return getDistancetoCreature(sp_c, c);
-        /*ALifeCalcUtil.arrayDistance(
-          ALifeCalcUtil.min_max_Array_Normalization(
-            Int_ALife_Creature.serializeCreature(sp_c),
-            Active_ALife_Creature.creature_minCaracteristics,
-            Active_ALife_Creature.creature_maxCaracteristics
-          ),
-          ALifeCalcUtil.min_max_Array_Normalization(
-            Int_ALife_Creature.serializeCreature(c),
-            Active_ALife_Creature.creature_minCaracteristics,
-            Active_ALife_Creature.creature_maxCaracteristics
-          )
-        );
-        */
     } // End public double getDistancetoSpecie(ALife_Specie s, Int_ALife_Creature c)
 
     /**
@@ -209,21 +209,23 @@ public class ALife_Species
      * @return double, the distance between the two creatures
      */
     public static double getDistancetoCreature(Int_ALife_Creature c1, Int_ALife_Creature c2){
-        double res = ALifeCalcUtil.arrayDistance(
-          ALifeCalcUtil.min_max_Array_Normalization(
-            //Int_ALife_Creature.serializeCreature(c1),
-            c1.serializeCreature(),
-            Active_ALife_Creature.creature_minCaracteristics,
-            Active_ALife_Creature.creature_maxCaracteristics
-          ),
-          ALifeCalcUtil.min_max_Array_Normalization(
-            //Int_ALife_Creature.serializeCreature(c2),
-            c2.serializeCreature(),
-            Active_ALife_Creature.creature_minCaracteristics,
-            Active_ALife_Creature.creature_maxCaracteristics
-          )
-        );
-        return res;
+        synchronized(c1){synchronized(c2){
+            double res = ALifeCalcUtil.arrayDistance(
+                ALifeCalcUtil.min_max_Array_Normalization(
+                //Int_ALife_Creature.serializeCreature(c1),
+                c1.serializeCreature(),
+                Active_ALife_Creature.creature_minCaracteristics,
+                Active_ALife_Creature.creature_maxCaracteristics
+                ),
+                ALifeCalcUtil.min_max_Array_Normalization(
+                //Int_ALife_Creature.serializeCreature(c2),
+                c2.serializeCreature(),
+                Active_ALife_Creature.creature_minCaracteristics,
+                Active_ALife_Creature.creature_maxCaracteristics
+                )
+            );
+            return res;
+        }} //End synchronized
     } // End public double getDistancetoCreature(Int_ALife_Creature c1, Int_ALife_Creature c2)
      // Private Methods and Fuctions =============
     

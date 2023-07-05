@@ -1,7 +1,7 @@
 package inigo.github.evo_alife;
 
-import java.util.*;
-import java.util.concurrent.RunnableScheduledFuture;
+//import java.util.*;
+//import java.util.concurrent.RunnableScheduledFuture;
 
 /**
  * Write a description of class Neuron_Alife here.

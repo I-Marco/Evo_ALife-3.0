@@ -211,14 +211,16 @@ public class ALife_Input_Neuron_Utils {
         double val = Double.MAX_VALUE;
         for (Trace t:c.getDetectedTraces()){
             if(t.source != null && t.source != c){ //exist and not us
-                double valA = ALife_Species.getDistancetoCreature(c, t.source);
-                if (valA < ALife_Species.SPECIE_DISTANCE){
-                    valA = (ALife_Species.SPECIE_DISTANCE - valA) * t.source.getStatus();
-                    if (valA < val){
-                        val = valA;
-                        candidate = t.source;
+                synchronized (c){synchronized (t.source){
+                    double valA = ALife_Species.getDistancetoCreature(c, t.source);
+                    if (valA < ALife_Species.SPECIE_DISTANCE){
+                        valA = (ALife_Species.SPECIE_DISTANCE - valA) * t.source.getStatus();
+                        if (valA < val){
+                            val = valA;
+                            candidate = t.source;
+                        }
                     }
-                }
+                }} // End synchronized (c){synchronized (t.source){
             }
         }
         return candidate;

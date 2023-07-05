@@ -1,6 +1,6 @@
 package inigo.github.evo_alife;
 
-import java.awt.Point;
+//import java.awt.Point;
 
 /**
  * Each input neuron have a diferent class. This is a hungry status detection

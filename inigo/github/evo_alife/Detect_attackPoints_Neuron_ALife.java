@@ -1,7 +1,7 @@
 package inigo.github.evo_alife;
 
-import java.awt.Point;
-import java.util.ArrayList;
+//import java.awt.Point;
+//import java.util.ArrayList;
 
 /**
  * Each input neuron have a diferent class. This is a reproduction group formed status detection

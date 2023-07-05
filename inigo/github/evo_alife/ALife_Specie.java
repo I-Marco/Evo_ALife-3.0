@@ -35,13 +35,16 @@ public class ALife_Specie
      */
     private ALife_Specie(Int_ALife_Creature c, double tam, long time){
         //Asegurarse que no existe ya la especie. Si existe añadir recreación (reMutateCreation) y ya
-        this.specieIdNumber = c.getEnv_ALife().getNewSpecieIdNumber();
-        this.numOfCre_inSpecie = 1;
-        this.medTamComplex = tam;
-        //timeOfCreation = time;
-        this.reMutateCreation.add(time);
-        if ( c instanceof Active_ALife_Creature) this.representativeCreature = Active_ALife_Creature.dupeCreature((Active_ALife_Creature)c);
-        else this.representativeCreature = c;//mejor clonarlo
+        if (c == null) return;
+        synchronized(this){synchronized(c){
+            this.specieIdNumber = c.getEnv_ALife().getNewSpecieIdNumber();
+            this.numOfCre_inSpecie = 1;
+            this.medTamComplex = tam;
+            //timeOfCreation = time;
+            this.reMutateCreation.add(time);
+            if ( c instanceof Active_ALife_Creature) this.representativeCreature = Active_ALife_Creature.dupeCreature((Active_ALife_Creature)c);
+            else this.representativeCreature = c;//mejor clonarlo
+        }} //End synchronized(this){synchronized(c){
         //add to  species list
     } // End public ALife_Specie(long number, long tam, long time)
 
@@ -177,14 +180,16 @@ public class ALife_Specie
      */
     public synchronized long removeCreatureFromSpecie(Int_ALife_Creature c){
         if (c == null) return this.numOfCre_inSpecie;
-        if (c.getEnv_ALife() == null) return this.numOfCre_inSpecie;
-        if (c.getSpecieIdNumber() != specieIdNumber) return this.numOfCre_inSpecie;
-        if (numOfCre_inSpecie == 0) return this.numOfCre_inSpecie;
-        numOfCre_inSpecie--;// In specie 
-        if (numOfCre_inSpecie == 0){
-            if (this.reExtintion == null) reExtintion = new ArrayList<Long>();
-            reExtintion.add(c.getEnv_ALife().getTime());
-        }
+        synchronized(c){
+            if (c.getEnv_ALife() == null) return this.numOfCre_inSpecie;
+            if (c.getSpecieIdNumber() != specieIdNumber) return this.numOfCre_inSpecie;
+            if (numOfCre_inSpecie == 0) return this.numOfCre_inSpecie;
+            numOfCre_inSpecie--;// In specie 
+            if (numOfCre_inSpecie == 0){
+                if (this.reExtintion == null) reExtintion = new ArrayList<Long>();
+                reExtintion.add(c.getEnv_ALife().getTime());
+            }
+        } //End synchronized(c)
         return numOfCre_inSpecie;
         // reevaluate the the this.representativeCreature atributes? 
     } // End public void removeCreature(c)

@@ -1,13 +1,11 @@
 package inigo.github.evo_alife;
 
-import java.lang.reflect.Array;
-import java.lang.reflect.Constructor;
 import java.util.*;
 
-import org.xml.sax.InputSource;
+//import org.xml.sax.InputSource;
 
-import inigo.github.evo_alife.Detect_RResource_Neuron_ALife;
-import inigo.github.evo_alife.Detect_ReproductionGroupFull_Neuron_ALife;
+//import inigo.github.evo_alife.Detect_RResource_Neuron_ALife;
+//import inigo.github.evo_alife.Detect_ReproductionGroupFull_Neuron_ALife;
 
 /**
  * Write a description of class Mind_ALife here.
@@ -422,7 +420,7 @@ public class Mind_ALife
             //m.allNeurons.add(auxN);
             //Actualize index values.
             for (int j = 0; j < progenitorsMinds.size(); j++){ //each progenitor mind
-                Mind_ALife mj= progenitorsMinds.get(j); //for text
+                //Mind_ALife mj= progenitorsMinds.get(j); //for text
                 Input_Neuron_ALife nj= (Input_Neuron_ALife)(progenitorsMinds.get(j)).inputNeurons.get(i[j]);
                 //for test
                 //MultiTaskUtil.threadMsg(n.getClass()+" vs "+nj.getClass());
@@ -547,7 +545,7 @@ public class Mind_ALife
         Out_Neuron_ALife n = (Out_Neuron_ALife)progenitorsMinds.get(0).outputNeurons.get(0);
         while (n != null){ //Evaluate all out neurons of all progenitors
             for (int j = 0; j < progenitorsMinds.size(); j++){ //each progenitor mind
-                Mind_ALife mj= progenitorsMinds.get(j);//for test
+                //Mind_ALife mj= progenitorsMinds.get(j);//for test
                 Out_Neuron_ALife nj= (Out_Neuron_ALife)(progenitorsMinds.get(j)).outputNeurons.get(i[j]);//i index of j progenitor
                 if ( !Out_Neuron_ALife.isBiggerThan(n,nj)){ //n <= nj
                     n = nj;
@@ -560,7 +558,7 @@ public class Mind_ALife
             //mind.allNeurons.add(auxN);
             //update index.
             for (int j = 0; j < progenitorsMinds.size(); j++){ //each progenitor mind
-                Mind_ALife mj= progenitorsMinds.get(j); //for text
+                //Mind_ALife mj= progenitorsMinds.get(j); //for text
                 Out_Neuron_ALife nj= (Out_Neuron_ALife)(progenitorsMinds.get(j)).outputNeurons.get(i[j]);
                 //for test
                 //MultiTaskUtil.threadMsg(n.getClass()+" vs "+nj.getClass());
@@ -1206,7 +1204,7 @@ public class Mind_ALife
     private Neuron_ALife assingWeightsToDupeNeuron(Neuron_ALife auxN, Neuron_ALife n, ArrayList <Neuron_ALife> auxInputNList){
         synchronized (auxN){
             ArrayList <Double> auxWeightList = new ArrayList <Double>();
-            
+            //We change list on time test it !!!!!!
             for (Neuron_ALife n_AuxIn:auxInputNList){//all neuron in new input lists
                 int i = 0; 
                 boolean found = false;
@@ -1223,7 +1221,7 @@ public class Mind_ALife
                     } // End for (Neuron_ALife n_Inp:n.inputs)
                 } // End synchronized (n)
                 if (!found) 
-                    auxWeightList.remove(n_AuxIn); //other option it assign a default weight SHOULD NEVER HAPPEND
+                    auxInputNList.remove(n_AuxIn); //other option it assign a default weight SHOULD NEVER HAPPEND
             } // End for (Neuron_ALife n_:auxWeightList)
             auxN.weights = auxWeightList;
         } // End synchronized (auxN)
