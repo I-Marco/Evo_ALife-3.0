@@ -10,14 +10,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.awt.*;
 
-//import javax.swing.*;
-//import java.awt.image.*;
-
-//import java.awt.*;
-
-//import java.io.File;
-//import javax.imageio.ImageIO;/
-
 /**
  * Class Env_ALife:
  * It is a try to be an artificial enviroment to suport ALife_Creatures
@@ -718,6 +710,17 @@ public class Env_ALife extends Thread
     public synchronized boolean getAllowMutate(){
         return allowMutate;
     } // End public synchronized boolean getAllowMutate()
+
+    /**
+     * public synchronized void setCreatureNumber(long c)
+     * 
+     * Set new value for creatureNumber variable
+     * @param   - long
+     * @return  - None
+     */
+    public synchronized void setCreatureNumber(long c){
+        this.creatureNumber = c;
+    } // End public synchronized void setCreatureNumber(long c)
 
     /**
      * public synchronized String getCreatureNumber()
