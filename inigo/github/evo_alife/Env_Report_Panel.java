@@ -66,12 +66,12 @@ public class Env_Report_Panel extends JPanel
         // Sow statistic of enviroment.
         datasReportsArea.setText("Name: "+enviroment.get_env_Name()+"\n");
         datasReportsArea.append("Time: "+enviroment.getTime()+"\n");
-        datasReportsArea.append(" Creatures: "+enviroment.getCreatureNumber()+"\n");
-        datasReportsArea.append(" Species: \n   "+enviroment.getSpeciesNumber()+"\n");
-        datasReportsArea.append(" Total resources:\n   "+enviroment.getTotalResources()+"\n");
-        datasReportsArea.append(" Res. add/time: \n  " +enviroment.getResourceAddByTime()+"\n");
-        datasReportsArea.append("T. Borns: \n"+enviroment.getCreature_Born()+"\n");
-        datasReportsArea.append("T. Deaths: \n"+enviroment.getCreature_Death()+"\n");
+        datasReportsArea.append(" Creatures: "+enviroment.getCreatureNumberString()+"\n");
+        datasReportsArea.append(" Species: \n   "+enviroment.getSpeciesNumberString()+"\n");
+        datasReportsArea.append(" Total resources:\n   "+enviroment.getTotalResourcesString()+"\n");
+        datasReportsArea.append(" Res. add/time: \n  " +enviroment.getResourceAddByTimeString()+"\n");
+        datasReportsArea.append("T. Borns: \n"+enviroment.getCreature_BornString()+"\n");
+        datasReportsArea.append("T. Deaths: \n"+enviroment.getCreature_DeathString()+"\n");
         datasReportsArea.append("\n");
         datasReportsArea.append("Reds: "+"\n");
         datasReportsArea.append("Greens: "+"\n");

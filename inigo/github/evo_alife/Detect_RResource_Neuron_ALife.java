@@ -54,8 +54,10 @@ public class Detect_RResource_Neuron_ALife extends Input_Neuron_ALife
         
         output = Mind_ALife.FALSE_in_double;
         Point pos = this.creature.getPos();
-        int[] food = this.creature.getEnv_ALife().getLand().getNutrientIn(pos.x, pos.y);
-        if (food[0] > 0) output = Mind_ALife.TRUE_in_double;
+        synchronized(this.creature.getEnv_ALife().getLand()){
+            int[] food = this.creature.getEnv_ALife().getLand().getNutrientIn(pos.x, pos.y);
+            if (food[0] > 0) output = Mind_ALife.TRUE_in_double;
+        }
         return output;
     }
         

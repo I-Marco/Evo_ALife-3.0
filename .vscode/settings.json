@@ -1,0 +1,6 @@
+{
+    "java.project.referencedLibraries": [
+        "lib/**/*.jar",
+        "inigo/github/evo_alife/lib/opencsv-5.7.1.jar"
+    ]
+}

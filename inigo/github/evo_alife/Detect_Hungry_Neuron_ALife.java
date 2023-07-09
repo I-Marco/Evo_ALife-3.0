@@ -52,11 +52,13 @@ public class Detect_Hungry_Neuron_ALife extends Input_Neuron_ALife
     @Override
     public double activation(){ // X detection no north if side distance bigger than north not detected
         if (this.output != null) return output;
-        //Higher value with few humgry value        
-        output = ALifeCalcUtil.min_max_Normalization(this.creature.hungry,
-            0, this.creature.humgryUmbral * Int_ALife_Creature.DEFAULT_Max_Hungry_factor );
-        output = ALifeCalcUtil.min_max_Normalization(output,
-            Mind_ALife.FALSE_in_double, Mind_ALife.TRUE_in_double);
+        //Higher value with few humgry value
+        synchronized(this.creature){     
+            output = ALifeCalcUtil.min_max_Normalization(this.creature.hungry,
+                0, this.creature.humgryUmbral * Int_ALife_Creature.DEFAULT_Max_Hungry_factor );
+            output = ALifeCalcUtil.min_max_Normalization(output,
+                Mind_ALife.FALSE_in_double, Mind_ALife.TRUE_in_double);
+        }
         return output;
     } // End public double activation()
         

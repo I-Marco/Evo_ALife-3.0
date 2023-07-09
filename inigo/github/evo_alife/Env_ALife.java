@@ -6,6 +6,7 @@ import java.awt.image.*; // BufferedImage
 import java.io.*; //import java.io.File;
 import javax.imageio.*;// import javax.imageio.ImageIO;
 import java.util.concurrent.*;
+import java.util.concurrent.locks.ReentrantLock;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.awt.*;
@@ -20,6 +21,7 @@ import java.awt.*;
  */
 public class Env_ALife extends Thread
 {
+    public static final int MAXCREATUREAABALIABLE = 1;
     public static final long CTE_TIEMPO_CEDER = 20;
     public static final long CTE_TIEMPO_ESPERA = 200;
     public static final long CTE_TIEMPO_ESPERA_LARGA = 2500;
@@ -46,8 +48,8 @@ public class Env_ALife extends Thread
     private Long time  = null;
     private long timeCicles = 0;
     private int waitForThreads = 0; //Temporal tratamos de incluir un patron singleton pero dudas
-    
-    static private int maxThreads = 10; //Max number of simultaneus Threads allowed    
+    static private int maxThreads = MAXCREATUREAABALIABLE; //Max number of simultaneus Threads allowed
+   
 
     private boolean allowMutate = true;
     //explode si/no . De momento no opcion multi explote limitado a 10 en ALife_Nutrient_Environment
@@ -56,12 +58,17 @@ public class Env_ALife extends Thread
     
     //Thread related fields
     private Semaphore semaphore;
+    //semafor reentrante
+    
+    private final ReentrantLock lockEventList;
     private final Object pauseSignal = new Object(); // señal de pausa/continuación externa
     private final Object maxThreadSignal = new Object(); // señal de pausa/continuación MaxThreads alcanzado
     private volatile boolean isPaused = false;    
     private MultiTaskUtil threadManager;
     
     private volatile boolean killSignal = false;
+
+    private ALive_FileManager fileManager = null;
 
     //For test control.
     public int creature_Born = 0;
@@ -70,6 +77,8 @@ public class Env_ALife extends Thread
     public long total_R = 0;
     public long total_G = 0;
     public long total_B = 0;
+
+    boolean generateReport = false;
     
     // Methods ---------------------------------------------------------------------------
     // Constructors ============================
@@ -85,6 +94,7 @@ public class Env_ALife extends Thread
         caller = e;
         isPaused = true;
         semaphore = new Semaphore(maxThreads);
+        this.lockEventList = new ReentrantLock();
         this.setPriority(Thread.currentThread().getPriority()-2); //Forzar convergencia
         threadManager = new MultiTaskUtil();
 
@@ -110,9 +120,15 @@ public class Env_ALife extends Thread
         if (this.land != null){
             this.logical_Env = new ALife_Logical_Environment(this);
         }
-        Active_ALife_Creature.refreshLiveImage(this.eventList, this.lifeImg);
+        Active_ALife_Creature.refreshLiveImage(this.getCreatureList(), this.lifeImg);
         this.backLandImage = Env_Panel.copyBufferedImage(this.getLandImg());
         caller.visualiceEnv(this);
+        try{
+            this.fileManager = new ALive_FileManager(this.env_Name,this.caller);
+            this.fileManager.start();
+        }catch (IOException ioe){
+            MultiTaskUtil.threadMsg("Error creating file manager");
+        }
     } // End public Env_ALife(Evo_ALife e) Constructor
 
     /**
@@ -130,6 +146,7 @@ public class Env_ALife extends Thread
         caller = e;
         isPaused = true;
         semaphore = new Semaphore(maxThreads);
+        this.lockEventList = new ReentrantLock();
         this.setPriority(Thread.currentThread().getPriority()-2); //Forzar convergencia
         threadManager = new MultiTaskUtil();
 
@@ -210,10 +227,21 @@ public class Env_ALife extends Thread
         //lifeTypeList = new ArrayList<ALife_Specie>(); //Empty need values
         //evaluate lifeTypeList(eventList);
 
-        Active_ALife_Creature.refreshLiveImage(this.eventList, this.lifeImg);
+        Active_ALife_Creature.refreshLiveImage(this.getCreatureList(), this.lifeImg);
         this.backLandImage = Env_Panel.copyBufferedImage(this.getLandImg());
 
         caller.visualiceEnv(this); //Display de new enviroment
+
+        try{
+            this.fileManager = new ALive_FileManager(this.env_Name,this.caller);
+            this.fileManager.start();
+            String[] HEADERS = {"Time", "NumberOfCreaturesAlive", "NumberOfSpeciesAlive", "NumberOfCreaturesBorn", "NumberOfCreaturesDeath"};
+            this.fileManager.addLine(HEADERS);
+            this.fileManager.forceWrite();
+        }catch (IOException ioe){
+            MultiTaskUtil.threadMsg("Error creating file manager");
+        }
+        
     } // End public Env_ALife(Evo_ALife e,BufferedImage l, Object liveEnv, java.util.List<Object> envVars) Constructor
 
     // Public Methods and Fuctions ==============
@@ -228,7 +256,7 @@ public class Env_ALife extends Thread
      * @return  - no returns 
      **/ 
     @Override
-    public void run(){ // synchronized ??
+    public void run(){ 
     
         while(true){ //Forever
             synchronized (pauseSignal) {
@@ -250,6 +278,7 @@ public class Env_ALife extends Thread
             }
             
             if (this.killSignal) {
+                this.fileManager.close();
                 break;
             }
             //For concurrency Log
@@ -258,7 +287,8 @@ public class Env_ALife extends Thread
             //this.backLifeImage = Env_Panel.getDefaultEnvTransparentImage(); //Blinck efect
             
             //Do something ...
-            synchronized (eventList){
+            lockEventList.lock();
+            try{
                 if (eventList.isEmpty()){
                     try{
                         // Concurrency error Fixed try
@@ -277,7 +307,9 @@ public class Env_ALife extends Thread
                         JOptionPane.ERROR_MESSAGE);
                     if (eventList.isEmpty()) return; //Get out of run method!!! //Comprueba de nuevo por concurrencia
                 }
-            }            
+            }finally{
+                lockEventList.unlock();
+            }         
             
             //For Concurrency Log
             //MultiTaskUtil.threadMsg("Env Run ("+this.getTime()+")");//For test
@@ -296,7 +328,9 @@ public class Env_ALife extends Thread
             // Make now event succeded
             ArrayList<Object> listaAhora = null;
             //synchronized (eventList){
-            listaAhora = eventList.get(time); // si no hay eventos de time casca
+            listaAhora = this.getListaAhora(time);
+            //listaAhora = eventList.get(time); // si no hay eventos de time casca
+    
             //}
             //Refresh live enviroment image
             if ( listaAhora.size() > 1 || 
@@ -364,11 +398,14 @@ public class Env_ALife extends Thread
 
             threadManager.waitForThreadsToFinish();       
             //eventList.get(time)
-            /* Necesario*/
-            if (eventList.get(time).contains(this.getLand())) {
-                synchronized(this){
+            /* Necesario - Provisional objetivo seria incluirlo como un evento más*/
+            lockEventList.lock();
+            try{
+                if (eventList.get(time).contains(this.getLand())) {
                     this.logical_Env.run(); //Run logical enviroment. Prevent cuncurrency errors
                 }
+            } finally {
+                lockEventList.unlock();
             }
             
             removeEvent(time);
@@ -377,15 +414,15 @@ public class Env_ALife extends Thread
             //MultiTaskUtil.threadMsg("Event List remove item");
             //MultiTaskUtil.threadMsg("Env Run ("+this.getTime()+") END CICLE");//For test
 
-            synchronized (eventList){
-                Long l= eventList.firstKey();
-                if (l < getTime()){
-                    int breakpoint = 1;
-                    MultiTaskUtil.threadMsg("Time CICLE("+this.timeCicles+") ENDED!!! Time :"+getTime());
-                    this.timeCicles += 1;
-                }
-                setTime(l);
+            Long l= eventList.firstKey();
+            this.getNextEventTime();
+            if (l < getTime()){
+                int breakpoint = 1;
+                MultiTaskUtil.threadMsg("Time CICLE("+this.timeCicles+") ENDED!!! Time :"+getTime());
+                this.timeCicles += 1;
             }
+            setTime(l);
+        
 
             setLandImg(this.land.getLandImg());
 
@@ -396,6 +433,14 @@ public class Env_ALife extends Thread
             //Env_Panel.imageDisplay(getLifeImg(),"From Env_Alive run() - LIVE Image("+getTime()+")");
             caller.visualiceEnv(this);
             
+            //Save report to files.
+            if (this.generateReport){
+                String[] report = {""+this.getTime(),""+this.getCreatureNumberString(),""+this.getSpecies().getNumberOfDifferentActiveSpecies(),
+                    ""+this.getCreature_BornString(), ""+this.getCreature_DeathString()};
+                this.fileManager.addLine(report);
+                this.generateReport = false;
+            }
+
             //For test stop each iteration
             //MultiTaskUtil.msgDialog("Final Turno :"+this.getTime());
         } //End While for ever 
@@ -728,7 +773,7 @@ public class Env_ALife extends Thread
      * @param    None
      * @return   String
      */
-    public synchronized String getCreatureNumber(){
+    public synchronized String getCreatureNumberString(){
         String r = "";
         r = ""+this.creatureNumber;
         return r;
@@ -740,7 +785,7 @@ public class Env_ALife extends Thread
      * @param    None
      * @return   String
      */
-    public synchronized String getSpeciesNumber(){
+    public synchronized String getSpeciesNumberString(){
         String r = this.species.getNumberOfDifferentActiveSpecies() + " especies.";        
         return r;
     } // End public synchronized String getSpeciesNumber()
@@ -751,7 +796,7 @@ public class Env_ALife extends Thread
      * @param    None
      * @return   String
      */
-    public synchronized String getTotalResources(){
+    public synchronized String getTotalResourcesString(){
         String r = "No computado";        
         return r;
     } // End public synchronized String getTotalResources()
@@ -762,7 +807,7 @@ public class Env_ALife extends Thread
      * @param    None
      * @return   String
      */
-    public synchronized String getResourceAddByTime(){
+    public synchronized String getResourceAddByTimeString(){
         String r = "";
         r =this.land.getResourceAddByTime();
         return r;
@@ -774,7 +819,7 @@ public class Env_ALife extends Thread
      * @param    None
      * @return   String
      */
-    public synchronized String getResourceDelay(){
+    public synchronized String getResourceDelayString(){
         String r = "";
 
         return r;
@@ -810,6 +855,26 @@ public class Env_ALife extends Thread
         return this.logical_Env;
     } // End public ALife_Logical_Environment getLogical_Env()
 
+    public ArrayList<Active_ALife_Creature> getCreatureList(){
+        ArrayList<Active_ALife_Creature> creatureList = new ArrayList<Active_ALife_Creature>();
+        lockEventList.lock();
+        try{
+            for (Map.Entry<Long, ArrayList<Object>> entry : eventList.entrySet()) {
+                ArrayList<Object> value = entry.getValue();
+                if (value == null) continue;
+                for (Object o : value){
+                    if (o instanceof Active_ALife_Creature){
+                        creatureList.add((Active_ALife_Creature) o);
+                    }
+                }
+            }
+        }finally{
+            lockEventList.unlock();
+        }
+        return creatureList;
+
+    } // End public ArrayList<Int_ALife_Creature> getCreatureList()
+
     /**
      * public synchronized TreeMap<Long, ArrayList<Object> getEventList()
      * 
@@ -817,6 +882,7 @@ public class Env_ALife extends Thread
      * @param    None
      * @return   TreeMap<Long, ArrayList<Object>
      */
+    //Borrar en cuanto pueda
     public synchronized TreeMap<Long, ArrayList<Object>> getEventList(){
         return this.eventList;
     } // End public synchronized TreeMap<Long, ArrayList<Object> getEventList()
@@ -827,17 +893,18 @@ public class Env_ALife extends Thread
      * @param    ALife_Logical_Environment
      * @return   None
      */
-    public String getCreature_Born(){
+    public String getCreature_BornString(){
         return ""+this.creature_Born;
     } // End public void setLogical_Env(ALife_Logical_Environment l_e)
     
     /**
-     * public void setLogical_Env(ALife_Logical_Environment l_e)
+     * public String getCreature_Death()
      * 
-     * @param    ALife_Logical_Environment
-     * @return   None
+     * get the number of creatures death by String
+     * @param    None
+     * @return   String
      */
-    public String getCreature_Death(){
+    public String getCreature_DeathString(){
         return ""+this.creature_Death;
     } // End public String getCreature_Death()
     
@@ -932,23 +999,21 @@ public class Env_ALife extends Thread
      * @param   - Object, the event to be added
      * @return  - None
      **/      
-    public synchronized void addEvent(Long t,Object obj){
-        ArrayList<Object> list = null;
-        if (eventList.containsKey(t)){
-            list = eventList.get(t);
-            if (!list.contains(obj)) list.add(obj);
-        }else {
-            list = new ArrayList<Object>();
-            list.add(obj);
-            eventList.put(t, list);
+    public void addEvent(Long t,Object obj){
+        this.lockEventList.lock();
+        try{
+            ArrayList<Object> list = null;
+            if (eventList.containsKey(t)){
+                list = eventList.get(t);
+                if (!list.contains(obj)) list.add(obj);
+            }else {
+                list = new ArrayList<Object>();
+                list.add(obj);
+                eventList.put(t, list);
+            }
+        }finally{
+            this.lockEventList.unlock();
         }
-        
-        // For event track Log Concurrency
-        //MultiTaskUtil.threadMsg("--> Evento añadido ("+eventList.size()+")");
-        
-        //System.out.printf("Task(%s)-Class(%s)--> Evento añadido - (%d).%n",
-        //    Thread.currentThread().getName(),this.getClass().getName(),eventList.size());
-
     }
 
     /**
@@ -959,16 +1024,64 @@ public class Env_ALife extends Thread
      * @param   - Object, the event to be added
      * @return  - None
      **/      
-    public synchronized void removeEvent(Long t){
-        eventList.remove(time);
-        
-        // For track Log and concurrency Log
-        //MultiTaskUtil.threadMsg("--> Evento eliminado ("+eventList.size()+")");
-        //System.out.printf("Task(%s)-Class(%s)--> Evento eliminado  (%d) - Long (%d).%n",
-        //    Thread.currentThread().getName(),this.getClass().getName(),time,eventList.size());
-
+    public void removeEvent(Long t){
+        //check
+        if (t==null) return;
+        this.lockEventList.lock();
+        try{
+            if (eventList == null) return;
+            if (eventList.containsKey(t)){
+                eventList.remove(t);
+            }
+        }finally{
+            this.lockEventList.unlock();
+        }
     }   
 
+    /**
+     * public ArrayList<Object> getListaAhora(Long t)
+     * 
+     * Generate an object list of events to be done in this time
+     * @param   - Long, time to be checked
+     * @return  - ArrayList<Object>, the list of events to be done in this time
+     */
+    public ArrayList<Object> getListaAhora(Long t){
+        if (t==null) return null;
+        ArrayList<Object> listaAhora = new ArrayList<Object>();
+        this.lockEventList.lock();
+        try{
+            if (eventList == null) return null;
+            if (eventList.containsKey(t)){
+                for (Object o : eventList.get(t)){
+                    listaAhora.add(o);
+                }// get different list of same event for concurrence problems
+            }
+        }finally{
+            this.lockEventList.unlock();
+        }
+        return listaAhora;
+    } // End public ArrayList<Object> getListaAhora(Long t)
+    
+    /**
+     * public Long getNextEventTime()
+     * 
+     * Get the next event time to be done. Next enviroment time unit
+     * @param   - None
+     * @return  - Long, the next event time to be done
+     */
+    public Long getNextEventTime(){
+        Long t = null;
+        this.lockEventList.lock();
+        try{
+            if (eventList == null) return null;
+            if (eventList.isEmpty()) return null;
+            t = eventList.firstKey();
+        }finally{
+            this.lockEventList.unlock();
+        }
+        return t;
+    } // End public Long getNextEventTime()
+    
     /**
      * public long getCreatureID()
      * 
@@ -1001,6 +1114,9 @@ public class Env_ALife extends Thread
         this.creatureNumber++;
         this.creature_Born ++;
         this.last_CreatureID ++;
+        //for test
+        this.generateReport = true;
+        MultiTaskUtil.threadMsg("New Creature ID Born("+this.last_CreatureID+")");
         return last_CreatureID;
     }
 
@@ -1040,6 +1156,8 @@ public class Env_ALife extends Thread
     public void removeCreature(Int_ALife_Creature c){
         this.creatureNumber -= 1;
         this.creature_Death += 1;
+        //For test
+        this.generateReport = true;
         this.species.removeCreature(c);
         this.logical_Env.removeCreature(c);
         //remove creature from this.lifeImg
@@ -1056,9 +1174,14 @@ public class Env_ALife extends Thread
     public void removeCreatureFromEventList(Int_ALife_Creature c){
         //Remove creature from eventList
         ArrayList<Object> list = null;
-        for (Long t : eventList.keySet()){
-            list = eventList.get(t);
-            if (list.contains(c)) list.remove(c);
+        lockEventList.lock();
+        try{
+            for (Long t : eventList.keySet()){
+                list = eventList.get(t);
+                if (list.contains(c)) list.remove(c);
+            }
+        }finally{
+            lockEventList.unlock();
         }
     } // End public void removeCreatureFromEventList(Int_ALife_Creature c)
 
@@ -1136,19 +1259,39 @@ public class Env_ALife extends Thread
     } // End public static Env_ALife createEnv_ALife_d_nCre(Evo_ALife e, int width, int height, int nCre)
 
     //for test functions
+
+    /**
+     * public long getCalculateAliveCreatures()
+     * 
+     * Remake a count of alive creatures in enviroment
+     * @param   - None
+     * @return  - long, number of alive creatures in enviroment
+     */
     public long getCalculateAliveCreatures(){
         long cont = 0;
-        for (Long t : eventList.keySet()){
-            ArrayList<Object> list = eventList.get(t);
-            for (Object o : list){
-                if (o instanceof Active_ALife_Creature){
-                    cont++;
+        lockEventList.lock();
+        try{
+            for (Long t : eventList.keySet()){
+                ArrayList<Object> list = eventList.get(t);
+                for (Object o : list){
+                    if (o instanceof Active_ALife_Creature){
+                        cont++;
+                    }
                 }
             }
+        }finally{
+            lockEventList.unlock();
         }
         return cont;
     } // End public long getAliveCreatures()
 
+    /**
+     * public synchronized long getCalculateActiveDifferentSpecies()
+     * 
+     * Remake a count of different species with alife creatures in enviroment
+     * @param   - None
+     * @return  - long, number of different species with alife creatures in enviroment
+     */
     public synchronized long getCalculateActiveDifferentSpecies(){
         long cont = 0;
         ALife_Species species = this.getSpecies();

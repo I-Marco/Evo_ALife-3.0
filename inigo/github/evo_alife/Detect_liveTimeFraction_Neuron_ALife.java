@@ -59,11 +59,13 @@ public class Detect_liveTimeFraction_Neuron_ALife extends Input_Neuron_ALife
             MultiTaskUtil.threadMsg("Error in Detect_liveTimeFraction_Neuron_ALife No creature defined.(null)");
             return Mind_ALife.FALSE_in_double;
         }
-        output = ALifeCalcUtil.min_max_Normalization(
-            this.creature.getLifeTime(),
-            0, this.creature.getLifeExp());
-        output = ALifeCalcUtil.min_max_Normalization(output,
-            Mind_ALife.FALSE_in_double, Mind_ALife.TRUE_in_double);
+        synchronized(this.creature){
+            output = ALifeCalcUtil.min_max_Normalization(
+                this.creature.getLifeTime(),
+                0, this.creature.getLifeExp());
+            output = ALifeCalcUtil.min_max_Normalization(output,
+                Mind_ALife.FALSE_in_double, Mind_ALife.TRUE_in_double);
+        } // End synchronized()
         return output;
     } // End public double activation()
         

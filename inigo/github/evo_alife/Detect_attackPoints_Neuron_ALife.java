@@ -59,12 +59,14 @@ public class Detect_attackPoints_Neuron_ALife extends Input_Neuron_ALife
             MultiTaskUtil.threadMsg("Error in Detect_attackPoints_Neuron_ALife No creature defined.(null)");
             return Mind_ALife.FALSE_in_double;
         }
-        output = ALifeCalcUtil.min_max_Normalization(
-            this.creature.getAttack(),
-            Active_ALife_Creature.creature_minCaracteristics[2],
-            Active_ALife_Creature.creature_maxCaracteristics[2]);
-        output = ALifeCalcUtil.min_max_Normalization(output,
-            Mind_ALife.FALSE_in_double, Mind_ALife.TRUE_in_double);
+        synchronized(this.creature){
+            output = ALifeCalcUtil.min_max_Normalization(
+                this.creature.getAttack(),
+                Active_ALife_Creature.creature_minCaracteristics[2],
+                Active_ALife_Creature.creature_maxCaracteristics[2]);
+            output = ALifeCalcUtil.min_max_Normalization(output,
+                Mind_ALife.FALSE_in_double, Mind_ALife.TRUE_in_double);
+        }
         return output;
     } // End public double activation()
         

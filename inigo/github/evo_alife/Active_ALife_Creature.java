@@ -115,7 +115,7 @@ public class Active_ALife_Creature extends Int_ALife_Creature
 
         //foodResourceNeed = {0,0,0};            
                 
-        hungry = Int_ALife_Creature.DEFAULT_Hungry_Humbral + 1;
+        hungry = Int_ALife_Creature.DEFAULT_Hungry_Umbral + 1;
     
         if (m != null) { this.mind = m;}
         else {
@@ -233,7 +233,7 @@ public class Active_ALife_Creature extends Int_ALife_Creature
         mind = new Mind_ALife(progenitors,this,progenitors.get(0).env_ALive.getAllowMutate());//new Mind_ALife(progenitors);
         
         //Autocalculated datas
-        hungry = Int_ALife_Creature.DEFAULT_Hungry_Humbral + 1; //0auto calculate
+        hungry = Int_ALife_Creature.DEFAULT_Hungry_Umbral + 1; //0auto calculate
 
         specie = null;//autocalculate deprecated for moment
         //Ming values neurosn neurons in neurosn out neurons status
@@ -858,7 +858,7 @@ public class Active_ALife_Creature extends Int_ALife_Creature
      */
     public long die() {
         //For test
-        MultiTaskUtil.threadMsg(getEnv_ALife().getTime()+" Creature DIED("+this.getIdCreature()+")");
+        MultiTaskUtil.threadMsg(getEnv_ALife().getTime()+" Creature DIED("+this.getIdCreature()+"-"+this.getSpecieIdNumber()+")");
         new ALife_Corpse(this);
         
         env_ALive.removeCreature(this);
@@ -920,7 +920,7 @@ public class Active_ALife_Creature extends Int_ALife_Creature
                     //     (int) (1*scaleW), (int) (1 * scaleH));                     
                 }
             } else {
-                g = refreshLiveImage(this.getEnv_ALife().getEventList(), this.getEnv_ALife().getBackLifeImage());
+                g = refreshLiveImage(this.getEnv_ALife().getCreatureList(), this.getEnv_ALife().getBackLifeImage());
                 //AlphaComposite alphaComposite = AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f);
                 //g2d.setComposite(alphaComposite);
 
@@ -966,8 +966,8 @@ public class Active_ALife_Creature extends Int_ALife_Creature
      * @param    BufferedImage img the original live image
      * @return   None
      */
-    public static BufferedImage refreshLiveImage(TreeMap<Long, ArrayList<Object>> eventList, BufferedImage img){
-        if (eventList == null || img == null) return img;
+    public static BufferedImage refreshLiveImage(ArrayList<Active_ALife_Creature> creatureList, BufferedImage img){
+        if (creatureList == null || img == null) return img;
         BufferedImage i = img;
         //For test
         //MultiTaskUtil.threadMsg("Refresh Live Image");
@@ -979,13 +979,9 @@ public class Active_ALife_Creature extends Int_ALife_Creature
             //g2d.setColor(Color.BLACK); // fix background to BLACK 0, 0, 0
             g2d.fillRect(0, 0, i.getWidth(), i.getHeight()); 
             //paint all creatures
-            for (Map.Entry<Long, ArrayList<Object>> entry : eventList.entrySet()) {
-                ArrayList<Object> value = entry.getValue();
-                if (value == null) continue;
-                for (Object o : value){
-                    if (o instanceof Active_ALife_Creature){
-                        ((Active_ALife_Creature) o).paint(i, Color.YELLOW);
-                    }
+            for (Active_ALife_Creature o : creatureList){
+                if (o instanceof Active_ALife_Creature){
+                    ((Active_ALife_Creature) o).paint(i, Color.YELLOW);
                 }
             }
             g2d.dispose();

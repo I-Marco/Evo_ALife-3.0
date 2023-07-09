@@ -52,11 +52,13 @@ public class Detect_BResource_Neuron_ALife extends Input_Neuron_ALife
         if (this.output != null) return output;
         
         output = Mind_ALife.FALSE_in_double;
-        Point pos = this.creature.getPos();
-        int[] food = this.creature.getEnv_ALife().getLand().getNutrientIn(pos.x, pos.y);
-        if (food[2] > 0) output = Mind_ALife.TRUE_in_double;
+        synchronized (this.creature){synchronized (this.creature.getEnv_ALife().getLand()){
+            Point pos = this.creature.getPos();
+            int[] food = this.creature.getEnv_ALife().getLand().getNutrientIn(pos.x, pos.y);
+            if (food[2] > 0) output = Mind_ALife.TRUE_in_double;
+        }} // End synchronized (this.creature){synchronized (this.creature.getEnv_ALife().getLand())
         return output;
-    }
+    } // End public double activation()
         
     /**
      * public static BResourceDetection_Neuron_ALife dupeNeuron_ALife(BResourceDetection_Neuron_ALife n)

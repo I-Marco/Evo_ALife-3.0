@@ -56,8 +56,10 @@ public class Detect_Reproductable_Neuron_ALife extends Input_Neuron_ALife
         if (this.output != null) return output;
         
         output = Mind_ALife.FALSE_in_double;
-        if (creature.getReproductable()) 
-            output = Mind_ALife.TRUE_in_double;
+        synchronized(creature){
+            if (creature.getReproductable()) 
+                output = Mind_ALife.TRUE_in_double;
+        } // End synchronized(creature)
         return output; //this.output" is null" java.lang.NullPointerException ?????
     }
         

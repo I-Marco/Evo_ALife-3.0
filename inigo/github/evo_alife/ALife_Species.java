@@ -42,7 +42,7 @@ public class ALife_Species
     public long getNumberOfDifferentSpecies(){
         //for test
         if (speciesList.size() != numberOfDifferentSpecies){
-            MultiTaskUtil.threadMsg("Error en el número de especies. Contador distinto que longitud de la lista");  
+            MultiTaskUtil.threadMsg("Error en el número de especies CREADAS. Contador distinto que longitud de la lista");  
         }
         //end for test
         return numberOfDifferentSpecies;  
@@ -62,7 +62,7 @@ public class ALife_Species
             }
         }
         if (cont != this.numberOfDifferentActiveSpecies){
-            MultiTaskUtil.threadMsg("Error en el número de especies VIVAS. Contador distinto que longitud de la lista");  
+            MultiTaskUtil.threadMsg("Error en el número de especies VIVAS."+cont+ " Contador distinto que en event List");  
         }
         //end for test
         return cont;
@@ -157,6 +157,7 @@ public class ALife_Species
             ALife_Specie s = this.speciesList.get((int)c.getSpecieIdNumber() - 1);
             if (s.removeCreatureFromSpecie(c) == 0){
                 this.numberOfDifferentActiveSpecies--;
+                MultiTaskUtil.threadMsg("Dead a last creature of specie ()"+s.getSpecieIdNumber()+"). Number of different active species: "+this.numberOfDifferentActiveSpecies);
             }
         } catch (Exception e){
             System.out.println("Error removing creature from specie");
@@ -183,6 +184,7 @@ public class ALife_Species
         ALife_Specie s = ALife_Specie.createSpecie(c,this.lastSpecieNumberID); //for test
         this.speciesList.add(s); //Auto set the specieIdNumber for creature
         c.setSpecieIdNumber(lastSpecieNumberID);
+        MultiTaskUtil.threadMsg("New specie created ("+lastSpecieNumberID+"). Number of different active species("+c.getIdCreature()+"): "+this.numberOfDifferentActiveSpecies);
         // Should we add to creature the specieIdNumber?
     } // End public void addSpecie(Int_ALife_Creature c)
     

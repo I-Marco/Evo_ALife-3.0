@@ -59,11 +59,13 @@ public class Detect_livePointsFraction_Neuron_ALife extends Input_Neuron_ALife
             MultiTaskUtil.threadMsg("Error in Detect_livePointsFraction_Neuron_ALife No creature defined.(null)");
             return Mind_ALife.FALSE_in_double;
         }
-        output = ALifeCalcUtil.min_max_Normalization(
-            this.creature.getLivePoints(),
-            0, this.creature.getMaxLivePoints());
-        output = ALifeCalcUtil.min_max_Normalization(output,
-            Mind_ALife.FALSE_in_double, Mind_ALife.TRUE_in_double);
+        synchronized(this.creature){
+            output = ALifeCalcUtil.min_max_Normalization(
+                this.creature.getLivePoints(),
+                0, this.creature.getMaxLivePoints());
+            output = ALifeCalcUtil.min_max_Normalization(output,
+                Mind_ALife.FALSE_in_double, Mind_ALife.TRUE_in_double);
+        } // End synchronized(this.creature){
         return output;
     } // End public double activation()
         

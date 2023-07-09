@@ -50,9 +50,25 @@ public class ALife_Logical_Environment extends Thread
     public synchronized void run(){
         if (this.env_ALife != null) return; //For hard test
         synchronized (lock) {
-            //update traces life time
             int width = this.env_ALife.getLand().getLandImg().getWidth();
-            int height = this.env_ALife.getLand().getLandImg().getHeight();        
+            int height = this.env_ALife.getLand().getLandImg().getHeight();
+            ArrayList<Trace>[][] auxTracesMatrix = new ArrayList[width][height];
+            for (int i = 0; i<width; i++) 
+                for (int j = 0; j < height; j++){
+                    try{
+                        auxTracesMatrix[i][j] = new ArrayList<Trace>();
+                        if (this.traces[i][j] == null) continue;
+                        for (Trace t:this.traces[i][j]){
+                            //public Trace(double u, Int_ALife_Creature s, Point p, long trest)
+                            if (t != null) auxTracesMatrix[i][j].
+                                add(new Trace(t.getUmbral(), t.getSource(), t.getPos(), t.getTimeRest()-1));
+                        }
+                    }catch (Exception e){
+                            MultiTaskUtil.threadMsg("Error in Creation of new Matrix run de trace."+e.getMessage());
+                    }
+            }
+            /*
+            //update traces life time      
             //ArrayList<Trace>[][] traces;
             for (int i = 0; i < width; i++)
                 for (int j = 0; j < height; j++)
@@ -71,6 +87,7 @@ public class ALife_Logical_Environment extends Thread
                     MultiTaskUtil.threadMsg("Error en run de trace."+e.getMessage());
                 }
             }
+            */
         } // End synchronized (lock)
     } // End public synchronized void run()
 

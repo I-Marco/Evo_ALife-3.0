@@ -568,7 +568,7 @@ public class Evo_ALife extends JFrame{
         //Env_ALife temp_env_ALife = new Env_ALife(this,land,lifeEnv,env_Vars);
         temp_env_ALife.setLifeImg(
             Active_ALife_Creature.refreshLiveImage(
-                temp_env_ALife.getEventList(), 
+                temp_env_ALife.getCreatureList(), 
                 temp_env_ALife.getBackLifeImage()
             )
         );

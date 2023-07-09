@@ -59,13 +59,15 @@ public class Detect_defPoints_Neuron_ALife extends Input_Neuron_ALife
             MultiTaskUtil.threadMsg("Error in Detect_defPoints_Neuron_ALife No creature defined.(null)");
             return Mind_ALife.FALSE_in_double;
         }
-        output = ALifeCalcUtil.min_max_Normalization(//def is 4º caracteristic so 3 indix
-            this.creature.getDef(),
-            Active_ALife_Creature.creature_minCaracteristics[3],
-            Active_ALife_Creature.creature_maxCaracteristics[3]
-        );
-        output = ALifeCalcUtil.min_max_Normalization(output,
-            Mind_ALife.FALSE_in_double, Mind_ALife.TRUE_in_double);
+        synchronized(this.creature){
+            output = ALifeCalcUtil.min_max_Normalization(//def is 4º caracteristic so 3 indix
+                this.creature.getDef(),
+                Active_ALife_Creature.creature_minCaracteristics[3],
+                Active_ALife_Creature.creature_maxCaracteristics[3]
+            );
+            output = ALifeCalcUtil.min_max_Normalization(output,
+                Mind_ALife.FALSE_in_double, Mind_ALife.TRUE_in_double);
+        } // End synchronized(this.creature)
         return output;
     } // End public double activation()
         

@@ -84,7 +84,15 @@ public class Trace
             pos = p;
     } // End public void setPos(Point p)
 
-
+    /**
+     * public Long getTimeRest()
+     * 
+     * @param  None
+     * @return the timeRest
+     */
+    public Long getTimeRest(){
+        return this.timeRest;
+    }
 
     // End Getter and Setters - - - - - - - - - -
 

@@ -26,7 +26,7 @@ public abstract class Int_ALife_Creature extends Thread
     
     public static Long MARKREMANECE = 5L; //5 turns of mark detectable
     public static double DEFAULT_Max_Hungry_factor = 1.1;
-    public static long DEFAULT_Hungry_Humbral = 100;
+    public static long DEFAULT_Hungry_Umbral = 100;
     public static int DEFAULT_MEMArraySize = 5;
     public static long DEFAULT_Life_Turns = 100;
     
@@ -43,8 +43,8 @@ public abstract class Int_ALife_Creature extends Thread
     Long lifeDelay = Long.valueOf(ALife_Nutrient_Environment.DEFAULT_LifeDelay/2);
     long lifeExp = DEFAULT_Life_Turns * lifeDelay;
     
-    long livePoints = DEFAULT_Hungry_Humbral;
-    long livePointMax = DEFAULT_Hungry_Humbral;
+    long livePoints = DEFAULT_Hungry_Umbral;
+    long livePointMax = DEFAULT_Hungry_Umbral;
     long def, attack;
     
     long specieNumberID = -2; //-1 for corpses, -2 for no specie
@@ -62,8 +62,8 @@ public abstract class Int_ALife_Creature extends Thread
     double umbralDetection = 0L; //0..1, 0 = Min detection
     ArrayList<Trace> detectedTraces = new ArrayList<Trace>();
     
-    long humgryUmbral = DEFAULT_Hungry_Humbral;
-    long hungry = DEFAULT_Hungry_Humbral;
+    long humgryUmbral = DEFAULT_Hungry_Umbral;
+    long hungry = DEFAULT_Hungry_Umbral;
     
     
     int minReproductionGroup = 1;//min progenitors to have a baby
@@ -79,6 +79,11 @@ public abstract class Int_ALife_Creature extends Thread
     //int inNeurons, outNeurons, midNeurons, statusNeurons;
     //Long move_time; //delay betwen moves
     //more...
+    //To make easyest the serialization and concurrence
+    double innerN = 0;
+    double midN = 0;
+    double outN = 0;
+    double statusN = 0;
     
     //Methods ==================================================================================
     
@@ -176,6 +181,10 @@ public abstract class Int_ALife_Creature extends Thread
         }
         synchronized (mind){ //Mind change is a critical section
             this.mind = m;
+            innerN = m.getInnerN();
+            midN = m.getMidN();
+            outN = m.getOutN();
+            statusN = m.getStatusN();
         }
     } // End public void setMind(Mind_ALife m)
 
@@ -563,10 +572,10 @@ public abstract class Int_ALife_Creature extends Thread
         */
         //Mind_ALife
         if (c instanceof Active_ALife_Creature && c.mind != null){
-            caracArrayList.add((double)c.mind.getInnerN());
-            caracArrayList.add((double)c.mind.getMidN());
-            caracArrayList.add((double)c.mind.getOutN());
-            caracArrayList.add((double)c.mind.getStatusN());
+            caracArrayList.add((double)c.innerN);
+            caracArrayList.add((double)c.midN);
+            caracArrayList.add((double)c.outN);
+            caracArrayList.add((double)c.statusN);
         } else {
             caracArrayList.add(0.0);
             caracArrayList.add(0.0);
@@ -713,7 +722,7 @@ public abstract class Int_ALife_Creature extends Thread
         //lifeTime  more better
         VarTemporaldStatus = (double)c.lifeTime / c.lifeExp; //may be we need to normalize this values
         //hungry more better 
-        VarTemporaldStatus += ((double)c.hungry - DEFAULT_Hungry_Humbral)/DEFAULT_max_Hungry;
+        VarTemporaldStatus += ((double)c.hungry - DEFAULT_Hungry_Umbral)/DEFAULT_max_Hungry;
         //livePoints more better MAX 1
         VarTemporaldStatus += (double)c.livePoints / (double)c.livePointMax;
         //Reproduction group full better MAX 1
