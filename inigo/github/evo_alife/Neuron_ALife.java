@@ -1,6 +1,7 @@
 package inigo.github.evo_alife;
 
 import java.util.*;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Write a description of class Neuron_Alife here.
@@ -18,6 +19,8 @@ public class Neuron_ALife
      long neuron_ID = -1; // creature_ID + type(1 = inn, 2 = mid, 3 = status, 4 = out) + neuron_number (<1000)
      Int_ALife_Creature creature = null;
      Mind_ALife mind = null;
+
+     ReentrantLock lockNeuron;
      
      // type in mid out
      
@@ -48,6 +51,7 @@ public class Neuron_ALife
         if (ns == null || ns.isEmpty()) throw new IllegalArgumentException("Neuron_ALife: Neuron_ALife(ArrayList <Neuron_ALife> ns, Int_ALife_Creature c) ns == null || ns.isEmpty()");
         //double u = Mind_ALife.DEFAULT_u;
         //Double output = null; 
+        lockNeuron = new ReentrantLock();
         creature = c;
         mind = c.getMind();
         this.inputs = new ArrayList <Neuron_ALife>();
@@ -69,6 +73,7 @@ public class Neuron_ALife
     public Neuron_ALife (Neuron_ALife n) throws IllegalArgumentException{
         if (n == null) 
             throw new IllegalArgumentException("Neuron_ALife: Neuron_ALife(Neuron_ALife n) n.creature == null");
+        lockNeuron = new ReentrantLock();
         this.creature = n.creature;
         this.mind = n.mind;
         if (this.mind.inputNeurons == null || this.mind.inputNeurons.isEmpty()){
@@ -106,7 +111,8 @@ public class Neuron_ALife
      * @return None
      */
     public void reset(){
-        //synchronized (output){
+        lockNeuron.lock();
+        try{
             //For test
             if (this.creature.getMind() != this.mind){
                 int breackpoint = 1;
@@ -118,7 +124,9 @@ public class Neuron_ALife
             }
             //End test
             output = null;
-        //}
+        } finally {
+            lockNeuron.unlock();
+        }
     } // End public void reset()
     
     /**
@@ -129,22 +137,27 @@ public class Neuron_ALife
      * @return double the activation value of the neuron 0..1
      */
     public double activation(){
-        if (this.output != null) return output;
-        int i = 0;//Psoble checkeo nully empty 
-        double sum = u;
-        for(Neuron_ALife n:inputs){
-            //for test
-            //MultiTaskUtil.threadMsg("("+this.neuron_ID+")Neuron_ALife.activation() n = "+n.neuron_ID);
-            if (n != this){
-                if (n.getOutput() != null) {
-                    sum += n.getOutput() * weights.get(i);
-                } else {
-                    sum += n.activation() * weights.get(i);
-                }
-            } // End if (n != this)
-        }// End for(Neuron_ALife n:inputs) all inputs neurons
-        output = sum;
-        return sum;
+        lockNeuron.lock();
+        try{
+            if (this.output != null) return output;
+            int i = 0;//Psoble checkeo nully empty 
+            double sum = u;
+            for(Neuron_ALife n:inputs){
+                //for test
+                //MultiTaskUtil.threadMsg("("+this.neuron_ID+")Neuron_ALife.activation() n = "+n.neuron_ID);
+                if (n != this){
+                    if (n.getOutput() != null) {
+                        sum += n.getOutput() * weights.get(i);
+                    } else {
+                        sum += n.activation() * weights.get(i);
+                    }
+                } // End if (n != this)
+            }// End for(Neuron_ALife n:inputs) all inputs neurons
+            output = sum;
+        } finally {
+            lockNeuron.unlock();
+        }
+        return output;
     } // End public double activation()
     
     /**
@@ -162,56 +175,54 @@ public class Neuron_ALife
         // Based in back propagation algorithm
         if (weightupdate == null || stChange == null || weightupdate == 0L || stChange == 0L) return;
         if (this.inputs == null || this.inputs.isEmpty()) return; //No inputs neurons
-        /* DE OUT NEURON
-        this.u += u*enhanced * change * Mind_ALife.DEFAULT_u_changeFraction;
-        weights.replaceAll(d -> d + d * enhanced * change * Mind_ALife.DEFAULT_u_changeFraction);
-        */
         //u modificación por decidir
         //weights los que aportan mas de la media mejoran un x% y luego se acota para que la suma total de pesos sea 1
-
-        
         double changeValue = weightupdate * stChange;
-        for(int i = 0; i < this.inputs.size(); i++){
-            Neuron_ALife n = this.inputs.get(i);
-            //No propagation for status neurons inputs (endeless loop)
-            if (n instanceof Status_Neuron_ALife) continue; 
-            n.updateLearn(weightupdate * weights.get(i), uupdate, stChange);
-        }
-        //u makes some Neurons over others so we need change it carefully or we inactivate some neurons
-        //may be when a big update in a single action
-        //this.u = this.u + this.u* enhanced * change * Mind_ALife.DEFAULT_u_changeFraction;
+        lockNeuron.lock();
+        try{
+            for(int i = 0; i < this.inputs.size(); i++){
+                Neuron_ALife n = this.inputs.get(i);
+                //No propagation for status neurons inputs (endeless loop)
+                if (n instanceof Status_Neuron_ALife) continue; 
+                n.updateLearn(weightupdate * weights.get(i), uupdate, stChange);
+            }
+            //u makes some Neurons over others so we need change it carefully or we inactivate some neurons
+            //may be when a big update in a single action
+            //this.u = this.u + this.u* enhanced * change * Mind_ALife.DEFAULT_u_changeFraction;
 
-        //Detectar si es solo 1 accion
-            //modificación = modificación prevista / entrada (OJO 0)
-        //si no es 1 acción seguir y modificar u??
+            //Detectar si es solo 1 accion
+                //modificación = modificación prevista / entrada (OJO 0)
+            //si no es 1 acción seguir y modificar u??
         
-        for(int i = 0 ; i<weights.size(); i++){
-            if (inputs.get(i).getOutput() == null) continue;
-            double aux = weights.get(i);
-            //adjust each weight acording to the participation in output of the input neuron
-            //for test 
-            double viewOutputI = inputs.get(i).getOutput();
-            double viewFactor1 = changeValue *( (inputs.get(i).getOutput()*aux));
-            double viewFactor2 = this.output ;
-            double viewFactor3 = changeValue *( (inputs.get(i).getOutput()*aux)/this.output );
-            //end test
-            aux = aux + changeValue *( (inputs.get(i).getOutput()*aux) /this.output ); 
-            weights.set(i, aux);
-        }
+            for(int i = 0 ; i<weights.size(); i++){
+                if (inputs.get(i).getOutput() == null) continue;
+                double aux = weights.get(i);
+                //adjust each weight acording to the participation in output of the input neuron
+                //for test 
+                double viewOutputI = inputs.get(i).getOutput();
+                double viewFactor1 = changeValue *( (inputs.get(i).getOutput()*aux));
+                double viewFactor2 = this.output ;
+                double viewFactor3 = changeValue *( (inputs.get(i).getOutput()*aux)/this.output );
+                //end test
+                aux = aux + changeValue *( (inputs.get(i).getOutput()*aux) /this.output ); 
+                weights.set(i, aux);
+            }
         
-        double[] aux = this.weights.stream().mapToDouble(Double::doubleValue).toArray();
-        //double mean = ALifeCalcUtil.mean(aux);
-        //for (int i = 0; i < aux.length; i++){
-        //    if (aux[i] > mean) aux[i] = aux[i] + aux[i]* changeValue * Mind_ALife.DEFAULT_u_changeFraction;  
-        //    else aux[i] = aux[i] + aux[i]* changeValue * Mind_ALife.DEFAULT_Weight_changeFraction * Mind_ALife.DEFAULT_weight_changeUnderFraction;
-        //}
-        //ALifeCalcUtil.multiplyArrayByCte(null, chageValue)
-        aux = ALifeCalcUtil.normalizeArrayToTotal_1(aux);
+            double[] aux = this.weights.stream().mapToDouble(Double::doubleValue).toArray();
+            //double mean = ALifeCalcUtil.mean(aux);
+            //for (int i = 0; i < aux.length; i++){
+            //    if (aux[i] > mean) aux[i] = aux[i] + aux[i]* changeValue * Mind_ALife.DEFAULT_u_changeFraction;  
+            //    else aux[i] = aux[i] + aux[i]* changeValue * Mind_ALife.DEFAULT_Weight_changeFraction * Mind_ALife.DEFAULT_weight_changeUnderFraction;
+            //}
+            //ALifeCalcUtil.multiplyArrayByCte(null, chageValue)
+            aux = ALifeCalcUtil.normalizeArrayToTotal_1(aux);
 
-        ArrayList <Double> auxAL = new ArrayList <Double>();
-        Arrays.stream(aux).forEach(value -> auxAL.add(value));
-        this.weights = auxAL;
-        
+            ArrayList <Double> auxAL = new ArrayList <Double>();
+            Arrays.stream(aux).forEach(value -> auxAL.add(value));
+            this.weights = auxAL;
+        } finally {
+            lockNeuron.unlock();
+        }    
     } // End public void updateLearn(Double enhanced, Double change)
     
     /**
@@ -222,51 +233,37 @@ public class Neuron_ALife
     * @return None
     */
     public synchronized void normalizeWeights(){
-        double[] aux = ALifeCalcUtil.normalizeArrayToTotal_1(this.weights.stream().mapToDouble(Double::doubleValue).toArray());
-        ArrayList <Double> auxAL = new ArrayList <Double>();
-        Arrays.stream(aux).forEach(value -> auxAL.add(value));
-        //Arrays.stream(aux).forEach(value -> auxAL.add(value*(1-this.u))); // for output in 0..1
-        this.weights = auxAL;
+        lockNeuron.lock();
+        try{
+            double[] aux = ALifeCalcUtil.normalizeArrayToTotal_1(this.weights.stream().mapToDouble(Double::doubleValue).toArray());
+            ArrayList <Double> auxAL = new ArrayList <Double>();
+            Arrays.stream(aux).forEach(value -> auxAL.add(value));
+            //Arrays.stream(aux).forEach(value -> auxAL.add(value*(1-this.u))); // for output in 0..1
+            this.weights = auxAL;
+        } finally {
+            lockNeuron.unlock();
+        }
     } // End public Neuron_ALife normalizeWeights()
 
+    //Test Dudoso
     /**
-     * public static Neuron_ALife dupeNeuron_ALife(Neuron_ALife n)
+     * public Neuron_ALife dupeNeuron_ALife()
      * 
      * Returns a copy of this neuron
-     * @param  n Neuron_ALife the neuron to copy
-     * @return Neuron_ALife the copy of the neuron
-     
-    public static Neuron_ALife dupeNeuron_ALife(Neuron_ALife n){
-         // Returns a copy of this neuron
-         //Check
-        if (n == null) return null;
-        if (n instanceof Out_Neuron_ALife){
-            Out_Neuron_ALife n_Out = Out_Neuron_ALife.dupeNeuron_ALife((Out_Neuron_ALife)n);
-            return n_Out;
-        }
-        if (n instanceof Status_Neuron_ALife){
-            Status_Neuron_ALife n_Status = Status_Neuron_ALife.dupeNeuron_ALife((Status_Neuron_ALife)n);
-            return n_Status;
-        }
-        //inn and mid can be cloned with the standar method
-        if(n instanceof Input_Neuron_ALife){
-            Input_Neuron_ALife n_In = Input_Neuron_ALife.dupeNeuron_ALife((Input_Neuron_ALife)n);
-            return n_In;
-        }
-        //Default
-        Neuron_ALife n2 = new Neuron_ALife(n);     
-        return n2;
-    } // End public static Neuron_ALife dupeNeuron_ALife(Neuron_ALife n)
-*/
-    //Test Dudoso
+     * @param  None
+     * @return Neuron_ALife a copy of this neuron
+     */
     public Neuron_ALife dupeNeuron_ALife(){
          // Returns a copy of this neuron
          //Check
          Neuron_ALife newN = null;
+         lockNeuron.lock();
          try{
             newN = new Neuron_ALife(this);
          } catch (IllegalArgumentException e){
              MultiTaskUtil.threadMsg("Neuron_ALife.dupeNeuron_ALife() IllegalArgumentException e");
+         }finally {
+             lockNeuron.unlock();
          }
          return newN;
     } // End public static Neuron_ALife dupeNeuron_ALife(Neuron_ALife n)
@@ -280,8 +277,13 @@ public class Neuron_ALife
      * @return Double the output of the neuron
      */
     public Double getOutput(){
-        return output;
-    }
+        lockNeuron.lock();
+        try{
+            return output;
+        } finally {
+            lockNeuron.unlock();
+        }
+    } // End public Double getOutput()
 
     /**
      * public void setNeuron_ID(long neuron_ID)
@@ -291,7 +293,12 @@ public class Neuron_ALife
      * @return None
      */
     public void setNeuron_ID(long neuron_ID){
-        this.neuron_ID = neuron_ID; // -1 is a neuron out of any mind for moment
+        lockNeuron.lock();
+        try{
+            this.neuron_ID = neuron_ID; // -1 is a neuron out of any mind for moment
+        } finally {
+            lockNeuron.unlock();
+        }
     } // End public void setNeuron_ID(long neuron_ID)
     
     /**
@@ -302,7 +309,12 @@ public class Neuron_ALife
      * @return  - long the neuron_ID of the neuron
      */
     public synchronized long getNeuron_ID(){
-        return this.neuron_ID; // -1 is a neuron out of any mind for moment
+        lockNeuron.lock();
+        try{
+            return this.neuron_ID; // -1 is a neuron out of any mind for moment
+        } finally {
+            lockNeuron.unlock();
+        }
     } // End public void setNeuron_ID(long neuron_ID)
 
 
@@ -319,36 +331,41 @@ public class Neuron_ALife
         if (mind == null) return;
         //Check if all inputs neurons are into the mind other way force it
         boolean inputsIntoMind = true;
-        for (Neuron_ALife n: this.inputs){
-            if (n.mind != mind) inputsIntoMind = false;
-        }
-        if (inputsIntoMind) this.mind = mind;
-        else{
-            //New inputs and weights on this mind
-            ArrayList <Neuron_ALife> newInputs = new ArrayList <Neuron_ALife>();
-            ArrayList <Double> newWeights = new ArrayList <Double>();
-            if (this.inputs.size() == mind.allNeurons.size() - mind.outputNeurons.size()){
-                //All inputs neurons are into the mind
-                for (Neuron_ALife n: mind.allNeurons){
-                    if ( !(n instanceof Out_Neuron_ALife) ){
-                        newInputs.add(n);
-                        //weights are ok;
-                    };
-                }
-                inputs = newInputs;
-                //weights are ok (No need weights = newWeights;)
-            } else { //diferente number or correct inputs and weights
-                for (Neuron_ALife n: mind.allNeurons){
-                    if ( !(n instanceof Out_Neuron_ALife) ){
-                        newInputs.add(n);
-                        newWeights.add((double)(1/(mind.allNeurons.size() - mind.outputNeurons.size())));
-                    };
-                }
-                inputs = newInputs;
-                weights = newWeights;
+        lockNeuron.lock();
+        try{ //Not sure too much iteractions with mind Alife
+            for (Neuron_ALife n: this.inputs){
+                if (n.mind != mind) inputsIntoMind = false;
             }
+            if (inputsIntoMind) this.mind = mind;
+            else{
+                //New inputs and weights on this mind
+                ArrayList <Neuron_ALife> newInputs = new ArrayList <Neuron_ALife>();
+                ArrayList <Double> newWeights = new ArrayList <Double>();
+                if (this.inputs.size() == mind.allNeurons.size() - mind.outputNeurons.size()){
+                    //All inputs neurons are into the mind
+                    for (Neuron_ALife n: mind.allNeurons){
+                        if ( !(n instanceof Out_Neuron_ALife) ){
+                            newInputs.add(n);
+                            //weights are ok;
+                        };
+                    }
+                    inputs = newInputs;
+                    //weights are ok (No need weights = newWeights;)
+                } else { //diferente number or correct inputs and weights
+                    for (Neuron_ALife n: mind.allNeurons){
+                        if ( !(n instanceof Out_Neuron_ALife) ){
+                            newInputs.add(n);
+                            newWeights.add((double)(1/(mind.allNeurons.size() - mind.outputNeurons.size())));
+                        };
+                    }
+                    inputs = newInputs;
+                    weights = newWeights;
+                }
            
-        }// end else of  if (inputsIntoMind)
+            }// end else of  if (inputsIntoMind)
+        } finally {
+            lockNeuron.unlock();
+        }
     } // End public void setMind(Mind_ALife mind)
 
     /**
@@ -359,7 +376,12 @@ public class Neuron_ALife
      * @return Mind_ALife the mind of the neuron
      */
     public Mind_ALife getMind(){
-        return mind;
+        lockNeuron.lock();
+        try{
+            return mind;
+        } finally {
+            lockNeuron.unlock();
+        }
     } // End public Mind_ALife getMind()
 
     /**
@@ -370,7 +392,13 @@ public class Neuron_ALife
      * @return None
      */
     public synchronized void setCreature(Int_ALife_Creature creature){
-        this.creature = creature;
+        lockNeuron.lock();
+        try{
+            this.creature = creature;
+        } finally {
+            lockNeuron.unlock();
+        }
+        //this.creature = creature;
     } // End public void setCreature(Int_ALife_Creature creature)
 
     /**
@@ -381,7 +409,13 @@ public class Neuron_ALife
      * @return Int_ALife_Creature the creature of the neuron
      */
     public synchronized Int_ALife_Creature getCreature(){
-        return creature;
+        lockNeuron.lock();
+        try{
+            return creature;
+        } finally {
+            lockNeuron.unlock();
+        }
+        //return creature;
     } // End public Int_ALife_Creature getCreature()
 
     /**
@@ -392,7 +426,13 @@ public class Neuron_ALife
      * @return ArrayList<Neuron_ALife> the inputs neurons of the neuron
      */
     public synchronized ArrayList<Neuron_ALife> getInputs(){
-        return inputs;
+        lockNeuron.lock();
+        try{
+            return inputs;
+        } finally {
+            lockNeuron.unlock();
+        }
+        //return inputs;
     }// End public synchronized ArrayList<Neuron_ALife> getInputs()
 
     // Private Methods and Fuctions =============

@@ -27,6 +27,7 @@ public class ALive_FileManager extends Thread{
     //Attributes
     private final Lock lockFileManager;
     private CSVWriter writer;
+    private boolean writerOpen = false;
     private List <String[]> dataIn = new ArrayList<String[]>();
     private List <String[]> dataOut = new ArrayList<String[]>();
     private long cont = 0;
@@ -67,6 +68,7 @@ public class ALive_FileManager extends Thread{
         }
         //CSVWriter writer = new CSVWriter(new FileWriter("output.csv"));
         this.writer = new CSVWriter(new FileWriter(fileName+formattedNumber+".csv"));
+        this.writerOpen = true;
         this.caller = caller;
         this.env = caller.get_Env_Alife();
         cont = 0;
@@ -105,6 +107,7 @@ public class ALive_FileManager extends Thread{
                 e.printStackTrace();
             }
         }
+        close();     
     } // End public void run()
 
     //Generar metodo publico para agregar nuevas lineas al archivo
@@ -153,8 +156,8 @@ public class ALive_FileManager extends Thread{
      * @ return - None
      */
     public void close(){
-        this.forceWrite();
         try {
+            this.forceWrite();
             writer.close();
             lockFileManager.lock();
             try {
@@ -163,6 +166,8 @@ public class ALive_FileManager extends Thread{
                 lockFileManager.unlock();
             }
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
             e.printStackTrace();
         }
     } // End public void close()
