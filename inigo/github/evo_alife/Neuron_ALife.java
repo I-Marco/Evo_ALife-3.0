@@ -23,7 +23,7 @@ public class Neuron_ALife
      ReentrantLock lockNeuron;
      
      // type in mid out
-     
+     º
     // Methods ---------------------------------------------------------------------------
     // Constructors ============================
     // necesitamos varios constructores un por defecto, otro que marque las entradas....
@@ -34,7 +34,22 @@ public class Neuron_ALife
      * 
      * Empty constructor
      */
-    public Neuron_ALife() {}
+    public Neuron_ALife() {
+        lockNeuron = new ReentrantLock();
+        this.inputs = new ArrayList <Neuron_ALife>();
+        this.weights = new ArrayList<Double>();
+    } // End public Neuron_ALife()
+    
+    public Neuron_ALife(Int_ALife_Creature c) throws IllegalArgumentException{
+        //Checks
+        if (c==null) throw new IllegalArgumentException("Neuron_ALife: Neuron_ALife(Int_ALife_Creature c) c == null");
+        lockNeuron = new ReentrantLock();
+        creature = c;
+        mind = c.getMind();
+        this.inputs = new ArrayList <Neuron_ALife>();
+        this.weights = new ArrayList<Double>();
+        //this.neuron_ID = this.mind.getNewNeuronID(this); Autoassing in Mind cration
+    } // End public Neuron_ALife(Int_ALife_Creature c)
 
     
     

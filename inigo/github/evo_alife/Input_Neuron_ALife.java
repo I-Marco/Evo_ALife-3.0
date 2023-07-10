@@ -41,6 +41,18 @@ public class Input_Neuron_ALife extends Neuron_ALife{
         if (!input_Neuron_ALife_Order.contains(n)) input_Neuron_ALife_Order.add(n); //No Funciona
     } // End public Input_Neuron_ALife(Input_Neuron_ALife n)
 
+    /**
+     * public Input_Neuron_ALife(Int_ALife_Creature c)
+     * 
+     * Default constructor of the class
+     * @param c Int_ALife_Creature the creature that owns the neuron
+     * @return None
+     */
+    public Input_Neuron_ALife(Int_ALife_Creature c){
+        super(c);
+        if (!input_Neuron_ALife_Order.contains(this)) input_Neuron_ALife_Order.add(this);
+    } // End public Input_Neuron_ALife(Input_Neuron_ALife n)
+
     // Public Methods and Fuctions ==============
 
     /**
@@ -102,14 +114,19 @@ public class Input_Neuron_ALife extends Neuron_ALife{
 
     //Test Dudoso
     public Input_Neuron_ALife dupeNeuron_ALife(){
-        Input_Neuron_ALife newN = null;
+        this.lockNeuron.lock();
         try{
-            newN = new Input_Neuron_ALife(this); 
-        } catch (Exception e){
-            System.out.println("Error in dupeNeuron_ALife: " + e);
-            return null;
+            Input_Neuron_ALife newN = null;
+            try{
+                newN = new Input_Neuron_ALife(this); 
+            } catch (Exception e){
+                System.out.println("Error in dupeNeuron_ALife: " + e);
+                return null;
+            }
+            return newN;
+        }finally{
+            this.lockNeuron.unlock();
         }
-        return newN;
     } // End public static Reproductable_Neuron_ALife dupeNeuron_ALife(Reproductable_Neuron_ALife n)
 
 

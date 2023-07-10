@@ -77,23 +77,23 @@ public class Out_Neuron_ALife extends Neuron_ALife
 
     // Public Methods and Fuctions ==============
     
-    /**
-     * public static Out_Neuron_ALife dupeNeuron_ALife(Out_Neuron_ALife n)
-     * 
-     * Static method to dupe a neuron
-     * @param n Out_Neuron_ALife the neuron to dupe
-     * @return Out_Neuron_ALife the new neuron
-     */
-    public static Out_Neuron_ALife dupeNeuron_ALife(Out_Neuron_ALife n){
-        if (n == null) return null;
-        Out_Neuron_ALife newN = new Out_Neuron_ALife(n);
-        return newN;
-    }
 
     //Test Dudoso
+    /**
+     * public Out_Neuron_ALife dupeNeuron_ALife()
+     * 
+     * Copy or dupe a neuron
+     * @param   None
+     * @return  Out_Neuron_ALife the new neuron
+     */
     public Out_Neuron_ALife dupeNeuron_ALife(){
-        Out_Neuron_ALife newN = new Out_Neuron_ALife(this);
-        return newN;
+        this.lockNeuron.lock();
+        try{
+            Out_Neuron_ALife newN = new Out_Neuron_ALife(this);
+            return newN;
+        }finally{
+            this.lockNeuron.unlock();
+        }
     }// End public Out_Neuron_ALife dupeNeuron_ALife()
 
     /**
@@ -108,24 +108,6 @@ public class Out_Neuron_ALife extends Neuron_ALife
         return (n1.action.ordinal() > n2.action.ordinal());
     } // End public static boolean isBiggerThan(Input_Neuron_ALife n1, Input_Neuron_ALife n2)
 
-
-    /**
-     * public void reset()
-     * 
-     * Overrided Reset the neuron from Neuron_ALife
-     * @param   None
-     * @return  None
-     * 
-     */
-    /*
-    @Override
-    public void reset(){
-        //synchronized (output){
-            output = null;
-        //}
-    }
-    */
-
     /**
      * public double activation()
      * 
@@ -135,56 +117,41 @@ public class Out_Neuron_ALife extends Neuron_ALife
      */
     @Override
     public double activation(){
-        if (output != null) return output;
-        //For test BIRTH detection
-        if (this.action ==  Mind_ALife.Action.REPRODUCE){
-            int breack = 1;
-            if (this.creature.getReproductable()){
-                breack = 2;
+        this.lockNeuron.lock();
+        try{
+            if (output != null) return output;
+            //For test BIRTH detection
+            if (this.action ==  Mind_ALife.Action.REPRODUCE){
+                int breack = 1;
+                if (this.creature.getReproductable()){
+                    breack = 2;
+                }
             }
+            // End test
+            int i = 0;
+            double sum = u;
+             for(Neuron_ALife n:inputs){
+                //for test
+                //MultiTaskUtil.threadMsg("("+this.neuron_ID+")Neuron_ALife.activation() n = "+n.neuron_ID); 
+
+                if (n!= this){
+                    //for test - First time run may be weights unnormalized
+                    double aux = n.activation();
+                    double aux2 = weights.get(i);
+                    sum += aux * aux2;
+                    int breackpoint = 1;
+                    //End test the good is next line
+                    //sum += n.activation() * weights.get(i); //on when test out
+                } // End if (n!= this)
+                i++;
+            }
+            output = sum;
+            return sum;
+        }finally{
+            this.lockNeuron.unlock();
         }
-        // End test
-        int i = 0;
-        double sum = u;
-         for(Neuron_ALife n:inputs){
-            //for test
-            //MultiTaskUtil.threadMsg("("+this.neuron_ID+")Neuron_ALife.activation() n = "+n.neuron_ID); 
-
-            if (n!= this){
-                //for test - First time run may be weights unnormalized
-                double aux = n.activation();
-                double aux2 = weights.get(i);
-                sum += aux * aux2;
-                int breackpoint = 1;
-                //End test the good is next line
-                //sum += n.activation() * weights.get(i); //on when test out
-            } // End if (n!= this)
-            i++;
-        }
-        output = sum;
-        return sum;
-    }
-    
-    /**
-     * public void updateLearn(Double enhanced, Double change)
-     * 
-     * Overrided updateLearn method from Neuron_ALife, udate the neuron weights and bias 
-     * based in enhanced and change
-     * @param   weightupdate Double the enhanced value
-     * @param   uupdate Double the change value
-     * @param   change Double the change value
-     * @return  None
-     */
-    /*
-    @Override
-    public void updateLearn(Double weightupdate, Double uupdate, Double change){
-        // Based in back propagation algorithm
-        super.updateLearn(weightupdate, uupdate, change);
-
-    } // End public void updateLearn(Double enhanced, Double change)
-
-    */
-    
+    } // End public double activation()
+      
     // Getter and setters -----------------------
 
     /**
@@ -195,11 +162,17 @@ public class Out_Neuron_ALife extends Neuron_ALife
      * @return  Mind_ALife.Action the action of this neuron
      */
     public Mind_ALife.Action getAction(){
-        return this.action;
+        this.lockNeuron.lock();
+        try{
+            return this.action;
+        }finally{
+            this.lockNeuron.unlock();
+        }
+        //return this.action;
     }
     // Private Methods and Fuctions =============
 
     // Main if needed --------------------------------------------------------------------
     
     
-} // End Class
+} // End public class Out_Neuron_ALife extends Neuron_ALife

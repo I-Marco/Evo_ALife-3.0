@@ -37,7 +37,12 @@ public class Detect_RResource_Neuron_ALife extends Input_Neuron_ALife
         if (c==null) {
             return; //(For moment we dont contemps unowned neurons
         }
-        this.creature = c;
+        this.lockNeuron.lock();
+        try{
+            this.creature = c;
+        }finally{
+            this.lockNeuron.unlock();
+        }
     } // End public RResourceDetection_Neuron_ALife(Int_ALife_Creature c)
     
     // Public Methods and Fuctions ==============
@@ -50,15 +55,20 @@ public class Detect_RResource_Neuron_ALife extends Input_Neuron_ALife
      */
     @Override
     public double activation(){
-        if (this.output != null) return output;
+        this.lockNeuron.lock();
+        try{
+            if (this.output != null) return output;
         
-        output = Mind_ALife.FALSE_in_double;
-        Point pos = this.creature.getPos();
-        synchronized(this.creature.getEnv_ALife().getLand()){
-            int[] food = this.creature.getEnv_ALife().getLand().getNutrientIn(pos.x, pos.y);
-            if (food[0] > 0) output = Mind_ALife.TRUE_in_double;
+            output = Mind_ALife.FALSE_in_double;
+            Point pos = this.creature.getPos();
+            
+                int[] food = this.creature.getEnv_ALife().getLand().getNutrientIn(pos.x, pos.y);
+                if (food[0] > 0) output = Mind_ALife.TRUE_in_double;
+            
+            return output;
+        } finally {
+            this.lockNeuron.unlock();
         }
-        return output;
     }
         
     /**
@@ -68,8 +78,13 @@ public class Detect_RResource_Neuron_ALife extends Input_Neuron_ALife
      * @return Detect_RResource_Neuron_ALife the copy of this neuron
      */
     public Detect_RResource_Neuron_ALife dupeNeuron_ALife(){
-        Detect_RResource_Neuron_ALife newN = new Detect_RResource_Neuron_ALife(this);
-        return newN;
+        this.lockNeuron.lock();
+        try{
+            Detect_RResource_Neuron_ALife newN = new Detect_RResource_Neuron_ALife(this);
+            return newN;
+        } finally {
+            this.lockNeuron.unlock();
+        }
     } // End public static RResourceDetection_Neuron_ALife dupeNeuron_ALife(RResourceDetection_Neuron_ALife n)
 
 

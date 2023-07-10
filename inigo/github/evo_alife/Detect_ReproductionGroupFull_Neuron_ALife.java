@@ -52,21 +52,26 @@ public class Detect_ReproductionGroupFull_Neuron_ALife extends Input_Neuron_ALif
      */
     @Override
     public double activation(){ 
-        if (this.output != null) return output;
-        //1 if reproduction group is full, 0 if its empty
-        //check
-        synchronized (this.creature.getReproductionGroup()){
-            if (this.creature.getReproductionGroup() == null) {
-                this.creature.reproductionGroup = new ArrayList <Int_ALife_Creature>();
-            }        
+        this.lockNeuron.lock();
+        try{    
+            if (this.output != null) return output;
+            //1 if reproduction group is full, 0 if its empty
+            //check
+            
+                if (this.creature.getReproductionGroup() == null) {
+                    this.creature.reproductionGroup = new ArrayList <Int_ALife_Creature>();
+                }        
 
-            output = ALifeCalcUtil.min_max_Normalization(
-                this.creature.getReproductionGroup().size(),
-                0, this.creature.getMinReproductionGroup());
-            output = ALifeCalcUtil.min_max_Normalization(output,
-                Mind_ALife.FALSE_in_double, Mind_ALife.TRUE_in_double);
+                output = ALifeCalcUtil.min_max_Normalization(
+                    this.creature.getReproductionGroup().size(),
+                    0, this.creature.getMinReproductionGroup());
+                output = ALifeCalcUtil.min_max_Normalization(output,
+                    Mind_ALife.FALSE_in_double, Mind_ALife.TRUE_in_double);
+            
+            return output;
+        }finally{
+            this.lockNeuron.unlock();
         }
-        return output;
     } // End public double activation()
         
     /**
@@ -85,13 +90,18 @@ public class Detect_ReproductionGroupFull_Neuron_ALife extends Input_Neuron_ALif
 
     //Test Dudoso
     public Detect_ReproductionGroupFull_Neuron_ALife dupeNeuron_ALife(){
-        //Its not override since input and output parameters classes are diferent
-        Detect_ReproductionGroupFull_Neuron_ALife newN = new Detect_ReproductionGroupFull_Neuron_ALife(this);
-        return newN;
+        this.lockNeuron.lock();
+        try{
+            //Its not override since input and output parameters classes are diferent
+            Detect_ReproductionGroupFull_Neuron_ALife newN = new Detect_ReproductionGroupFull_Neuron_ALife(this);
+            return newN;
+        }finally{
+            this.lockNeuron.unlock();
+        }
     } // End public BResourceDetection_Neuron_ALife dupeNeuron_ALife()
 
     // Getter and setters
 
     // Private Methods and Fuctions =============
     
-} // End Class
+} // End public class BResourceDetection_Neuron_ALife extends Input_Neuron_ALife

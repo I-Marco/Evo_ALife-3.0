@@ -57,44 +57,45 @@ public class Status_Neuron_ALife extends Neuron_ALife {
      */
     @Override
     public double activation(){
-        if (output != null) return output;
-        this.output = Double.valueOf(this.neuron_status);
-        return this.output;
+        this.lockNeuron.lock();
+        try{
+            if (output != null) return output;
+            this.output = Double.valueOf(this.neuron_status);
+            return this.output;
+        }finally{
+            this.lockNeuron.unlock();
+        }
     } // End public double activation()}
 
+    /**
+     * public void reset()
+     * 
+     * Reset the neuron
+     * @param None
+     * @return None
+     */
     public void reset(){
         //Status neurons are not reseted. They evaluate their status value in reset()
-        //synchronized (output){
-            //For test
-        if (this.neuron_ID == -1) {
+        this.lockNeuron.lock();
+        try{
+            if (this.neuron_ID == -1) {
                 int breackpoint = 1;
                 MultiTaskUtil.threadMsg("From Neuron_ALife.reset() this.neuron_ID == -1 ");
             }
             //End test
 
-        int i = 0;
-        double sum = 0;
-        for(Neuron_ALife n:inputs){
-            sum += n.activation() * weights.get(i);
-        } // End for(Neuron_ALife n:inputs) All inputs are added
-        this.neuron_status = this.neuron_status * this.u + sum * (1 - this.u); //u in this type of neuron is the stautus update rate
-        output = this.neuron_status;
-        //}
+            int i = 0;
+            double sum = 0;
+            for(Neuron_ALife n:inputs){
+                sum += n.activation() * weights.get(i);
+            } // End for(Neuron_ALife n:inputs) All inputs are added
+            this.neuron_status = this.neuron_status * this.u + sum * (1 - this.u); //u in this type of neuron is the stautus update rate
+            output = this.neuron_status;
+        } finally {
+            this.lockNeuron.unlock();
+        }
     } // End public void reset()
-
-    /**
-     * public static Status_Neuron_ALife dupeNeuron_ALife(Status_Neuron_ALife n)
-     * 
-     * Static method to dupe a neuron
-     * @param n Status_Neuron_ALife the neuron to dupe
-     * @return Status_Neuron_ALife the new neuron
-     
-    public static Status_Neuron_ALife dupeNeuron_ALife(Status_Neuron_ALife n){
-        if (n == null) return null;
-        Status_Neuron_ALife newN = new Status_Neuron_ALife(n);
-        return newN;
-    } */
-
+  
     /**
      * public Status_Neuron_ALife dupeNeuron_ALife()
      * 
@@ -103,7 +104,14 @@ public class Status_Neuron_ALife extends Neuron_ALife {
      * @return Status_Neuron_ALife the new neuron
      */
     public Status_Neuron_ALife dupeNeuron_ALife(){
-        Status_Neuron_ALife newN = new Status_Neuron_ALife(this);
-        return newN;
+        this.lockNeuron.lock();
+        try{
+            Status_Neuron_ALife newN = new Status_Neuron_ALife(this);
+            return newN;
+        }finally{
+            this.lockNeuron.unlock();
+        }
+        //Status_Neuron_ALife newN = new Status_Neuron_ALife(this);
+        //return newN;
     }
 } // End public class Status_Neuron_ALife extends Neuron_ALife

@@ -35,6 +35,7 @@ public class Detect_Reproductable_Neuron_ALife extends Input_Neuron_ALife
      * @param c Int_ALife_Creature the creature that owns the neuron
      */
     public Detect_Reproductable_Neuron_ALife(Int_ALife_Creature c){
+        super(c);
         //Checks
         if (c==null) {
             return; //(For moment we dont contemps unowned neurons

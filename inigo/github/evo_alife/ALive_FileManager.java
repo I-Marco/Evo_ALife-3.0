@@ -156,9 +156,11 @@ public class ALive_FileManager extends Thread{
      * @ return - None
      */
     public void close(){
+        if (!writerOpen) return;
         try {
             this.forceWrite();
             writer.close();
+            this.writerOpen = false;
             lockFileManager.lock();
             try {
                 running = false;
