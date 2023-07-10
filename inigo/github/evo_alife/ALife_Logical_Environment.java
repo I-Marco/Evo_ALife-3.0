@@ -1,6 +1,7 @@
 package inigo.github.evo_alife;
 
 import java.util.*;
+import java.util.concurrent.locks.ReentrantLock;
 import java.awt.*;
 
 /**
@@ -19,8 +20,11 @@ public class ALife_Logical_Environment extends Thread
     ArrayList<Int_ALife_Creature>[][] observers;
     ArrayList<Trace>[][] traces;
 
-     private final Object lock = new Object();
-    
+    private final Object lock = new Object();
+    private final ReentrantLock lockLogicalEnv; // For logical enviroment Complet
+    private final ReentrantLock lockLogicalOcupiers; // For logical ocupiers Complet
+    private final ReentrantLock lockLogicalObservers; // For logical observers
+    private final ReentrantLock lockLogicalTraces; // For logical traces
     // Methods --------------------------------------------------------------------------
     // Construcotors ============================
     /**
@@ -30,7 +34,13 @@ public class ALife_Logical_Environment extends Thread
      */
     public ALife_Logical_Environment(Env_ALife e){
         env_ALife = e;
+        lockLogicalEnv = new ReentrantLock();
+        lockLogicalOcupiers = new ReentrantLock();
+        lockLogicalObservers = new ReentrantLock();
+        lockLogicalTraces = new ReentrantLock();
         //create the arrays for ArrayList elements
+        lockLogicalEnv.lock();
+        try{
         int with = e.getLand().getLandImg().getWidth();
         int height = e.getLand().getLandImg().getHeight();
         ocupiers = new ArrayList[with][height]; // Unchecked assignment No puedo corregirlo
@@ -41,7 +51,10 @@ public class ALife_Logical_Environment extends Thread
                     ocupiers[i][j] = new ArrayList<Int_ALife_Creature>();
                     observers[i][j] = new ArrayList<Int_ALife_Creature>();
                     traces[i][j] = new ArrayList<Trace>();
-            }
+        }
+        }finally{
+            lockLogicalEnv.unlock();
+        }
     } // End public ALife_Logical_Environment(Env_ALife e)
     
     // End Construcotors ========================
@@ -49,7 +62,8 @@ public class ALife_Logical_Environment extends Thread
     // Public Methods and Fuctions ==============
     public synchronized void run(){
         if (this.env_ALife != null) return; //For hard test
-        synchronized (lock) {
+        lockLogicalTraces.lock();
+        try{
             int width = this.env_ALife.getLand().getLandImg().getWidth();
             int height = this.env_ALife.getLand().getLandImg().getHeight();
             ArrayList<Trace>[][] auxTracesMatrix = new ArrayList[width][height];
@@ -67,6 +81,9 @@ public class ALife_Logical_Environment extends Thread
                             MultiTaskUtil.threadMsg("Error in Creation of new Matrix run de trace."+e.getMessage());
                     }
             }
+        }finally{
+            lockLogicalTraces.unlock();
+        }
             /*
             //update traces life time      
             //ArrayList<Trace>[][] traces;
@@ -88,7 +105,6 @@ public class ALife_Logical_Environment extends Thread
                 }
             }
             */
-        } // End synchronized (lock)
     } // End public synchronized void run()
 
     // Getter and Setters - - - - - - - - - - - -
@@ -99,10 +115,16 @@ public class ALife_Logical_Environment extends Thread
      * @param  None
      * @return None
      */
-    public synchronized Object getTraces(){
+    public Object getTraces(){
+        //Danger
+        lockLogicalTraces.lock();
+        try{
             return this.traces;
+        }finally{
+            lockLogicalTraces.unlock();
+        }
             //May be we need new class for traces
-    }
+    } // End public void getTraces()
     
     // End Getter and Setters - - - - - - - - - -
     
@@ -112,23 +134,39 @@ public class ALife_Logical_Environment extends Thread
      * @param c
      * @param p
      */
-    public synchronized void addCreatureToLogEnv(Int_ALife_Creature c,Point p){
+    public void addCreatureToLogEnv(Int_ALife_Creature c,Point p){
         //Check
         if (c == null || p == null){
             int breakpoint = 1 ;
             MultiTaskUtil.threadMsg("Aborto, falta creature o Point.");
             return; //aborto
         }
-        if (p.x < 0 || p.x > (this.ocupiers.length - 1) || p.y < 0 || p.y > (this.ocupiers[0].length - 1)){
-            return;
+        boolean addTrace = false;
+        lockLogicalOcupiers.lock();
+        try{
+            if (p.x < 0 || p.x > (this.ocupiers.length - 1) || p.y < 0 || p.y > (this.ocupiers[0].length - 1)){
+                return;
+            }
+            if (ocupiers[p.x][p.y] == null) {
+                ocupiers[p.x][p.y] = new ArrayList<Int_ALife_Creature>(); 
+            }
+            if (ocupiers[p.x][p.y].isEmpty()){ 
+                addTrace = true;
+                ocupiers[p.x][p.y].add(c);
+            }
+        }finally{
+            lockLogicalOcupiers.unlock();
         }
-        if (ocupiers[p.x][p.y] == null) {
-            ocupiers[p.x][p.y] = new ArrayList<Int_ALife_Creature>(); 
+        if (addTrace){
+            lockLogicalTraces.lock();
+            try{
+                this.addTrace(c.getCreatureTrace(), c.getPos());
+            }finally{
+                lockLogicalTraces.unlock();
+            }
         }
-        if (ocupiers[p.x][p.y].isEmpty()){ 
 
-            ocupiers[p.x][p.y].add(c);
-            this.addTrace(c.getCreatureTrace(), c.getPos());
+        if (addTrace){
             //traces[p.x][p.y].add(c.getCreatureTrace());
             //for faster processing
             int w = c.getEnv_ALife().getEnv_Width();
@@ -136,22 +174,26 @@ public class ALife_Logical_Environment extends Thread
             int r = c.getDetectionRange();
             
             int x,y; 
-            //observers updating (self) --> this.addCreature(c, p); detection range + 1 --> clenning old self observer marks
-            for (int i = p.x - r - 1; i <= (p.x +  r + 1); i++)
-                for (int j = p.y - r - 1; j <= (p.y +  r + 1); j++)
-            {   x = (i + w) % w; y = (j + h) % h;
-                if (observers[x][y] == null) observers[x][y] = new ArrayList<Int_ALife_Creature>();
-                if ((double)r >= p.distance(x, y)){
-                    observers[x][y].add(c);
-                }else {
-                    if (observers[x][y].contains(c)) observers[x][y].remove(c);
+            lockLogicalObservers.lock();
+            try{
+                //observers updating (self) --> this.addCreature(c, p); detection range + 1 --> clenning old self observer marks
+                for (int i = p.x - r - 1; i <= (p.x +  r + 1); i++)
+                    for (int j = p.y - r - 1; j <= (p.y +  r + 1); j++)
+                {   x = (i + w) % w; y = (j + h) % h;
+                    if (observers[x][y] == null) observers[x][y] = new ArrayList<Int_ALife_Creature>();
+                    if ((double)r >= p.distance(x, y)){
+                        observers[x][y].add(c);
+                    }else {
+                        if (observers[x][y].contains(c)) observers[x][y].remove(c);
+                    }
                 }
-                    
+            }finally{
+                lockLogicalObservers.unlock();
             }
-                
             //(int u, Int_ALife_Creature s, Point p){
         } // End if (ocupiers[p.x][p.y].isEmpty())
-        else {
+
+        if (!addTrace) {
             if (ocupiers[p.x][p.y].contains(c)) return;
             MultiTaskUtil.threadMsg("Fallo, ya hay creature en la posicion.");
             return;
@@ -163,56 +205,73 @@ public class ALife_Logical_Environment extends Thread
      * 
      * @param c
      */
-    public synchronized void removeCreature(Int_ALife_Creature c){
+    public void removeCreature(Int_ALife_Creature c){
         //Check
         if (c == null) {
             MultiTaskUtil.threadMsg("Fallo, falta creature para borrar.");
             return;
         }
         Point p = c.getPos();
-        if (p.x < 0 || p.x > (this.ocupiers.length - 1) || p.y < 0 || p.y > (this.ocupiers[0].length - 1)){
-            return;
-        } // Out of bounds
-        if (ocupiers[p.x][p.y] == null || ocupiers[p.x][p.y].isEmpty()) {
-            MultiTaskUtil.threadMsg("Fallo, no hay creature en la posicion.");
-            return;
-        }
-        if (ocupiers[p.x][p.y].contains(c)){
-            //for test
-            ArrayList<Int_ALife_Creature> breakpoint = this.ocupiers[p.x][p.y];
-            int breakpoint2 = this.ocupiers[p.x][p.y].size();
-            //end for test
-            ocupiers[p.x][p.y].remove(c);
-            //for test
-            breakpoint2 = this.ocupiers[p.x][p.y].size();
-            //end for test
-            removeTrace(c.getCreatureTrace(),c.getPos());
-            //traces[p.x][p.y].removeTrace(c.getCreatureTrace());
-            //for faster processing
-            int w = c.getEnv_ALife().getEnv_Width();
-            int h = c.getEnv_ALife().getEnv_Height();
-            int r = c.getDetectionRange();
-            
-            int x,y;
-            //observers updating
-            for (int i = p.x - r - 1; i <= (p.x +  r + 1); i++)
-                for (int j = p.y - r - 1; j <= (p.y +  r + 1); j++)
-            {   x = (i + w) % w;
-                y = (j + h) % h;
-                if (observers[x][y].contains(c)) {
-                    //for test
-                    breakpoint = this.ocupiers[p.x][p.y];
-                    breakpoint2 = this.ocupiers[p.x][p.y].size();
-                    //end for test
-                    observers[x][y].remove(c);
-                    //for test
-                    breakpoint2 = this.ocupiers[p.x][p.y].size();
-                    //end for test
-                }
+        boolean creatureFound = false;
+        lockLogicalOcupiers.lock();
+        try{
+            if (p.x < 0 || p.x > (this.ocupiers.length - 1) || p.y < 0 || p.y > (this.ocupiers[0].length - 1)){
+                return;
+            } // Out of bounds
+            if (ocupiers[p.x][p.y] == null || ocupiers[p.x][p.y].isEmpty()) {
+                MultiTaskUtil.threadMsg("Fallo, no hay creature en la posicion.");
+                return;
             }
-            //We should notify to observers any way of change? FALTA
+            if (ocupiers[p.x][p.y].contains(c)){
+                ocupiers[p.x][p.y].remove(c);
+                removeTrace(c.getCreatureTrace(),c.getPos());
+                creatureFound = true;
+            }
+        }finally{
+            lockLogicalOcupiers.unlock();
+        }
+        lockLogicalObservers.lock();
+        try{
+            if (creatureFound){
+                //for faster processing
+                int w = c.getEnv_ALife().getEnv_Width();
+                int h = c.getEnv_ALife().getEnv_Height();
+                int r = c.getDetectionRange();
+                int x,y;
+                //observers updating
+                for (int i = p.x - r - 1; i <= (p.x +  r + 1); i++)
+                    for (int j = p.y - r - 1; j <= (p.y +  r + 1); j++)
+                {   x = (i + w) % w;
+                    y = (j + h) % h;
+                    if (observers[x][y].contains(c)) {
+                        observers[x][y].remove(c);
+                        observersCreaturesRemoveTrace(c, new Point(x,y));
+                    }
+                } // End doble for observers updating
+            }
+        }finally{
+            lockLogicalObservers.unlock();
         }
     } // End public void removeCreature(Int_ALife_Creature c)
+
+    public void observersCreaturesRemoveTrace(Int_ALife_Creature c, Point p){
+        //Check
+        if (c == null || p == null){
+            int breakpoint = 1 ;
+            MultiTaskUtil.threadMsg("observersCreaturesRemoveTrace Fallo, falta creature o Point NULL.");
+            return;
+        }
+        lockLogicalObservers.lock();
+        try{
+            for (Int_ALife_Creature o : this.observers[p.x][p.y]){
+                synchronized(o){
+                    if(c != o) o.removeDetectedCreature(c);
+                }
+            }
+        }finally{
+            lockLogicalObservers.unlock();
+        }
+    } // End public void observersCreaturesRemoveTrace(Int_ALife_Creature c, Point p)
 
     /**
      * public void moveCreature(Creature c, int x, int y)
@@ -222,7 +281,7 @@ public class ALife_Logical_Environment extends Thread
      * @param x int 
      * @param y int
      */
-    public synchronized void moveCreature(Active_ALife_Creature c, int x, int y){
+    public void moveCreature(Active_ALife_Creature c, int x, int y){
         if (c == null) {
             MultiTaskUtil.threadMsg("Fallo, falta creature para mover.");
             return;
@@ -233,22 +292,27 @@ public class ALife_Logical_Environment extends Thread
         Point newPos = new Point(
             (x + w) % w,
             (y + h) % h);
-        if (this.ocupiers[newPos.x ][newPos.y].size() > 0) {
-            //colision
-            //for test
-            ArrayList<Int_ALife_Creature> breakpoint = this.ocupiers[newPos.x ][newPos.y];
-            return; //may be eat or fight
-        }
-        //Change position in the ocupiers array
-        
-        //Change position in the observers array
-        
-        //Change position in the traces array
-        this.removeCreature(c);
-        this.addCreatureToLogEnv(c, newPos);
+        lockLogicalOcupiers.lock();
+        try{
+            if (this.ocupiers[newPos.x ][newPos.y].size() > 0) {
+                //colision
+                //for test
+                ArrayList<Int_ALife_Creature> breakpoint = this.ocupiers[newPos.x ][newPos.y];
+                return; //may be eat or fight
+            }
+            //Change position in the ocupiers array
+            
+            //Change position in the observers array
+            
+            //Change position in the traces array
+            this.removeCreature(c);
+            this.addCreatureToLogEnv(c, newPos);
 
-        //c.setPos(newPos);
-        c.setPos(newPos);
+            //c.setPos(newPos);
+            c.setPos(newPos);
+        }finally{
+            lockLogicalOcupiers.unlock();
+        }
     } // End public void moveCreature(Creature c, int x, int y)
     
     /**
@@ -259,7 +323,7 @@ public class ALife_Logical_Environment extends Thread
      * @param p Point
      * @return None
      */
-    public synchronized void addTrace(Trace t, Point p){
+    public void addTrace(Trace t, Point p){
         //Add trace and avise observers
         //Check
         if (t == null || p == null){
@@ -268,17 +332,24 @@ public class ALife_Logical_Environment extends Thread
             MultiTaskUtil.threadMsg("No podemos añadir rastro, falta creature o Point.");
             return;
         }
-        if (this.traces[p.x][p.y] == null) {this.traces[p.x][p.y] = new ArrayList<Trace>();}
-        synchronized(this.traces[p.x][p.y]){
+        lockLogicalTraces.lock();
+        try{
+            if (this.traces[p.x][p.y] == null) {this.traces[p.x][p.y] = new ArrayList<Trace>();}
             this.traces[p.x][p.y].add(t);
+        }finally{
+            lockLogicalTraces.unlock();
         }
+
         //notify to observers
-        if(this.observers[p.x][p.y] != null){
-            for (Int_ALife_Creature o : this.observers[p.x][p.y]){
-                synchronized(o){
+        lockLogicalObservers.lock();
+        try{
+            if(this.observers[p.x][p.y] != null){
+                for (Int_ALife_Creature o : this.observers[p.x][p.y]){
                     if(t.source != o) o.addDetectedTrace(t);
                 }
             }
+        }finally{
+            lockLogicalObservers.unlock();
         }
     } // End public void addTrace(Trace t, Point p)
 
@@ -290,7 +361,7 @@ public class ALife_Logical_Environment extends Thread
      * @param p Point
      * @return None
      */
-    public synchronized void removeTrace(Trace c, Point p){
+    public void removeTrace(Trace c, Point p){
         //Remove trace and avise observers
         //Check
         if (c == null || p == null){
@@ -298,33 +369,57 @@ public class ALife_Logical_Environment extends Thread
             MultiTaskUtil.threadMsg("No podemos borrar rastro, falta creature o Point.");
             return;
         }
-        traces[p.x][p.y].remove(c);
+        lockLogicalTraces.lock();
+        try{
+            if (traces[p.x][p.y] == null) traces[p.x][p.y] = new ArrayList<Trace>();
+            if (traces[p.x][p.y].contains(c)) traces[p.x][p.y].remove(c);
+        }finally{
+            lockLogicalTraces.unlock();
+        }
         //notify to observers
-        if(this.observers[p.x][p.y] != null){
-            for (Int_ALife_Creature o : this.observers[p.x][p.y]){
-                if(c.source != o) o.removeDetectedTrace(c);
+        lockLogicalObservers.lock();
+        try{
+            if(this.observers[p.x][p.y] != null){
+                for (Int_ALife_Creature o : this.observers[p.x][p.y]){
+                    if(c.source != o) o.removeDetectedTrace(c);
+                }
             }
+        }finally{
+            lockLogicalObservers.unlock();
         }
     }// End public void removeTrace(Trace c, Point p)
     
-    
-    public  synchronized boolean detectColision(Int_ALife_Creature c, Point p, int radio){
+    /**
+     * public  boolean detectColision(Int_ALife_Creature c, Point p, int radio)
+     * 
+     * Return true if there is a colision with other creature in the radio area
+     * @param c Int_ALife_Creature
+     * @param p Point
+     * @param radio int
+     * @return boolean 
+     */
+    public  boolean detectColision(Int_ALife_Creature c, Point p, int radio){
         //int radio = 0;
         boolean colision = false;
         int w = c.getEnv_ALife().getEnv_Width();
         int h = c.getEnv_ALife().getEnv_Height();
         int x = (p.x + w) % w;//int x = (p.x - radio + w) % w;
         int y = (p.y + h) % h;//int y = (p.y - radio + h) % h;
-        for (int i = p.x - radio; i <= p.x + radio; i++)
-            for (int j = p.y - radio; j <= p.y + radio; j++)
-        {   x = (i + w) % w;
-            y = (j + h) % h;
-            if (this.ocupiers[x][y].size() > 0) colision = true;
+        lockLogicalOcupiers.lock();
+        try{
+            for (int i = p.x - radio; i <= p.x + radio; i++)
+                for (int j = p.y - radio; j <= p.y + radio; j++)
+            {   x = (i + w) % w;
+                y = (j + h) % h;
+                if (this.ocupiers[x][y].size() > 0) colision = true;
+            }
+        }finally{
+            lockLogicalOcupiers.unlock();
         }
         return colision;
-    }
-    
-    public synchronized Int_ALife_Creature collisionWith(Int_ALife_Creature c, Point p){
+    } // End public  boolean detectColision(Int_ALife_Creature c, Point p, int radio)
+     
+    public Int_ALife_Creature collisionWith(Int_ALife_Creature c, Point p){
         boolean colision = false;
         Int_ALife_Creature colisioner = null;
         int radio = 1; // May be we have to take in count the creature dimensions Owned food resources and tamcomplex
@@ -332,19 +427,24 @@ public class ALife_Logical_Environment extends Thread
         int h = c.getEnv_ALife().getEnv_Height();
         int x = (p.x - radio + w) % w;
         int y = (p.y - radio + h) % h;
-        for (int i = p.x - radio; i < p.x + radio; i++){
-            if (colision) break;
-            for (int j = p.y - radio; j < p.y + radio; j++)
-        {   x = (i - radio + w) % w;
-            y = (j - radio + h) % h;
-            if (this.ocupiers[x][y].size() > 0) {
-                colision = true;
-                colisioner = this.ocupiers[x][y].get(0);
-                break;
-            }
-        }} // End doble for
+        lockLogicalOcupiers.lock();
+        try{
+            for (int i = p.x - radio; i < p.x + radio; i++){
+                if (colision) break;
+                for (int j = p.y - radio; j < p.y + radio; j++)
+            {   x = (i - radio + w) % w;
+                y = (j - radio + h) % h;
+                if (this.ocupiers[x][y].size() > 0) {
+                    colision = true;
+                    colisioner = this.ocupiers[x][y].get(0);
+                    break;
+                }
+            }} // End doble for
+        }finally{
+            lockLogicalOcupiers.unlock();
+        }
         return colisioner;
-    }
+    } // End public Int_ALife_Creature collisionWith(Int_ALife_Creature c, Point p)
 
     // Private Methods and Fuctions =============
         

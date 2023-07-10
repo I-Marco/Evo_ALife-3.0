@@ -1,6 +1,7 @@
 package inigo.github.evo_alife;
 
 import java.util.*;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Evo_ALife project. ALife_Specie class.
@@ -21,6 +22,10 @@ public class ALife_Specie
     private ArrayList<Long> reMutateCreation = new ArrayList<Long>();
     private ArrayList<Long> reExtintion = new ArrayList<Long>();
     private Int_ALife_Creature representativeCreature = null;
+
+    private ALife_Species speciesList = null;
+
+    ReentrantLock loclSpecie;
     
     // Methods ---------------------------------------------------------------------------
     // Construcotors ============================
@@ -36,11 +41,13 @@ public class ALife_Specie
     private ALife_Specie(Int_ALife_Creature c, double tam, long time){
         //Asegurarse que no existe ya la especie. Si existe añadir recreación (reMutateCreation) y ya
         if (c == null) return;
+        loclSpecie = new ReentrantLock();
+        //Not usual concurrence
         synchronized(this){synchronized(c){
             this.specieIdNumber = c.getEnv_ALife().getNewSpecieIdNumber();
             this.numOfCre_inSpecie = 1;
             this.medTamComplex = tam;
-            //timeOfCreation = time;
+            this.speciesList = c.getEnv_ALife().getSpecies();
             this.reMutateCreation.add(time);
             if ( c instanceof Active_ALife_Creature) this.representativeCreature = Active_ALife_Creature.dupeCreature((Active_ALife_Creature)c);
             else this.representativeCreature = c;//mejor clonarlo
@@ -165,6 +172,9 @@ public class ALife_Specie
         if (numOfCre_inSpecie == 0){
             if (this.reMutateCreation == null) reMutateCreation = new ArrayList<Long>();
             reMutateCreation.add(c.getEnv_ALife().getTime());
+            long difActSpecies = this.speciesList.getNumberOfDifferentActiveSpecies();
+            difActSpecies++;
+            this.speciesList.setNumberOfDifferentActiveSpecies(difActSpecies);
         }
         numOfCre_inSpecie++;
         c.setSpecieIdNumber(this.specieIdNumber); //Redundant

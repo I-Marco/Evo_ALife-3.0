@@ -258,13 +258,13 @@ public class Evo_ALife extends JFrame{
         fileMenu.add(closeFile);        
         fileMenu.addSeparator();
         JMenuItem close = new JMenuItem("Close aplication.");
-        close.addActionListener( (ActionEvent e) -> System.exit(0) );
+        close.addActionListener( (ActionEvent e) -> this.closeAplication() );
         fileMenu.add(close);    
         
         JMenu playMenu = new JMenu("Let's go");
         menu.add(playMenu);
         JMenuItem runWorld = new JMenuItem("Time go on... TEST");
-        runWorld.addActionListener( (ActionEvent e) -> System.exit(0) );//this.env_ALife.eventTest() );
+        runWorld.addActionListener( (ActionEvent e) -> this.closeAplication() );//this.env_ALife.eventTest() );
         playMenu.add(runWorld);        
         JMenuItem stopWorld = new JMenuItem("Time stop!");
         stopWorld.addActionListener( (ActionEvent e) -> this.env_ALife.killThread() ); //Algo tiene que hacer
@@ -408,8 +408,28 @@ public class Evo_ALife extends JFrame{
         //contentPane.add(p, BorderLayout.CENTER);//imgBAr en el scroll Panel
         contentPane.add(env_Status_Panel, BorderLayout.PAGE_END);//
     }
-        
-    
+    /**
+     * private void closeAplication()
+     * 
+     * Close the aplication, with save enviroment close files and exit
+     * param    none
+     * return   none
+     */
+    private int closeAplication(){
+        if (env_ALife != null) this.env_ALife.killThread();
+        //Close enviroment
+        //Exit
+        System.exit(3);
+        return 3;
+    } //End private void closeAplication()
+
+    /**
+     * private void load_Env()
+     * 
+     * Load a enviroment from a file (UNDONE)
+     * param    none
+     * return   none
+     */
     private void load_Env(){ //// ***** PENDINTE
         
         try{
@@ -573,6 +593,7 @@ public class Evo_ALife extends JFrame{
             )
         );
         temp_env_ALife.setBackLifeImage(temp_env_ALife.getLifeImg());
+        temp_env_ALife.setTime(0L);
         this.set_Env_Alive(temp_env_ALife);
     } // End private void makeDefaultEnv()
 
@@ -624,6 +645,7 @@ public class Evo_ALife extends JFrame{
         // Default land_Temp done
             
         Env_ALife temp_env_ALife = new Env_ALife(this,land_Temp,null,env_Vars);
+        temp_env_ALife.setTime(0L);
         this.set_Env_Alive(temp_env_ALife);        
         
     } //End private void makeDefaulLandtEnv()
@@ -701,6 +723,7 @@ public class Evo_ALife extends JFrame{
         // Create Test Environment
         Env_ALife temp_env_ALife = new Env_ALife(this,land_Temp,lifeEnv,env_Vars);
         //Env_ALife temp_env_ALife = new Env_ALife(this,land_Temp,null,env_Vars);
+        temp_env_ALife.setTime(0L);
         this.set_Env_Alive(temp_env_ALife);    
         
     } //End private void makeDefaulLandtEnv()
@@ -799,6 +822,7 @@ public class Evo_ALife extends JFrame{
         // Create Test Environment
         Env_ALife temp_env_ALife = new Env_ALife(this,land_Temp,lifeEnv,env_Vars);
         //Env_ALife temp_env_ALife = new Env_ALife(this,land_Temp,null,env_Vars);
+        temp_env_ALife.setTime(0L);
         this.set_Env_Alive(temp_env_ALife);    
     } // End private void makeDefaultEnvCreatureProy()
     
@@ -816,8 +840,20 @@ public class Evo_ALife extends JFrame{
     }
 }
 /*
+    POSIBLE CAMBIO
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                new Evo_ALife();//.setVisible(true);
+            }
+        });
+    }
+}
+
     Reflexiones.
     Panel de reportes y de estdisticas.
         Posible clase de reportes que genere los reportes en archivo y en panel 
+
     
 */

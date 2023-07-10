@@ -57,10 +57,8 @@ public class Env_ALife extends Thread
 
     
     //Thread related fields
-    private Semaphore semaphore;
-    //semafor reentrante
-    
-    private final ReentrantLock lockEventList;
+    private Semaphore semaphore; //semaforo para controlar el numero de hilos
+    private final ReentrantLock lockEventList;//semaforo para controlar el acceso a la lista de eventos
     private final Object pauseSignal = new Object(); // señal de pausa/continuación externa
     private final Object maxThreadSignal = new Object(); // señal de pausa/continuación MaxThreads alcanzado
     private volatile boolean isPaused = false;    
@@ -440,6 +438,15 @@ public class Env_ALife extends Thread
                 this.fileManager.addLine(report);
                 this.generateReport = false;
             }
+
+
+            //=============================
+            //For test control.
+            if (this.getTime() > 20000){
+                int breakpoint = 1;
+            }
+
+            //=============================
 
             //For test stop each iteration
             //MultiTaskUtil.msgDialog("Final Turno :"+this.getTime());
@@ -1254,7 +1261,9 @@ public class Env_ALife extends Thread
         }
         
         //Env_ALife(Evo_ALife e,BufferedImage l, Object liveEnv, java.util.List<Object> envVars)
-        return new Env_ALife(e,land_Temp, creatures, e.get_Env_Alife().getEnvVars());
+        Env_ALife auxEnv = new Env_ALife(e,land_Temp, creatures, e.get_Env_Alife().getEnvVars());
+        auxEnv.setTime(0L);
+        return auxEnv;
         //Env_ALife e = new Env_ALife();
     } // End public static Env_ALife createEnv_ALife_d_nCre(Evo_ALife e, int width, int height, int nCre)
 

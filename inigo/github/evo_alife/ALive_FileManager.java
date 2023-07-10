@@ -25,12 +25,14 @@ public class ALive_FileManager extends Thread{
     public static final int DEFAULT_MAX_LONG_FILE = 1000;//1000000
 
     //Attributes
-    private final Lock lock;
+    private final Lock lockFileManager;
     private CSVWriter writer;
     private List <String[]> dataIn = new ArrayList<String[]>();
     private List <String[]> dataOut = new ArrayList<String[]>();
     private long cont = 0;
     private long fileNumber = 0;
+
+    private boolean running = true;
 
     private Evo_ALife caller;
     private Env_ALife env;
@@ -49,6 +51,7 @@ public class ALive_FileManager extends Thread{
         fileName = "DatosVidaEvoAlife";
         String formattedNumber = String.format("%03d", fileNumber);
         String filePath = "DATAS" + "/" + fileName + formattedNumber + ".csv";
+        this.running = true;
         try {
             this.writer = new CSVWriter(new FileWriter(fileName+formattedNumber+".csv"));
         }catch (IOException e) {
@@ -67,7 +70,7 @@ public class ALive_FileManager extends Thread{
         this.caller = caller;
         this.env = caller.get_Env_Alife();
         cont = 0;
-        this.lock = new ReentrantLock();
+        this.lockFileManager = new ReentrantLock();
         dataIn = new ArrayList<String[]>();
         dataOut = new ArrayList<String[]>();
     } // End public ALive_FileManager(CSVWriter writer) throws IOException
@@ -80,10 +83,10 @@ public class ALive_FileManager extends Thread{
      */
     @Override
     public void run() {
-        while (true) {
+        while (running) {
             try {
                 Thread.sleep(1000);
-                lock.lock();
+                lockFileManager.lock();
                 try {
                     if (dataIn.size() > DEFAULT_MAX_LONG){
                         dataOut = dataIn;
@@ -96,7 +99,7 @@ public class ALive_FileManager extends Thread{
                         }
                     }
                 } finally {
-                    lock.unlock();
+                    lockFileManager.unlock();
                 }
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -113,11 +116,11 @@ public class ALive_FileManager extends Thread{
      * @param line
      */
     public void addLine(String[] line){
-        lock.lock();
+        lockFileManager.lock();
         try {
             dataIn.add(line);
         } finally {
-            lock.unlock();
+            lockFileManager.unlock();
         }
     } // End public void addLine(String[] line)
 
@@ -129,7 +132,7 @@ public class ALive_FileManager extends Thread{
      * @ return - None
      */
     public void forceWrite(){
-        lock.lock();
+        lockFileManager.lock();
         try {
             if (dataIn.size() > 0){
                 dataOut = dataIn;
@@ -138,7 +141,7 @@ public class ALive_FileManager extends Thread{
                 cont += dataOut.size();
             }
         } finally {
-            lock.unlock();
+            lockFileManager.unlock();
         } 
     } // End public void forceWrite()
 
@@ -153,6 +156,12 @@ public class ALive_FileManager extends Thread{
         this.forceWrite();
         try {
             writer.close();
+            lockFileManager.lock();
+            try {
+                running = false;
+            } finally {
+                lockFileManager.unlock();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }

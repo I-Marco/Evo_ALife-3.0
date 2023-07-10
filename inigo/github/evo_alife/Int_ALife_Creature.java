@@ -3,6 +3,7 @@ package inigo.github.evo_alife;
 import java.awt.*;
 import java.awt.image.*;
 import java.util.*;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Inferface ALife_Creature:
@@ -61,6 +62,7 @@ public abstract class Int_ALife_Creature extends Thread
     int detectionRange = 1; //in pixels min 1
     double umbralDetection = 0L; //0..1, 0 = Min detection
     ArrayList<Trace> detectedTraces = new ArrayList<Trace>();
+    int MAX_TRACES = 10;
     
     long humgryUmbral = DEFAULT_Hungry_Umbral;
     long hungry = DEFAULT_Hungry_Umbral;
@@ -85,11 +87,14 @@ public abstract class Int_ALife_Creature extends Thread
     double outN = 0;
     double statusN = 0;
     
+    //For sinchronization
+    private static ReentrantLock lockCreature;
     //Methods ==================================================================================
     
     // Constructors ============================
     public Int_ALife_Creature(){
         //For subClasses init
+        lockCreature = new ReentrantLock();
     } // End public Int_ALife_Creature()
 
     /**
@@ -98,6 +103,7 @@ public abstract class Int_ALife_Creature extends Thread
      * @param    Int_ALife_Creature c the Int_ALife_Creature to copy
     */
     protected Int_ALife_Creature(Int_ALife_Creature c){
+        lockCreature = new ReentrantLock();
         this.attack = c.attack; // long def, attack;
         this.def = c.def; //long def, attack;
         descendents = new ArrayList<Int_ALife_Creature>(); // ArrayList<Int_ALife_Creature> descendents = new ArrayList<Int_ALife_Creature>();//descendents of creature
@@ -444,19 +450,51 @@ public abstract class Int_ALife_Creature extends Thread
      * @param  Trace t, the trace to remove
      * @return int, the number of traces detected
      */
-    public synchronized int removeDetectedTrace(Trace t){
-        int MAX_TRACES = 10;
+    public int removeDetectedTrace(Trace t){
         //if trace is null just ajust the size
         if (this.detectedTraces == null) {
             this.detectedTraces = new ArrayList<Trace>();
             return -1;
         }
-        if (t == null && this.detectedTraces.size() > MAX_TRACES) 
-            removeDetectedTrace(this.detectedTraces.get(this.detectedTraces.size()-1));
-        if (this.detectedTraces.contains(t) )this.detectedTraces.remove(t);
-        else return -1;
+        lockCreature.lock();
+        try{
+            if (t == null && this.detectedTraces.size() > MAX_TRACES) 
+                removeDetectedTrace(this.detectedTraces.get(this.detectedTraces.size()-1));
+            if (this.detectedTraces.contains(t) )this.detectedTraces.remove(t);
+            else return -1;
+        } finally {
+            lockCreature.unlock();
+        }
         return this.detectedTraces.size();
     }  // End public synchronized int removeDetectedTrace(Trace t)
+
+
+    public int removeDetectedCreature(Int_ALife_Creature c){
+        //check
+        Trace auxTrace = null;
+        boolean find = false;
+        if (c == null) return -1;
+        if (c == null && this.detectedTraces.size() > MAX_TRACES) 
+            removeDetectedTrace(this.detectedTraces.get(this.detectedTraces.size()-1));
+        lockCreature.lock();
+        try{
+            if (this.detectedTraces.isEmpty()) return -1;
+            for (Trace t : this.detectedTraces){
+                if (t.getSource() == c){
+                    auxTrace = t;
+                    find = true;
+                    removeDetectedTrace(t);
+                    break;
+                }
+                
+            }
+        } finally {
+            lockCreature.unlock();
+        }
+        if (find) return this.detectedTraces.size();
+        else return -1;
+    } // End public int removeDetectedCreature(Int_ALife_Creature c)
+
 
     /**
      * public static Int_ALife_Creature dupeInt_ALife_Creature(Int_ALife_Creature c)
