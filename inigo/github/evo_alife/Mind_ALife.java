@@ -24,7 +24,7 @@ public class Mind_ALife
     // Estados se actualizan con las salida.
     
     //DEfault values and constants
-    public static final double DEFAULT_u = 0.5;
+    public static final double DEFAULT_u = 0.1;
     public static final double DEFAULT_Weight = 0.2;
     public static final double TRUE_in_double = 1;
     public static final double FALSE_in_double = 0;
@@ -54,6 +54,18 @@ public class Mind_ALife
     Out_Neuron_ALife outNeuron = null;
 
     ReentrantLock lockMind;
+
+    public double u_changeFraction = DEFAULT_u_changeFraction;
+    public double weight_changeFraction = DEFAULT_Weight_changeFraction; 
+    public double weight_changeUnderFraction = DEFAULT_weight_changeUnderFraction;
+    
+    public int activationCont = 0;
+    public double forecastStatusMean = 0L;
+    public double forecastGeneralError = 0L;
+    public double forecastGeneralVariance = 0L;
+    
+    
+    
     // Simple action = move, eat, attack, reproduce
     //Complex action = secuence of fimple actions and Decisión strong.
     
@@ -939,12 +951,12 @@ public class Mind_ALife
             if (b){
                 outOptions = new ArrayList<Out_Neuron_ALife>();
                 for(Action a:Mind_ALife.Action.values()){
-                    synchronized(this.creature){
+                    //synchronized(this.creature){
                     if (!((Active_ALife_Creature)this.creature).getActions().contains(a)) {
                         for (Out_Neuron_ALife oN:this.outputNeurons){
                             if (oN.action == a) outOptions.add(oN);
                         }
-                    }} // End synchronized(this.creature) If
+                    }//} // End synchronized(this.creature) If
                 }
             } // End Random decision. Now outOptions less used actions
             //for test
@@ -989,6 +1001,7 @@ public class Mind_ALife
      * @return void
      */
     public void updateMind(Action action, Double statusChange, Double weightOfActionVsTime, Double uOfActionVsTime){
+        double MIND_F_TOLERANCE = 0.1;
         //check
         if (action == null || statusChange == null || weightOfActionVsTime == null){
             //for test
@@ -996,16 +1009,36 @@ public class Mind_ALife
                 "Mind_ALife: updateMind parameters null.");
             return;
         }
-        if (statusChange == 0) return;
 
         //Find the neuron that has the action and update it and its inputs
         lockMind.lock();
         try{
+            this.activationCont ++;
+            this.forecastStatusMean = (this.forecastStatusMean * (this.activationCont -1)+ statusChange) / this.activationCont;
+            this.forecastGeneralError = ((forecastGeneralError * (this.activationCont -1)) + Math.abs(statusChange - forecastStatusMean))/activationCont;
+            //this.forecastGeneralVariance = this.forecastGeneralVariance;        
+            if (statusChange == 0) return;
+            Double auxWeightOfActionVsTime = weightOfActionVsTime;
+            if(statusChange - forecastStatusMean < (-0.1*forecastStatusMean)){
+                auxWeightOfActionVsTime = weightOfActionVsTime * 3;//this.weight_changeUnderFraction;
+            }
             for(Out_Neuron_ALife oN:this.outputNeurons){
                 if (oN.action == action){
-                    oN.updateLearn(weightOfActionVsTime, uOfActionVsTime, statusChange);
+                    oN.updateForecast(statusChange);
+                    oN.updateLearn(auxWeightOfActionVsTime, uOfActionVsTime, statusChange);
+                    //oN.setU(oN.getU()+oN.getU()*(forecastStatusMean-statusChange);
                     break;
                 }
+            }
+            //actualize mind chage values
+            if (Math.abs(this.forecastGeneralError/forecastStatusMean) > MIND_F_TOLERANCE){
+                this.u_changeFraction = (1 + MIND_F_TOLERANCE) * this.u_changeFraction;
+                this.weight_changeFraction = (1 + MIND_F_TOLERANCE) * this.weight_changeFraction;
+                this.weight_changeUnderFraction = (1 + MIND_F_TOLERANCE) * this.weight_changeUnderFraction;
+            }else if (Math.abs(this.forecastGeneralError/forecastStatusMean) < MIND_F_TOLERANCE/2){
+                this.u_changeFraction = (1 - MIND_F_TOLERANCE) * this.u_changeFraction;
+                this.weight_changeFraction = (1 - MIND_F_TOLERANCE) * this.weight_changeFraction;
+                this.weight_changeUnderFraction = (1 - MIND_F_TOLERANCE) * this.weight_changeUnderFraction;
             }
         } finally{
             lockMind.unlock();
@@ -1590,5 +1623,105 @@ public class Mind_ALife
         
         return m;
     } // End public static Mind_ALife test1Mind(Int_ALife_Creature c)
+
+    public static Mind_ALife test2Mind(Int_ALife_Creature c){
+        //int innerN = 1;ALL
+        int midN = 1;
+        int stN = 1;
+        //int outN = 1;
+
+        Mind_ALife m = new Mind_ALife(c);
+        m.allNeurons = new ArrayList<Neuron_ALife>();
+        m.inputNeurons = new ArrayList<Neuron_ALife>();
+        m.midNeurons = new ArrayList<Neuron_ALife>();
+        m.outputNeurons = new ArrayList<Out_Neuron_ALife>();
+        m.statusNeurons = new ArrayList<Neuron_ALife>();
+
+        m.output = null;
+        m.outNeuron = null;
+        //Input neurons
+        ArrayList <Input_Neuron_ALife> auxInputNList = new ArrayList <Input_Neuron_ALife>();
+        //ALife_Input_Neuron_Utils.createSameTypeNeuron(new Detect_Reproductable_Neuron_ALife(c), c);
+        //all posible input neurons
+        if(m.inputNeurons.isEmpty()){
+            auxInputNList = m.getAllPosibleInput_Neurons();
+            for(Input_Neuron_ALife iN:auxInputNList){
+                m.addNeuron(iN);
+            }
+
+            //Mid neurons
+            for (int i = 0; i < midN; i++){
+                Neuron_ALife n = new Neuron_ALife(m.inputNeurons, c);
+                n.normalizeWeights();
+                m.addNeuron(n);
+            }
+        }
+        //status neurons
+        ArrayList<Neuron_ALife> auxNList = new ArrayList <Neuron_ALife>();
+        for (Neuron_ALife n:m.inputNeurons) auxNList.add(n);
+        for (Neuron_ALife n:m.midNeurons) auxNList.add(n);
+        for (int i = 0; i < stN; i++){
+            Status_Neuron_ALife n = new Status_Neuron_ALife(auxNList, c);
+            n.normalizeWeights();
+            m.addNeuron(n);
+        }
+
+        //output neurons
+        //public static enum Action {UP,DOWN,RIGHT,LEFT,EAT,REPRODUCE,ATTACK,ADDREPGROUP,MAKETRACE};
+        //Mind_ALife.Action[] act = {Action.EAT,Action.REPRODUCE,Action.ATTACK,Action.ADDREPGROUP,Action.MAKETRACE};
+        double sumU = 0; //sum of all u or bias of all output neurons
+        Mind_ALife.Action[] act = {Action.EAT,Action.REPRODUCE,Action.ADDREPGROUP};
+        for (Neuron_ALife n:m.statusNeurons) auxNList.add(n);//have all inputs and mids previusly
+        for(Action a:act){
+            Neuron_ALife auxN = new Out_Neuron_ALife(auxNList,c,a);
+            if (a == Action.REPRODUCE) {
+                int auxWind = 0;
+                for (Neuron_ALife n_:auxN.getInputs()){
+                    if (n_ instanceof Detect_Reproductable_Neuron_ALife){
+                        auxN.weights.set(auxN.getInputs().indexOf(n_), (double)10*Mind_ALife.DEFAULT_Weight);
+                    }
+                }
+                //auxN.setU(Mind_ALife.DEFAULT_u*1.2);
+            }
+            if (a == Action.EAT) {
+                int auxWind = 0;
+                for (Neuron_ALife n_:auxN.getInputs()){
+                    if (n_ instanceof Detect_Reproductable_Neuron_ALife){
+                        auxN.weights.set(auxN.getInputs().indexOf(n_), (double)0.1*Mind_ALife.DEFAULT_Weight);
+                    }
+                    if (n_ instanceof Detect_RResource_Neuron_ALife ||
+                        n_ instanceof Detect_BResource_Neuron_ALife ||
+                        n_ instanceof Detect_GResource_Neuron_ALife) {
+                        auxN.weights.set(auxN.getInputs().indexOf(n_), (double)1.3*Mind_ALife.DEFAULT_Weight);
+                    }
+                }
+                //auxN.setU(Mind_ALife.DEFAULT_u*1.1);
+            }
+            auxN.setU(0.01);
+            auxN.normalizeWeights();
+            m.addNeuron(auxN);
+            sumU += auxN.getU();
+        }
+        //u ajusts
+        for (Out_Neuron_ALife oN:m.outputNeurons){
+            //for test
+            double auxU = oN.getU();
+            auxU = auxU/sumU;
+            oN.setU(auxU);
+            //oN.setU(oN.getU()/sumU);
+        } // End for (Out_Neuron_ALife oN:m.outputNeurons) U adjust
+
+        //Some ajusts
+        m.setNeuronsCount();
+        if (!m.validateMind()) {
+            int breakpoint = 1;
+        }
+        if (!m.checkNeurons()){
+            int breakp = 1;
+        }
+        
+        return m;
+    } // End public static Mind_ALife test2Mind(Int_ALife_Creature c)
     
+
 } // End Class

@@ -1,8 +1,5 @@
 package inigo.github.evo_alife;
 
-//import java.awt.Point;
-//import java.util.ArrayList;
-
 /**
  * Each input neuron have a diferent class. This is a reproduction group formed status detection
  * 
@@ -33,7 +30,7 @@ public class Detect_attackPoints_Neuron_ALife extends Input_Neuron_ALife
      * @param c Int_ALife_Creature the creature that owns the neuron
      */
     public Detect_attackPoints_Neuron_ALife (Int_ALife_Creature c) throws IllegalArgumentException{
-        super();
+        super(c);
         //Checks
         if (c==null) {
             throw new IllegalArgumentException("Creature can't be null");
@@ -52,42 +49,44 @@ public class Detect_attackPoints_Neuron_ALife extends Input_Neuron_ALife
      */
     @Override
     public double activation(){
-        if (this.output != null) return output;
-        //Detect_attackPoints_Neuron_ALife
-        //check
-        if (this.creature == null) {
-            MultiTaskUtil.threadMsg("Error in Detect_attackPoints_Neuron_ALife No creature defined.(null)");
-            return Mind_ALife.FALSE_in_double;
-        }
-        synchronized(this.creature){
-            output = ALifeCalcUtil.min_max_Normalization(
-                this.creature.getAttack(),
-                Active_ALife_Creature.creature_minCaracteristics[2],
-                Active_ALife_Creature.creature_maxCaracteristics[2]);
-            output = ALifeCalcUtil.min_max_Normalization(output,
-                Mind_ALife.FALSE_in_double, Mind_ALife.TRUE_in_double);
-        }
-        return output;
-    } // End public double activation()
-        
-    /**
-     * public static BResourceDetection_Neuron_ALife dupeNeuron_ALife(BResourceDetection_Neuron_ALife n)
-     * 
-     * Copy a neuron of this class 
-     * @param  n BResourceDetection_Neuron_ALife the neuron to copy
-     * @return BResourceDetection_Neuron_ALife the copy of the neuron
-     */
-    public static Detect_attackPoints_Neuron_ALife dupeNeuron_ALife(Detect_attackPoints_Neuron_ALife n){
-        //Its not override since input and output parameters classes are diferent
-        if (n.creature == null) return null;
-        Detect_attackPoints_Neuron_ALife newN = new Detect_attackPoints_Neuron_ALife(n);
-        return newN;
-    } // End public static BResourceDetection_Neuron_ALife dupeNeuron_ALife(BResourceDetection_Neuron_ALife n)
+        this.lockNeuron.lock();
+        try{
+            if (this.output != null) return output;
+            //Detect_attackPoints_Neuron_ALife
+            //check
+            if (this.creature == null) {
+                MultiTaskUtil.threadMsg("Error in Detect_attackPoints_Neuron_ALife No creature defined.(null)");
+                return Mind_ALife.FALSE_in_double;
+            }
 
-    //Test Dudoso
+                output = ALifeCalcUtil.min_max_Normalization(
+                    this.creature.getAttack(),
+                    Active_ALife_Creature.creature_minCaracteristics[2],
+                    Active_ALife_Creature.creature_maxCaracteristics[2]);
+                output = ALifeCalcUtil.min_max_Normalization(output,
+                    Mind_ALife.FALSE_in_double, Mind_ALife.TRUE_in_double);
+
+            return output;
+        }finally{
+            this.lockNeuron.unlock();
+        }
+    } // End public double activation()
+    
+    /**
+     * public Detect_attackPoints_Neuron_ALife dupeNeuron_ALife()
+     * 
+     * This method is used to copy the neuron
+     * @param  None
+     * @return Detect_attackPoints_Neuron_ALife the new neuron
+     */
     public Detect_attackPoints_Neuron_ALife dupeNeuron_ALife(){
-        Detect_attackPoints_Neuron_ALife newN = new Detect_attackPoints_Neuron_ALife(this);
-        return newN;
+        lockNeuron.lock();
+        try{
+            Detect_attackPoints_Neuron_ALife newN = new Detect_attackPoints_Neuron_ALife(this);
+            return newN;
+        } finally {
+            lockNeuron.unlock();
+        }
     } // End public static BResourceDetection_Neuron_ALife dupeNeuron_ALife(BResourceDetection_Neuron_ALife n)
 
 
@@ -95,5 +94,5 @@ public class Detect_attackPoints_Neuron_ALife extends Input_Neuron_ALife
 
     // Private Methods and Fuctions =============
     
-} // End Class
+} // End public class Detect_attackPoints_Neuron_ALife extends Input_Neuron_ALife
 

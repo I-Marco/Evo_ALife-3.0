@@ -296,6 +296,11 @@ public class Evo_ALife extends JFrame{
         testNewWorldProy.addActionListener( (ActionEvent e) -> this.makeDefaultEnvCreatureProy() );
         testMenu.add(testNewWorldProy);
 
+        //Tests Proyect0 2
+        JMenuItem testNewWorldProy2 = new JMenuItem("Create new enviroment Type 100x100- Creatures For project V2");
+        testNewWorldProy2.addActionListener( (ActionEvent e) -> this.makeDefaultEnvCreatureProy2() );
+        testMenu.add(testNewWorldProy2);
+
         //Vews Menu
         JMenu viewMenu = new JMenu ("View");
         menu.add(viewMenu);
@@ -826,6 +831,89 @@ public class Evo_ALife extends JFrame{
         this.set_Env_Alive(temp_env_ALife);    
     } // End private void makeDefaultEnvCreatureProy()
     
+    /**
+     * Make a environment for simple creature test
+     */
+    private void makeDefaultEnvCreatureProy2(){
+        java.util.List<Object> env_Vars = null; // List in java.util and java.awt
+        if (env_ALife != null) {
+            env_Vars = env_ALife.getEnvVars();
+            this.env_ALife.killThread();
+        } else {
+            //env_Vars = null previusly fixed
+        }
+        //Remove old enviroment
+        this.env_ALife = new Env_ALife(this); //Temporal
+        //Land + Live + env_Variables.
+        //BufferedImage land_Temp = Env_Panel.getDefaultEnvImage(100,100);
+        BufferedImage land_Temp = Env_Panel.getDefaultEnvTransparentImage(100, 100, false);
+        Graphics2D g2d = land_Temp.createGraphics();
+        int width = land_Temp.getWidth();
+        int height = land_Temp.getHeight();
+
+        g2d.setColor(new Color(25, 25, 25, 125)); // fix background to BLACK 0, 0, 0
+        g2d.fillRect(0 , (height/2)-height/20, width, height/10);
+        
+        //some especified zones
+        g2d.setColor(new Color(75, 0, 0, 150)); // fix background to BLACK 0, 0, 0
+        g2d.fillOval(width/3-width/16 , (height/3)-height/20, width/8, height/10);
+        
+        g2d.setColor(new Color(0, 75, 0, 150)); // fix background to BLACK 0, 0, 0
+        g2d.fillOval(width/2-width/16 , (height*2/3)-height/20, width/8, height/10);
+        
+        g2d.setColor(new Color(0, 0, 75, 150)); // fix background to BLACK 0, 0, 0
+        g2d.fillOval(width*2/3-width/16 , (height/3)-height/20, width/8, height/10);
+        // Default land done
+
+        Object lifeEnv;// = this.env_ALife;
+        //Create some creatures.
+        ArrayList<Active_ALife_Creature> listOfCreatures = new ArrayList<Active_ALife_Creature>();
+        Active_ALife_Creature auxC = null;
+        Mind_ALife auxM = null;
+
+        int[] haveR = {30,0,0};
+        int[] needR = {1,0,0};
+        int liveExp = 6000;
+        
+        //Red Creature ...
+        Point p = new Point (width/3, height/3);
+        auxC = new Active_ALife_Creature(this.env_ALife,p,null,liveExp,haveR,needR);
+        auxM = Mind_ALife.test2Mind(auxC);
+        auxC.setMind(auxM);
+        auxC.maxfoodResourceOwn = new int[]{180,0,0};
+        listOfCreatures.add(auxC);
+        
+        //Green Creature ...
+        int [] haveG = {0,30,0};
+        int[] needG = {0,1,0};
+        //width/2-width/16 , (height*2/3)-height/20, width/8, height/10);
+        p = new Point (width/2, height*2/3);
+        auxC = new Active_ALife_Creature(this.env_ALife,p,null,liveExp,haveG,needG);
+        auxM = Mind_ALife.test2Mind(auxC);
+        auxC.setMind(auxM);
+        listOfCreatures.add(auxC);
+
+        //Blue Creature ...
+        int [] haveB = {0,0,30};
+        int[] needB = {0,0,1};
+        //(width*2/3-width/16 , (height/3)-height/20, width/8, height/10
+        p = new Point (width*2/3, height/3);
+        auxC = new Active_ALife_Creature(this.env_ALife,p,null,liveExp,haveB,needB);
+        auxM = Mind_ALife.test2Mind(auxC);
+        auxC.setMind(auxM);
+        auxC.maxDescendants = 2; //FALTA set
+        listOfCreatures.add(auxC);
+
+        lifeEnv = listOfCreatures; // For easy reading               
+        
+        // Create Test Environment
+        Env_ALife temp_env_ALife = new Env_ALife(this,land_Temp,lifeEnv,env_Vars);
+        //Env_ALife temp_env_ALife = new Env_ALife(this,land_Temp,null,env_Vars);
+        temp_env_ALife.setTime(0L);
+        this.set_Env_Alive(temp_env_ALife);    
+    } // End private void makeDefaultEnvCreatureProy2()
+
+
     // Main if needed --------------------------------------------------------------------    
     
     /**

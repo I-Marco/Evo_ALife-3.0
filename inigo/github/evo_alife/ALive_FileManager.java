@@ -85,9 +85,13 @@ public class ALive_FileManager extends Thread{
      */
     @Override
     public void run() {
+        //For test
+        MultiTaskUtil.threadMsg("ALive_FileManager.run() - Start");
         while (running) {
             try {
+                //if(this.getEnv_ALife() == null || !this.getEnv_ALife().isAlive()) running = false;
                 Thread.sleep(1000);
+                //if (!running) break;
                 lockFileManager.lock();
                 try {
                     if (dataIn.size() > DEFAULT_MAX_LONG){
@@ -106,8 +110,9 @@ public class ALive_FileManager extends Thread{
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        }
-        close();     
+        } // End while (running)
+        close();
+        MultiTaskUtil.threadMsg("ALive_FileManager.run() - End execution"); 
     } // End public void run()
 
     //Generar metodo publico para agregar nuevas lineas al archivo
@@ -174,6 +179,33 @@ public class ALive_FileManager extends Thread{
         }
     } // End public void close()
 
+    /**
+     * public void KillFileManager()
+     * 
+     * This method is responsible for killing the file manager.
+     * @ param  - None
+     * @ return - None
+     */
+    public void KillFileManager(){
+        lockFileManager.lock();
+        try {
+            running = false;
+        } finally {
+            lockFileManager.unlock();
+        }
+    } // End public void KillFileManager()
+
     //Add getters and setters
-    
+
+    /**
+     * public Env_ALife getEnv_ALife()
+     * 
+     * This method is responsible for returning the Env_ALife object.
+     * @ param  - None
+     * @ return - Env_ALife
+     */ 
+    public Env_ALife getEnv_ALife(){
+        //May be we need Lock
+        return this.env;
+    } // End public Env_ALife getEnv_ALife()
 } // End public class ALive_FileManager extends Thread

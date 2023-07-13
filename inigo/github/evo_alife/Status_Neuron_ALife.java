@@ -89,7 +89,7 @@ public class Status_Neuron_ALife extends Neuron_ALife {
             for(Neuron_ALife n:inputs){
                 sum += n.activation() * weights.get(i);
             } // End for(Neuron_ALife n:inputs) All inputs are added
-            this.neuron_status = this.neuron_status * this.u + sum * (1 - this.u); //u in this type of neuron is the stautus update rate
+            this.neuron_status = this.neuron_status * this.getU() + sum * (1 - this.getU()); //u in this type of neuron is the stautus update rate
             output = this.neuron_status;
         } finally {
             this.lockNeuron.unlock();

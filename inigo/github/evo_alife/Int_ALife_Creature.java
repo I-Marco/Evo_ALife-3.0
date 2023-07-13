@@ -30,7 +30,7 @@ public abstract class Int_ALife_Creature extends Thread
     public static long DEFAULT_Hungry_Umbral = 100;
     public static int DEFAULT_MEMArraySize = 5;
     public static long DEFAULT_Life_Turns = 100;
-    
+    public static double DEFAULT_descendat_StatusPlus = 0.5;    
     public static double MUTATION_DISTANCE = 1; //1 * minimum value of caracteristic
     // Fields ==================================================================================
 
@@ -111,7 +111,7 @@ public abstract class Int_ALife_Creature extends Thread
             descendents.add(cr);
         }
         this.detectionRange = c.detectionRange; //int detectionRange = 1; //in pixels min 1
-        this.env_ALive = c.env_ALive; // Env_ALife env_ALive; // Enviroment 
+        this.env_ALive = c.getEnv_ALife(); // Env_ALife env_ALive; // Enviroment 
         this.foodResourceNeed = new int[c.foodResourceNeed.length]; // int[] foodResourceNeed = {0,0,0};
         MultiTaskUtil.copyIntArrayContent(this.foodResourceNeed, c.foodResourceNeed);
         this.foodResourceOwn = new int[c.foodResourceOwn.length]; // int[] foodResourceOwn = {0,0,0};
@@ -431,7 +431,7 @@ public abstract class Int_ALife_Creature extends Thread
      * @param   Trace t, the trace to add
      * @return  int, the number of traces detected
      */
-    public synchronized int addDetectedTrace(Trace t){
+    public int addDetectedTrace(Trace t){
         if (t == null) return -1;
         if (this.detectedTraces == null) this.detectedTraces = new ArrayList<Trace>();
         this.detectedTraces.add(t);
@@ -535,7 +535,7 @@ public abstract class Int_ALife_Creature extends Thread
      * @param candidateStatus - the status of the candidate
      * @return boolean, true if candidate is accepted
      */
-    public synchronized boolean beAddedToReproductionGroup(Int_ALife_Creature candidate, double candidateStatus){
+    public boolean beAddedToReproductionGroup(Int_ALife_Creature candidate, double candidateStatus){
         //Check
         if (candidate == null) return false;
         if (this.reproductionGroup == null) this.reproductionGroup = new ArrayList<Int_ALife_Creature>();
@@ -648,7 +648,7 @@ public abstract class Int_ALife_Creature extends Thread
      * Serialize the creature in a double[] and return it
      * @return double[], the serialized creature
      */
-    public synchronized double[] serializeCreature(){
+    public double[] serializeCreature(){
         
         ArrayList<Double> caracArrayList = new ArrayList<Double>();
         //all caracteristics of Active_ALife_Creature
@@ -739,7 +739,7 @@ public abstract class Int_ALife_Creature extends Thread
      * @return  - double, the status of creature
      */
     public static double evaluateStatus(Int_ALife_Creature c){
-        double DEFAULT_descendat_StatusPlus = 0.1; //For normalizing
+         //For normalizing
         //check all dates to avoid crash
         if (c == null) return -1;
 
@@ -751,9 +751,9 @@ public abstract class Int_ALife_Creature extends Thread
             //ownedStatus += cr.getStatus(); // implement getStatus()
             //Posibly specie add to status value 
         }
-        synchronized (c){
+        //synchronized (c){
             c.ownedStatus = ownedStatus;
-        }
+        //}
         // Variable status
         //for test
         double VarTemporaldStatus = 0;
@@ -764,7 +764,7 @@ public abstract class Int_ALife_Creature extends Thread
         //livePoints more better MAX 1
         VarTemporaldStatus += (double)c.livePoints / (double)c.livePointMax;
         //Reproduction group full better MAX 1
-        VarTemporaldStatus += (double)c.reproductionGroup.size() / c.minReproductionGroup;
+        VarTemporaldStatus += Math.min(1,(double)c.reproductionGroup.size() / c.minReproductionGroup); //avoid over group points
         //Body dimension more better
         double tempBody = 0, tempMinBody = 0, tempMaxBody = 0;
         for (int i = 0; i < c.foodResourceOwn.length; i++){
@@ -1015,7 +1015,7 @@ public abstract class Int_ALife_Creature extends Thread
      * @return    - None
     **/ 
     //@Override
-    public abstract void paint(BufferedImage g, Color c);
+    public abstract void paint(BufferedImage g, Color c, ReentrantLock lock);
     
     public static void viewCreature(Int_ALife_Creature cre){
         //Scanner scanner = new Scanner(System.in);

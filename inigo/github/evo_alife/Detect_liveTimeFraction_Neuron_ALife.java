@@ -33,7 +33,7 @@ public class Detect_liveTimeFraction_Neuron_ALife extends Input_Neuron_ALife
      * @param c Int_ALife_Creature the creature that owns the neuron
      */
     public Detect_liveTimeFraction_Neuron_ALife (Int_ALife_Creature c) throws IllegalArgumentException{
-        super();
+        super(c);
         //Checks
         if (c==null) {
             throw new IllegalArgumentException("Creature can't be null");
@@ -52,21 +52,26 @@ public class Detect_liveTimeFraction_Neuron_ALife extends Input_Neuron_ALife
      */
     @Override
     public double activation(){ 
-        if (this.output != null) return output;
-        //1 if reproduction group is full, 0 if its empty
-        //check
-        if (this.creature == null) {
-            MultiTaskUtil.threadMsg("Error in Detect_liveTimeFraction_Neuron_ALife No creature defined.(null)");
-            return Mind_ALife.FALSE_in_double;
-        }
-        synchronized(this.creature){
-            output = ALifeCalcUtil.min_max_Normalization(
-                this.creature.getLifeTime(),
-                0, this.creature.getLifeExp());
-            output = ALifeCalcUtil.min_max_Normalization(output,
-                Mind_ALife.FALSE_in_double, Mind_ALife.TRUE_in_double);
-        } // End synchronized()
-        return output;
+        this.lockNeuron.lock();
+        try{
+            if (this.output != null) return output;
+            //1 if reproduction group is full, 0 if its empty
+            //check
+            if (this.creature == null) {
+                MultiTaskUtil.threadMsg("Error in Detect_liveTimeFraction_Neuron_ALife No creature defined.(null)");
+                return Mind_ALife.FALSE_in_double;
+            }
+            
+                output = ALifeCalcUtil.min_max_Normalization(
+                    this.creature.getLifeTime(),
+                    0, this.creature.getLifeExp());
+                output = ALifeCalcUtil.min_max_Normalization(output,
+                    Mind_ALife.FALSE_in_double, Mind_ALife.TRUE_in_double);
+            
+            return output;
+        }finally{
+            this.lockNeuron.unlock();
+        } // End try-finally
     } // End public double activation()
         
     /**
@@ -83,10 +88,22 @@ public class Detect_liveTimeFraction_Neuron_ALife extends Input_Neuron_ALife
         return newN;
     } // End public static BResourceDetection_Neuron_ALife dupeNeuron_ALife(BResourceDetection_Neuron_ALife n)
 
-    //Test Dudoso
+    /**
+     * public Detect_liveTimeFraction_Neuron_ALife dupeNeuron_ALife()
+     * 
+     * Copy this neuron
+     * @param  None
+     * @return Detect_liveTimeFraction_Neuron_ALife the copy of the neuron
+     * 
+     */
     public Detect_liveTimeFraction_Neuron_ALife dupeNeuron_ALife(){
-        Detect_liveTimeFraction_Neuron_ALife newN = new Detect_liveTimeFraction_Neuron_ALife(this);
-        return newN;
+        lockNeuron.lock();
+        try{
+            Detect_liveTimeFraction_Neuron_ALife newN = new Detect_liveTimeFraction_Neuron_ALife(this);
+            return newN;
+        }finally{
+            lockNeuron.unlock();
+        } // End try-finally
     } // End public static BResourceDetection_Neuron_ALife dupeNeuron_ALife(BResourceDetection_Neuron_ALife n)
 
 
@@ -94,4 +111,4 @@ public class Detect_liveTimeFraction_Neuron_ALife extends Input_Neuron_ALife
 
     // Private Methods and Fuctions =============
     
-} // End Class
+} // End Class BResourceDetection_Neuron_ALife

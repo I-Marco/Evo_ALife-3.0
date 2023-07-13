@@ -33,7 +33,7 @@ public class Detec_Nearest_R_NorthDist_Neuron_ALife extends Input_Neuron_ALife
      * @param c Int_ALife_Creature the creature that owns the neuron
      */
     public Detec_Nearest_R_NorthDist_Neuron_ALife (Int_ALife_Creature c) throws IllegalArgumentException{
-        super();
+        super(c);
         //Checks
         if (c==null) {
             throw new IllegalArgumentException("Creature can't be null");
@@ -80,7 +80,7 @@ public class Detec_Nearest_R_NorthDist_Neuron_ALife extends Input_Neuron_ALife
             output = Mind_ALife.FALSE_in_double;// not found
             if (this.creature == null|| this.creature.getEnv_ALife().getLand() == null ) 
                 return 0;
-            synchronized(this.creature){synchronized(this.creature.getEnv_ALife().getLand()){
+
                 Point foodPos = null;
                 Point pos = this.creature.getPos();
                 for (int range = 0; range <= this.creature.getDetectionRange(); range++){
@@ -107,7 +107,7 @@ public class Detec_Nearest_R_NorthDist_Neuron_ALife extends Input_Neuron_ALife
                 }
                 output = (this.creature.getDetectionRange() + 1  - output) / (this.creature.getDetectionRange() + 1); // Normalize
                 output = (Mind_ALife.TRUE_in_double - Mind_ALife.FALSE_in_double) * output; // Scale
-            }} // End synchronized(this.creature){synchronized(this.creature.getEnv_ALife().getLand()){
+
         } finally {
             this.lockNeuron.unlock();
         }
@@ -115,23 +115,22 @@ public class Detec_Nearest_R_NorthDist_Neuron_ALife extends Input_Neuron_ALife
     } // End public double activation()
         
     /**
-     * public static BResourceDetection_Neuron_ALife dupeNeuron_ALife(BResourceDetection_Neuron_ALife n)
+     * public Detec_Nearest_R_NorthDist_Neuron_ALife dupeNeuron_ALife()
      * 
-     * Copy a neuron of this class 
-     * @param  n BResourceDetection_Neuron_ALife the neuron to copy
-     * @return BResourceDetection_Neuron_ALife the copy of the neuron
+     * This method is used to duplicate the neuron
+     * @param n  None
+     * @return Detec_Nearest_R_NorthDist_Neuron_ALife the new neuron
      */
-    public static Detec_Nearest_R_NorthDist_Neuron_ALife dupeNeuron_ALife(Detec_Nearest_R_NorthDist_Neuron_ALife n){
-        //Its not override since input and output parameters classes are diferent
-        if (n.creature == null) return null;
-        Detec_Nearest_R_NorthDist_Neuron_ALife newN = new Detec_Nearest_R_NorthDist_Neuron_ALife(n);
-        return newN;
-    } // End public static BResourceDetection_Neuron_ALife dupeNeuron_ALife(BResourceDetection_Neuron_ALife n)
-
-    //Test Dudoso
     public Detec_Nearest_R_NorthDist_Neuron_ALife dupeNeuron_ALife(){
-        Detec_Nearest_R_NorthDist_Neuron_ALife newN = new Detec_Nearest_R_NorthDist_Neuron_ALife(this);
-        return newN;
+        this.lockNeuron.lock();
+        try{
+            Detec_Nearest_R_NorthDist_Neuron_ALife newN = new Detec_Nearest_R_NorthDist_Neuron_ALife(this);
+            return newN;
+        } finally {
+            this.lockNeuron.unlock();
+        }
+        //Detec_Nearest_R_NorthDist_Neuron_ALife newN = new Detec_Nearest_R_NorthDist_Neuron_ALife(this);
+        //return newN;
     } // End public static BResourceDetection_Neuron_ALife dupeNeuron_ALife(BResourceDetection_Neuron_ALife n)
 
 
@@ -139,4 +138,4 @@ public class Detec_Nearest_R_NorthDist_Neuron_ALife extends Input_Neuron_ALife
 
     // Private Methods and Fuctions =============
     
-} // End Class
+} // End public class BResourceDetection_Neuron_ALife extends Input_Neuron_ALife

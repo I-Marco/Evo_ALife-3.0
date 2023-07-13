@@ -4,6 +4,7 @@ import java.awt.*;
 import java.awt.image.*;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Evo_ALife project. 
@@ -116,7 +117,7 @@ public class ALife_Corpse extends Int_ALife_Creature
      * @return    - None
     **/ 
     //@Override
-    public void paint(BufferedImage g, Color c){}
+    public void paint(BufferedImage g, Color c, ReentrantLock lock){}
     
     
 } // End Class

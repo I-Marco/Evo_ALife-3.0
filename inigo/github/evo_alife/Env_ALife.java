@@ -59,6 +59,7 @@ public class Env_ALife extends Thread
     //Thread related fields
     private Semaphore semaphore; //semaforo para controlar el numero de hilos
     private final ReentrantLock lockEventList;//semaforo para controlar el acceso a la lista de eventos
+    private final ReentrantLock lockLiveImage;//semaforo para controlar el acceso a la imagen de vida
     private final Object pauseSignal = new Object(); // señal de pausa/continuación externa
     private final Object maxThreadSignal = new Object(); // señal de pausa/continuación MaxThreads alcanzado
     private volatile boolean isPaused = false;    
@@ -93,6 +94,7 @@ public class Env_ALife extends Thread
         isPaused = true;
         semaphore = new Semaphore(maxThreads);
         this.lockEventList = new ReentrantLock();
+        this.lockLiveImage = new ReentrantLock();
         this.setPriority(Thread.currentThread().getPriority()-2); //Forzar convergencia
         threadManager = new MultiTaskUtil();
 
@@ -124,6 +126,9 @@ public class Env_ALife extends Thread
         try{
             this.fileManager = new ALive_FileManager(this.env_Name,this.caller);
             this.fileManager.start();
+            String[] HEADERS = {"Time", "NumberOfCreaturesAlive", "NumberOfSpeciesAlive", "NumberOfCreaturesBorn", "NumberOfCreaturesDeath"};
+            this.fileManager.addLine(HEADERS);
+            this.fileManager.forceWrite();
         }catch (IOException ioe){
             MultiTaskUtil.threadMsg("Error creating file manager");
         }
@@ -145,6 +150,7 @@ public class Env_ALife extends Thread
         isPaused = true;
         semaphore = new Semaphore(maxThreads);
         this.lockEventList = new ReentrantLock();
+        this.lockLiveImage = new ReentrantLock();
         this.setPriority(Thread.currentThread().getPriority()-2); //Forzar convergencia
         threadManager = new MultiTaskUtil();
 
@@ -255,6 +261,8 @@ public class Env_ALife extends Thread
      **/ 
     @Override
     public void run(){ 
+        if (!this.fileManager.isAlive()) 
+            this.fileManager.start();
     
         while(true){ //Forever
             synchronized (pauseSignal) {
@@ -703,9 +711,14 @@ public class Env_ALife extends Thread
      * @param   - i BufferedImage New back life image
      * @return  - None
      **/
-    public synchronized void setBackLifeImage(BufferedImage i){
+    public void setBackLifeImage(BufferedImage i){
         //Carefull you can assign a null value
-        this.backLifeImage = i;
+        this.lockLiveImage.lock();
+        try{
+            this.backLifeImage = i;
+        } finally {
+            this.lockLiveImage.unlock();
+        }
     }// End public BufferedImage getLifeImg()
 
     /**
@@ -1128,6 +1141,26 @@ public class Env_ALife extends Thread
     }
 
     /**
+     * public ReentrantLock getLockLiveImage()
+     * 
+     * @param   - None
+     * @return  - ReentrantLock, the lock for live image
+     */
+    public ReentrantLock getLockLiveImage(){
+        return this.lockLiveImage;
+    } // End public ReentrantLock getLockLiveImage()
+
+    /**
+     * public ReentrantLock getLockEventList()
+     * 
+     * @param   - None
+     * @return  - ReentrantLock, the lock for event list
+     */
+    public ReentrantLock getLockEventList(){
+        return this.lockEventList;
+    } // End public ReentrantLock getLockLiveImage()
+
+    /**
      *  
      * @param   - Object, the event to be added
      * @return  - None
@@ -1148,7 +1181,7 @@ public class Env_ALife extends Thread
         //Add creature to ALife_Logical_Environment
         this.logical_Env.addCreatureToLogEnv(c, c.getPos());
         //Add in life image
-        c.paint(this.getBackLifeImage(), Color.YELLOW); //CAUTION we have to pass to front image to be seen
+        c.paint(this.getBackLifeImage(), Color.YELLOW, this.lockLiveImage); //CAUTION we have to pass to front image to be seen
         //add Creature to specie system
         this.species.addCreatureToSpecies(c);
         if (c.getIdCreature() < 0) {int breakpoints = 1;} // FALTA new id creature
@@ -1169,7 +1202,7 @@ public class Env_ALife extends Thread
         this.logical_Env.removeCreature(c);
         //remove creature from this.lifeImg
         this.removeCreatureFromEventList(c);
-        c.paint(getBackLifeImage(), null); //CAUTION we have to pass to front image to be seen
+        c.paint(getBackLifeImage(), null, this.lockLiveImage); //CAUTION we have to pass to front image to be seen
     } // End public void removeCreature(Int_ALife_Creature c)
 
     /**

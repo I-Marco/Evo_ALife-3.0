@@ -54,14 +54,19 @@ public class Detect_Reproductable_Neuron_ALife extends Input_Neuron_ALife
      */
     @Override
     public double activation(){
-        if (this.output != null) return output;
+        this.lockNeuron.lock();
+        try{
+            if (this.output != null) return output;
         
-        output = Mind_ALife.FALSE_in_double;
-        synchronized(creature){
-            if (creature.getReproductable()) 
-                output = Mind_ALife.TRUE_in_double;
-        } // End synchronized(creature)
-        return output; //this.output" is null" java.lang.NullPointerException ?????
+            output = Mind_ALife.FALSE_in_double;
+            
+                if (creature.getReproductable()) 
+                    output = Mind_ALife.TRUE_in_double;
+            
+            return output; //this.output" is null" java.lang.NullPointerException ?????
+        }finally{
+            this.lockNeuron.unlock();
+        }
     }
         
     /**
@@ -80,9 +85,13 @@ public class Detect_Reproductable_Neuron_ALife extends Input_Neuron_ALife
 
     @Override
     public Detect_Reproductable_Neuron_ALife dupeNeuron_ALife(){
-        
-        Detect_Reproductable_Neuron_ALife newN = new Detect_Reproductable_Neuron_ALife(this);
-        return newN;
+        lockNeuron.lock();
+        try{
+            Detect_Reproductable_Neuron_ALife newN = new Detect_Reproductable_Neuron_ALife(this);
+            return newN;
+        }finally{
+            lockNeuron.unlock();
+        }
     } // End public static Reproductable_Neuron_ALife dupeNeuron_ALife(Reproductable_Neuron_ALife n)
 
     // Getter and setters

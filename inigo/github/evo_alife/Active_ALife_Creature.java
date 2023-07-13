@@ -3,6 +3,7 @@ package inigo.github.evo_alife;
 import java.awt.image.*;
 import java.awt.*;
 import java.util.concurrent.*;
+import java.util.concurrent.locks.ReentrantLock;
 
 //import Mind_ALife.Action;
 
@@ -17,7 +18,7 @@ import java.util.*;
 public class Active_ALife_Creature extends Int_ALife_Creature
 {
     public static final int DEFAULT_LifeDelayPerNutrient = 2;
-    public static final Color CREATURE_DEFAULT_COLOR =new Color (199,199,199);
+    public static final Color CREATURE_DEFAULT_COLOR = new Color (199,199,199);
     // Constants for normalization Creature
     /*public static final double[] creature_Caracteristics =
         {hidden, tamComplex, attack, def, detectionRange, umbralDetection, humgryUmbral, 
@@ -57,8 +58,9 @@ public class Active_ALife_Creature extends Int_ALife_Creature
     //Creature caracteristics in Int_ALife_Creature
     ArrayList <Long> timeOfDeccision = new ArrayList<Long>(); // Time of deccision
     ArrayList <Mind_ALife.Action> actions = new ArrayList<Mind_ALife.Action>(); // Actions that creature can do
-    ArrayList <Double> statusValue = new ArrayList<Double>(); // Status of creature
+    ArrayList <Double> statusValues = new ArrayList<Double>(); // Status of creature
 
+    ReentrantLock lockStatusMemory;
     //Make a variable with 3 fields long time field, double statusvalue and Mind_ALife.Action doneAction
     //Known species ....
     ArrayList <ALife_Specie> enemySpecieList = new ArrayList<ALife_Specie>(); // List of enemy species
@@ -84,6 +86,7 @@ public class Active_ALife_Creature extends Int_ALife_Creature
     //public Creature(Env_ALife env, Semaphore s, Point p){
     public Active_ALife_Creature(Env_ALife env, Point p, Mind_ALife m, long lifeexp, int[] frOwn, int[] frNeed){
         super();
+        lockStatusMemory = new ReentrantLock();
         env_ALive = env;
         idCreature = this.env_ALive.getNewCreatureID();
         semaphore = env_ALive.getSemaphore(); // Quiza deberia ser parámetro pero Evo_ALIFE no lo tiene
@@ -141,6 +144,7 @@ public class Active_ALife_Creature extends Int_ALife_Creature
     //Creature(this.env_ALife,new Point(170,170),null,1000,haveR,needR
     //public Creature(Env_ALife env, Semaphore s, Point p){
     public Active_ALife_Creature(ArrayList<Int_ALife_Creature> progenitors, boolean mutate) throws Exception{
+        lockStatusMemory = new ReentrantLock();
         //Caracteristicas mix progenitores
         if (progenitors == null) {
             //Error msg.
@@ -255,6 +259,7 @@ public class Active_ALife_Creature extends Int_ALife_Creature
     } // End public Creature(ArrayList<Int_ALife_Creature> progenitors)
     
     Active_ALife_Creature(){
+        lockStatusMemory = new ReentrantLock();
         //env_ALive.getSpecies().addCreature(null); //Automatically assign specieIdNumber ??
     }//Just to can make subclass constructors
     
@@ -266,6 +271,7 @@ public class Active_ALife_Creature extends Int_ALife_Creature
     protected Active_ALife_Creature(Active_ALife_Creature c){
         //Dupe creature
         super(c); //Int_ALife_Creature(c)
+        lockStatusMemory = new ReentrantLock();
         this.backLand = c.backLand; //private BufferedImage backLand = null;
         this.frontLand = c.frontLand; // private BufferedImage frontLand = null;
         this.semaphore = c.semaphore; // private Semaphore semaphore;
@@ -277,9 +283,9 @@ public class Active_ALife_Creature extends Int_ALife_Creature
         for(Mind_ALife.Action a: c.actions){
             this.actions.add(a);
         }
-        this.statusValue = new ArrayList<Double>(); //ArrayList <Double> statusValue = new ArrayList<Double>(); // Status of creature
-        for(Double d: c.statusValue){
-            this.statusValue.add(d);
+        this.statusValues = new ArrayList<Double>(); //ArrayList <Double> statusValue = new ArrayList<Double>(); // Status of creature
+        for(Double d: c.statusValues){
+            this.statusValues.add(d);
         }        
     } // End private Creature(Creature c)
 
@@ -415,7 +421,7 @@ public class Active_ALife_Creature extends Int_ALife_Creature
                 //For Concurrency Log
                 //MultiTaskUtil.threadMsg("Finalizado Thread  Creature!!"+semaphore.availablePermits());
                 
-                this.env_ALive.MyNotifyAll();
+                this.getEnv_ALife().MyNotifyAll();
             } catch(NullPointerException e){
                 MultiTaskUtil.threadMsg("Null Point exception in Creature Run");
                 e.printStackTrace();
@@ -425,10 +431,10 @@ public class Active_ALife_Creature extends Int_ALife_Creature
         }//End try catch - FINALLY
         //Self paint
         if(this.livePoints > 0) {
-            paint(this.env_ALive.getBackLifeImage(),Color.YELLOW);
+            paint(this.getEnv_ALife().getBackLifeImage(),Color.YELLOW, this.getEnv_ALife().getLockLiveImage());
         } else {
             //como borramos? Color(0, 0, 0, 0)
-            paint(this.env_ALive.getBackLifeImage(),null); //new Color(0, 0, 0, 255)
+            paint(this.getEnv_ALife().getBackLifeImage(),null, this.getEnv_ALife().getLockLiveImage()); //new Color(0, 0, 0, 255)
         }
         //Env_Panel.imageDisplay(this.env_ALive.getBackLifeImage(),"From Creature Run (LiveImage) - LIVE Image");
     } // End public void run()    
@@ -533,12 +539,12 @@ public class Active_ALife_Creature extends Int_ALife_Creature
      */
     private void actionMove(int x, int y){
         //Check if can move //No need check inide FALTA
-        if (this.env_ALive.getLogical_Env().detectColision(this, 
-            new Point((this.pos.x + x + this.env_ALive.getEnv_Width()) % this.env_ALive.getEnv_Width(),
-            (this.pos.y + y + this.env_ALive.getEnv_Height()) % this.env_ALive.getEnv_Height()), 0)) return;
+        if (this.getEnv_ALife().getLogical_Env().detectColision(this, 
+            new Point((this.pos.x + x + this.getEnv_ALife().getEnv_Width()) % this.getEnv_ALife().getEnv_Width(),
+            (this.pos.y + y + this.getEnv_ALife().getEnv_Height()) % this.getEnv_ALife().getEnv_Height()), 0)) return;
         //Move
         //remove old creature imagen
-        this.env_ALive.getLogical_Env().moveCreature(this,this.pos.x + x, this.pos.y + y); //update inside creature.pos
+        this.getEnv_ALife().getLogical_Env().moveCreature(this,this.pos.x + x, this.pos.y + y); //update inside creature.pos
         //Add new creature imagen
 
     } // End private void actionMove(int x, int y)
@@ -558,7 +564,7 @@ public class Active_ALife_Creature extends Int_ALife_Creature
                 foodResourceEat[1] * this.maxfoodResourceGetFactor,
                 foodResourceEat[2] * this.maxfoodResourceGetFactor
             }; // Max resources we can get in TOTAL
-            foodResourceEat = this.env_ALive.getLand().getNutrient(pos, foodResourceEatMax, this); 
+            foodResourceEat = this.getEnv_ALife().getLand().getNutrient(pos, foodResourceEatMax, this); 
                 //Its diferet creature
             //test
             int sumRes = 0, minRes = 0; // how much resources we gett in TOTAL
@@ -695,7 +701,7 @@ public class Active_ALife_Creature extends Int_ALife_Creature
 
         //return resources to env rest[]
         if (returFoodToGround) 
-            this.env_ALive.getLand().germine(pos.x, pos.y, rest[0], rest[1], rest[2], 0);
+            this.getEnv_ALife().getLand().germine(pos.x, pos.y, rest[0], rest[1], rest[2], 0);
     } // End private void grow(Point pos, int[] foodResourceEated)
     
     /**
@@ -704,20 +710,25 @@ public class Active_ALife_Creature extends Int_ALife_Creature
      * @param    - Mind_ALife.Action
      * @return   - None
      */
-    private synchronized void statusChangesUpdate(Mind_ALife.Action ac){
+    private void statusChangesUpdate(Mind_ALife.Action ac){
         if (ac == null && this.lifeTime != 0) return;
-        if (this.timeOfDeccision == null) this.timeOfDeccision = new ArrayList<Long>();
-        if (this.actions == null) this.actions = new ArrayList<Mind_ALife.Action>();
-        if (this.statusValue == null) this.statusValue = new ArrayList<Double>();
-        if (this.timeOfDeccision.size()!=this.actions.size() || 
-            this.timeOfDeccision.size() != this.statusValue.size()){
-            MultiTaskUtil.threadMsg("Error in Creature statusChangesUpdate: size of arraylist are diferent");
-            return;
-        } 
-        synchronized(this) {
-            timeOfDeccision.add(env_ALive.getTime());
-            actions.add(ac);
-            statusValue.add(Int_ALife_Creature.evaluateStatus(this));
+        this.lockStatusMemory.lock();
+        try{
+            if (this.timeOfDeccision == null) this.timeOfDeccision = new ArrayList<Long>();
+            if (this.actions == null) this.actions = new ArrayList<Mind_ALife.Action>();
+            if (this.statusValues == null) this.statusValues = new ArrayList<Double>();
+            if (this.timeOfDeccision.size()!=this.actions.size() || 
+                this.timeOfDeccision.size() != this.statusValues.size()){
+                MultiTaskUtil.threadMsg("Error in Creature statusChangesUpdate: size of arraylist are diferent");
+                return;
+            } 
+
+                timeOfDeccision.add(this.getEnv_ALife().getTime());
+                actions.add(ac);
+                statusValues.add(Int_ALife_Creature.evaluateStatus(this));
+
+        } finally {
+            this.lockStatusMemory.unlock();
         }
     } // End private void statusChangesUpdate(Mind_ALife.Action ac)
 
@@ -731,69 +742,75 @@ public class Active_ALife_Creature extends Int_ALife_Creature
     private void statusChangeEvolution(){ //self update creature status
         double statusNow = Int_ALife_Creature.evaluateStatus(this);
         //Check
-        if (this.timeOfDeccision == null || this.actions == null || this.statusValue == null){
+        if (this.timeOfDeccision == null || this.actions == null || this.statusValues == null){
             MultiTaskUtil.threadMsg("Error in Creature statusChangeEvolution: arraylist are null");
             return;
         }
+        this.lockStatusMemory.lock();
+        try{
+            if (this.timeOfDeccision.isEmpty() || 
+                this.actions.isEmpty() || this.statusValues.isEmpty()){
+                if (this.lifeTime > this.lifeDelay) //If this is not first execution them error
+                    MultiTaskUtil.threadMsg("Error in Creature statusChangeEvolution: Any ArrayList is empty");
+                return;
+            }
         
-        if (this.timeOfDeccision.isEmpty() || 
-            this.actions.isEmpty() || this.statusValue.isEmpty()){
-            if (this.lifeTime > this.lifeDelay) //If this is not first execution them error
-                MultiTaskUtil.threadMsg("Error in Creature statusChangeEvolution: Any ArrayList is empty");
-            return;
-        }
-        
-        // Fast minimal updates
-        if (this.actions.size() > 1 && this.timeOfDeccision.size() > 1 && 
-            this.statusValue.size() > 1)
-        {
-            //for test 
-            double viewBefore = statusValue.get(statusValue.size()-1);
-            double viewNow = statusNow - statusValue.get(statusValue.size()-1);
-            //End test
+            // Fast minimal updates
+            if (this.actions.size() > 1 && this.timeOfDeccision.size() > 1 && 
+                this.statusValues.size() > 1)
+            {
+                //for test 
+                double viewBefore = statusValues.get(statusValues.size()-1);
+                double viewNow = statusNow - statusValues.get(statusValues.size()-1);
+                //End test
+                /*
+                if (this.actions.size() <= 1)
+                    this.mind.updateMind(
+                        actions.get(actions.size()-1),
+                        statusNow - statusValue.get(statusValue.size()-1),
+                        Mind_ALife.DEFAULT_Weight_changeFraction, 0
+                    ); //For weight update no divided by time (LONG_TIME_UPDATE)
+                else 
+                */
+                    this.mind.updateMind(
+                        actions.get(actions.size()-1),
+                        statusValues.get(statusValues.size()-1) - statusValues.get(statusValues.size()-2),
+                        Mind_ALife.DEFAULT_Weight_changeFraction , Double.valueOf(0)
+                    ); //For weight update no divided by time
+            } // End minimal updates
+
+            // Medium updates
+            //this.mind.updateMind(actions.get(actions.size()-1), statusValue.get(statusValue.size()-1)-actualStatus, 
+            //    WEIGHT * (timeOfDeccision.get(timeOfDeccision.size()-1) - this.env_ALive.getTime()));
+            // Medium updates
             /*
-            if (this.actions.size() <= 1)
+            if (this.actions.size() > MEDIUM_TIME_UPDATE && this.timeOfDeccision.size() > MEDIUM_TIME_UPDATE && 
+                this.statusValue.size() > MEDIUM_TIME_UPDATE){
                 this.mind.updateMind(
-                    actions.get(actions.size()-1),
-                    statusNow - statusValue.get(statusValue.size()-1),
-                    Mind_ALife.DEFAULT_Weight_changeFraction, 0
-                ); //For weight update no divided by time (LONG_TIME_UPDATE)
-            else 
+                    actions.get(actions.size()-(int)MEDIUM_TIME_UPDATE - 1),
+                     statusValue.get(statusValue.size()-1) - statusValue.get((int) (statusValue.size()- MEDIUM_TIME_UPDATE - 1)),
+                    Mind_ALife.DEFAULT_Weight_changeFraction / (int)LONG_TIME_UPDATE * MEDIUM_TIME_UPDATE,Double.valueOf(0)
+                );
+            }
+            // Long time updates
+            if (this.actions.size() > LONG_TIME_UPDATE && this.timeOfDeccision.size() > LONG_TIME_UPDATE && 
+                this.statusValue.size() > LONG_TIME_UPDATE){
+                this.mind.updateMind(
+                    actions.get(actions.size()-(int)LONG_TIME_UPDATE - 1),
+                    statusValue.get(statusValue.size()-1) - statusValue.get((int) (statusValue.size()- LONG_TIME_UPDATE - 1)),
+                    Mind_ALife.DEFAULT_Weight_changeFraction,Double.valueOf(0)
+                );
+            }
             */
-                this.mind.updateMind(
-                    actions.get(actions.size()-1),
-                    statusValue.get(statusValue.size()-1) - statusValue.get(statusValue.size()-2),
-                    Mind_ALife.DEFAULT_Weight_changeFraction , Double.valueOf(0)
-                ); //For weight update no divided by time
-        }
-        //this.mind.updateMind(actions.get(actions.size()-1), statusValue.get(statusValue.size()-1)-actualStatus, 
-        //    WEIGHT * (timeOfDeccision.get(timeOfDeccision.size()-1) - this.env_ALive.getTime()));
-        // Medium updates
-        /*
-        if (this.actions.size() > MEDIUM_TIME_UPDATE && this.timeOfDeccision.size() > MEDIUM_TIME_UPDATE && 
-            this.statusValue.size() > MEDIUM_TIME_UPDATE){
-            this.mind.updateMind(
-                actions.get(actions.size()-(int)MEDIUM_TIME_UPDATE - 1),
-                 statusValue.get(statusValue.size()-1) - statusValue.get((int) (statusValue.size()- MEDIUM_TIME_UPDATE - 1)),
-                Mind_ALife.DEFAULT_Weight_changeFraction / (int)LONG_TIME_UPDATE * MEDIUM_TIME_UPDATE,Double.valueOf(0)
-            );
-        }
-        // Long time updates
-        if (this.actions.size() > LONG_TIME_UPDATE && this.timeOfDeccision.size() > LONG_TIME_UPDATE && 
-            this.statusValue.size() > LONG_TIME_UPDATE){
-            this.mind.updateMind(
-                actions.get(actions.size()-(int)LONG_TIME_UPDATE - 1),
-                statusValue.get(statusValue.size()-1) - statusValue.get((int) (statusValue.size()- LONG_TIME_UPDATE - 1)),
-                Mind_ALife.DEFAULT_Weight_changeFraction,Double.valueOf(0)
-            );
-        }
-        */
-        // Remove old useless datas
-        if (actions.size() > LONG_TIME_UPDATE && timeOfDeccision.size() > LONG_TIME_UPDATE && 
-            statusValue.size() > LONG_TIME_UPDATE){
-            actions.remove(0);
-            timeOfDeccision.remove(0);
-            statusValue.remove(0);
+            // Remove old useless datas
+            if (actions.size() > LONG_TIME_UPDATE && timeOfDeccision.size() > LONG_TIME_UPDATE && 
+                statusValues.size() > LONG_TIME_UPDATE){
+                actions.remove(0);
+                timeOfDeccision.remove(0);
+                statusValues.remove(0);
+            }
+        } finally {
+            this.lockStatusMemory.unlock();
         }
     } // End private void statusChangeEvolution()
 
@@ -819,7 +836,7 @@ public class Active_ALife_Creature extends Int_ALife_Creature
             Int_ALife_Creature baby;
             //body reproduce + mutate
             try{
-                baby = new Active_ALife_Creature(progenitors, this.env_ALive.getAllowMutate());
+                baby = new Active_ALife_Creature(progenitors, this.getEnv_ALife().getAllowMutate());
                 if (descendents == null) descendents = new ArrayList<Int_ALife_Creature>(); //For security
                 this.descendents.add(baby);
             } catch (Exception e){
@@ -896,12 +913,13 @@ public class Active_ALife_Creature extends Int_ALife_Creature
     }
     
     //@Override
-    public void paint(BufferedImage g, Color col){
+    public void paint(BufferedImage g, Color col, ReentrantLock lock){
         if (g == null) return;
 
         double scaleW = (double) g.getWidth() / this.getEnv_ALife().getLand().getLandImg().getWidth();
         double scaleH =  (double) g.getHeight() / this.getEnv_ALife().getLand().getLandImg().getHeight();
-        //int scale = Math.min(scaleW, scaleH);        
+        //int scale = Math.min(scaleW, scaleH);
+        lock.lock();
         try{
             g.getType();
             Graphics2D g2d = g.createGraphics();
@@ -921,28 +939,6 @@ public class Active_ALife_Creature extends Int_ALife_Creature
                 }
             } else {
                 g = refreshLiveImage(this.getEnv_ALife().getCreatureList(), this.getEnv_ALife().getBackLifeImage());
-                //AlphaComposite alphaComposite = AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f);
-                //g2d.setComposite(alphaComposite);
-
-                //g2d.setComposite(AlphaComposite.Clear);
-                //g2d.fillRect((int) (this.pos.x * scaleW), (int) (this.pos.y * scaleH),
-                //         (int) (1*scaleW), (int) (1 * scaleH));
-                
-                //g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER));
-                /*
-                Color pixelColor = new Color(g.getRGB(29, 29));
-                int[] ground = {
-                    pixelColor.getRed(), 
-                    pixelColor.getGreen(), 
-                    pixelColor.getBlue(), 
-                    pixelColor.getAlpha()
-                };
-
-                g2d.setColor(new Color(0, 0, 0, 0));
-                
-                g2d.fillOval((int) (this.pos.x * scaleW), (int) (this.pos.y * scaleH),
-                         (int) (1*scaleW), (int) (1 * scaleH));
-                */
                 int breakpoint = 1;
                 
                 //g2d.clearRect((int) (this.pos.x * scaleW), (int) (this.pos.y * scaleH),
@@ -955,6 +951,8 @@ public class Active_ALife_Creature extends Int_ALife_Creature
         }catch(Exception e){
             MultiTaskUtil.threadMsg("Error desconocido en Creature.Paint.");
             e.printStackTrace();
+        }finally{
+            lock.unlock();
         }
     } // End public void paint(BufferedImage g, Color col)
     
@@ -981,7 +979,7 @@ public class Active_ALife_Creature extends Int_ALife_Creature
             //paint all creatures
             for (Active_ALife_Creature o : creatureList){
                 if (o instanceof Active_ALife_Creature){
-                    ((Active_ALife_Creature) o).paint(i, Color.YELLOW);
+                    ((Active_ALife_Creature) o).paint(i, Color.YELLOW,o.getEnv_ALife().getLockLiveImage());
                 }
             }
             g2d.dispose();

@@ -32,6 +32,7 @@ public class Detect_BResource_Neuron_ALife extends Input_Neuron_ALife
      * @param c Int_ALife_Creature the creature that owns the neuron
      */
     public Detect_BResource_Neuron_ALife(Int_ALife_Creature c){
+        super(c);
         //Checks
         if (c==null) {
             return; //(For moment we dont contemps unowned neurons
@@ -49,39 +50,41 @@ public class Detect_BResource_Neuron_ALife extends Input_Neuron_ALife
      */
     @Override
     public double activation(){
-        if (this.output != null) return output;
+        this.lockNeuron.lock();
+        try{
+            if (this.output != null) return output;
         
-        output = Mind_ALife.FALSE_in_double;
-        synchronized (this.creature){synchronized (this.creature.getEnv_ALife().getLand()){
-            Point pos = this.creature.getPos();
-            int[] food = this.creature.getEnv_ALife().getLand().getNutrientIn(pos.x, pos.y);
-            if (food[2] > 0) output = Mind_ALife.TRUE_in_double;
-        }} // End synchronized (this.creature){synchronized (this.creature.getEnv_ALife().getLand())
-        return output;
-    } // End public double activation()
-        
-    /**
-     * public static BResourceDetection_Neuron_ALife dupeNeuron_ALife(BResourceDetection_Neuron_ALife n)
-     * 
-     * Copy a neuron of this class 
-     * @param  n BResourceDetection_Neuron_ALife the neuron to copy
-     * @return BResourceDetection_Neuron_ALife the copy of the neuron
-     */
-    public static Detect_BResource_Neuron_ALife dupeNeuron_ALife(Detect_BResource_Neuron_ALife n){
-        //Its not override since input and output parameters classes are diferent
-        if (n.creature == null) return null;
-        Detect_BResource_Neuron_ALife newN = new Detect_BResource_Neuron_ALife(n);
-        return newN;
-    } // End public static BResourceDetection_Neuron_ALife dupeNeuron_ALife(BResourceDetection_Neuron_ALife n)
+            output = Mind_ALife.FALSE_in_double;
 
-    //Test Dudoso
+                Point pos = this.creature.getPos();
+                int[] food = this.creature.getEnv_ALife().getLand().getNutrientIn(pos.x, pos.y);
+                if (food[2] > 0) output = Mind_ALife.TRUE_in_double;
+
+            return output;
+        } finally {
+            this.lockNeuron.unlock();
+        }
+    } // End public double activation()
+    
+    /**
+     * public Detect_BResource_Neuron_ALife dupeNeuron_ALife()
+     * 
+     * Duplicate the neuron
+     * @param n  None
+     * @return Detect_BResource_Neuron_ALife the new neuron
+     */
     public Detect_BResource_Neuron_ALife dupeNeuron_ALife(){
-        Detect_BResource_Neuron_ALife newN = new Detect_BResource_Neuron_ALife(this);
-        return newN;
+        this.lockNeuron.lock();
+        try{
+            Detect_BResource_Neuron_ALife newN = new Detect_BResource_Neuron_ALife(this);
+            return newN;
+        } finally {
+            this.lockNeuron.unlock();
+        }
     } // End public static BResourceDetection_Neuron_ALife dupeNeuron_ALife(BResourceDetection_Neuron_ALife n)
 
     // Getter and setters
 
     // Private Methods and Fuctions =============
     
-} // End Class
+} // End public class BResourceDetection_Neuron_ALife extends Input_Neuron_ALife

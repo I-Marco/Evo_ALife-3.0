@@ -23,7 +23,7 @@ public class Neuron_ALife
      ReentrantLock lockNeuron;
      
      // type in mid out
-     º
+     
     // Methods ---------------------------------------------------------------------------
     // Constructors ============================
     // necesitamos varios constructores un por defecto, otro que marque las entradas....
@@ -156,16 +156,16 @@ public class Neuron_ALife
         try{
             if (this.output != null) return output;
             int i = 0;//Psoble checkeo nully empty 
-            double sum = u;
+            double sum = getU();
             for(Neuron_ALife n:inputs){
                 //for test
                 //MultiTaskUtil.threadMsg("("+this.neuron_ID+")Neuron_ALife.activation() n = "+n.neuron_ID);
                 if (n != this){
-                    if (n.getOutput() != null) {
-                        sum += n.getOutput() * weights.get(i);
-                    } else {
+                    //if (n.getOutput() != null) {
+                    //    sum += n.getOutput() * weights.get(i);
+                    //} else {
                         sum += n.activation() * weights.get(i);
-                    }
+                    //}
                 } // End if (n != this)
             }// End for(Neuron_ALife n:inputs) all inputs neurons
             output = sum;
@@ -215,11 +215,11 @@ public class Neuron_ALife
                 //adjust each weight acording to the participation in output of the input neuron
                 //for test 
                 double viewOutputI = inputs.get(i).getOutput();
-                double viewFactor1 = changeValue *( (inputs.get(i).getOutput()*aux));
+                double viewFactor1 = ( (inputs.get(i).getOutput()/this.output));
                 double viewFactor2 = this.output ;
-                double viewFactor3 = changeValue *( (inputs.get(i).getOutput()*aux)/this.output );
+                double viewFactor3 = changeValue *( (inputs.get(i).getOutput())/this.output );
                 //end test
-                aux = aux + changeValue *( (inputs.get(i).getOutput()*aux) /this.output ); 
+                aux = aux *(1 + changeValue * ( inputs.get(i).getOutput() /this.output )); 
                 weights.set(i, aux);
             }
         
@@ -239,7 +239,7 @@ public class Neuron_ALife
             lockNeuron.unlock();
         }    
     } // End public void updateLearn(Double enhanced, Double change)
-    
+
     /**
     * public synchronized void normalizeWeights()
     * 
@@ -406,7 +406,7 @@ public class Neuron_ALife
      * @param creature Int_ALife_Creature the creature of the neuron
      * @return None
      */
-    public synchronized void setCreature(Int_ALife_Creature creature){
+    public void setCreature(Int_ALife_Creature creature){
         lockNeuron.lock();
         try{
             this.creature = creature;
@@ -417,13 +417,13 @@ public class Neuron_ALife
     } // End public void setCreature(Int_ALife_Creature creature)
 
     /**
-     * public synchronized Int_ALife_Creature getCreature()
+     * public Int_ALife_Creature getCreature()
      * 
      * Returns the creature of the neuron
      * @param None
      * @return Int_ALife_Creature the creature of the neuron
      */
-    public synchronized Int_ALife_Creature getCreature(){
+    public Int_ALife_Creature getCreature(){
         lockNeuron.lock();
         try{
             return creature;
@@ -434,13 +434,13 @@ public class Neuron_ALife
     } // End public Int_ALife_Creature getCreature()
 
     /**
-     * public synchronized ArrayList<Neuron_ALife> getInputs()
+     * public ArrayList<Neuron_ALife> getInputs()
      * 
      * Returns the inputs neurons of the neuron
      * @param None
      * @return ArrayList<Neuron_ALife> the inputs neurons of the neuron
      */
-    public synchronized ArrayList<Neuron_ALife> getInputs(){
+    public ArrayList<Neuron_ALife> getInputs(){
         lockNeuron.lock();
         try{
             return inputs;
@@ -450,6 +450,41 @@ public class Neuron_ALife
         //return inputs;
     }// End public synchronized ArrayList<Neuron_ALife> getInputs()
 
+    /**
+     * public void setU(double u)
+     * 
+     * Set the u of the neuron
+     * @param u double the u of the neuron
+     * @return None
+     */
+    public void setU(double u){
+        lockNeuron.lock();
+        try{
+            this.u = u;
+        } finally {
+            lockNeuron.unlock();
+        }
+        //this.u = u;
+    } // End public void setU(double u)
+
+    /**
+     * public double getU()
+     * 
+     * Returns the u of the neuron
+     * @param None
+     * @return double the u of the neuron
+     */
+    public double getU(){
+        lockNeuron.lock();
+        try{
+            return u;
+        } finally {
+            lockNeuron.unlock();
+        }
+        //return u;
+    } // End public double getU()
+
+    
     // Private Methods and Fuctions =============
     
     

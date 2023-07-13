@@ -17,6 +17,9 @@ public class Out_Neuron_ALife extends Neuron_ALife
      //ArrayList<Double> weights;
      //Double output = null; 
      Mind_ALife.Action action;
+
+     Double statusChangeforecast = null;
+     Integer numberOfActivations = 0;     
      
      //Creature creature = null;
      
@@ -38,6 +41,8 @@ public class Out_Neuron_ALife extends Neuron_ALife
     public Out_Neuron_ALife(ArrayList <Neuron_ALife> ns, Int_ALife_Creature c, Mind_ALife.Action action){
         //Checks
         super(ns,c);
+        statusChangeforecast = null;
+        numberOfActivations = 0;   
         
         this.action = action;   
     } // public Out_Neuron_ALife(ArrayList <Neuron_ALife> ns, Int_ALife_Creature c, Mind_ALife.Action action)
@@ -51,6 +56,8 @@ public class Out_Neuron_ALife extends Neuron_ALife
     protected Out_Neuron_ALife(Out_Neuron_ALife n) throws IllegalArgumentException{
         super(n);
         this.action = n.action;
+        statusChangeforecast = null;
+        numberOfActivations = 0;   
         /*
         this.creature = n.creature;
         this.mind = n.mind;
@@ -77,8 +84,6 @@ public class Out_Neuron_ALife extends Neuron_ALife
 
     // Public Methods and Fuctions ==============
     
-
-    //Test Dudoso
     /**
      * public Out_Neuron_ALife dupeNeuron_ALife()
      * 
@@ -88,6 +93,8 @@ public class Out_Neuron_ALife extends Neuron_ALife
      */
     public Out_Neuron_ALife dupeNeuron_ALife(){
         this.lockNeuron.lock();
+        statusChangeforecast = null;
+        numberOfActivations = 0;   
         try{
             Out_Neuron_ALife newN = new Out_Neuron_ALife(this);
             return newN;
@@ -129,7 +136,7 @@ public class Out_Neuron_ALife extends Neuron_ALife
             }
             // End test
             int i = 0;
-            double sum = u;
+            double sum = getU();
              for(Neuron_ALife n:inputs){
                 //for test
                 //MultiTaskUtil.threadMsg("("+this.neuron_ID+")Neuron_ALife.activation() n = "+n.neuron_ID); 
@@ -151,7 +158,31 @@ public class Out_Neuron_ALife extends Neuron_ALife
             this.lockNeuron.unlock();
         }
     } // End public double activation()
-      
+    
+    /**
+     * public void updateForecast(Double statusChange)
+     * 
+     * Update the forecast of this neuron
+     * @param statusChange Double the status change of the creature
+     * @return  None
+     */
+    public void updateForecast(Double statusChange){
+        this.lockNeuron.lock();
+        try{
+            Integer num = this.getNumberOfActivations();
+            if (num == null) {this.setNumberOfActivations(Integer.valueOf(1));}
+            Double auxForecast = this.getStatusChangeforecast();
+            if (auxForecast == null) {auxForecast = statusChange;}
+            auxForecast = (auxForecast * num + statusChange) / (num + 1);
+            num++;
+            this.setStatusChangeforecast(auxForecast);
+            this.setNumberOfActivations(num);
+        } finally {
+            this.lockNeuron.unlock();
+        }
+    } // End public void updateForecast(Double statusChange)
+
+
     // Getter and setters -----------------------
 
     /**
@@ -170,6 +201,138 @@ public class Out_Neuron_ALife extends Neuron_ALife
         }
         //return this.action;
     }
+
+    /**
+     * public void setStatusChangeforecast(Double d)
+     * 
+     * Set the statusChangeforecast of this neuron
+     * @param d Double the new statusChangeforecast of this neuron
+     * @return  None
+     */
+    public void setStatusChangeforecast(Double d){
+        this.lockNeuron.lock();
+        try{
+            this.statusChangeforecast = d;
+        }finally{
+            this.lockNeuron.unlock();
+        }
+    } // End public void setStatusChangeforecast(Double d)
+
+    /**
+     * public Double getStatusChangeforecast()
+     * 
+     * Get the statusChangeforecast of this neuron
+     * @param   None
+     * @return  Double the statusChangeforecast of this neuron
+     */
+    public Double getStatusChangeforecast(){
+        this.lockNeuron.lock();
+        try{
+            return this.statusChangeforecast;
+        }finally{
+            this.lockNeuron.unlock();
+        }
+    } // End public void setStatusChangeforecast(Double d)
+
+    /**
+     * public void setNumberOfActivations(Integer i)
+     * 
+     * Set the numberOfActivations of this neuron
+     * @param   i Integer the new numberOfActivations of this neuron
+     * @return  None
+     */
+    public void setNumberOfActivations(Integer i){
+        this.lockNeuron.lock();
+        try{
+            this.numberOfActivations = i;
+        }finally{
+            this.lockNeuron.unlock();
+        }
+    } // End public void setNumberOfActivations(Integer i)
+
+    /**
+     * public Integer getNumberOfActivations()
+     * 
+     * Get the numberOfActivations of this neuron
+     * @param   None
+     * @return  Integer the numberOfActivations of this neuron
+     */
+    public Integer getNumberOfActivations(){
+        this.lockNeuron.lock();
+        try{
+            return this.numberOfActivations;
+        }finally{
+            this.lockNeuron.unlock();
+        }
+    } // End public void setNumberOfActivations(Integer i)
+
+/**
+     * public void updateLearn(Double enhanced, Double change)
+     * 
+     * Update the neuron weights and u
+     * @param weightupdate  - neuron parameters change factor
+     * @param uupdate       - u change
+     * @param stChange    - status change
+     * @return None
+     */
+    public void updateLearn(Double weightupdate, Double uupdate, Double stChange){
+        super.updateLearn(weightupdate, uupdate, stChange);
+        if (weightupdate == null || stChange == null || weightupdate == 0L || stChange == 0L) return;
+        if (this.inputs == null || this.inputs.isEmpty()) return; //No inputs neurons
+        //u modificación por decidir
+        //weights los que aportan mas de la media mejoran un x% y luego se acota para que la suma total de pesos sea 1
+        double changeValue = weightupdate * stChange;
+        lockNeuron.lock();
+        try{
+            for(int i = 0; i < this.inputs.size(); i++){
+                Neuron_ALife n = this.inputs.get(i);
+                //No propagation for status neurons inputs (endeless loop)
+                if (n instanceof Status_Neuron_ALife) continue; 
+                n.updateLearn(weightupdate * weights.get(i), uupdate, stChange);
+            }
+            //u makes some Neurons over others so we need change it carefully or we inactivate some neurons
+            //may be when a big update in a single action
+            //this.u = this.u + this.u* enhanced * change * Mind_ALife.DEFAULT_u_changeFraction;
+
+            //Detectar si es solo 1 accion
+                //modificación = modificación prevista / entrada (OJO 0)
+            //si no es 1 acción seguir y modificar u??
+        
+            for(int i = 0 ; i<weights.size(); i++){
+                if (inputs.get(i).getOutput() == null) continue;
+                double aux = weights.get(i);
+                //adjust each weight acording to the participation in output of the input neuron
+                //for test 
+                double viewOutputI = inputs.get(i).getOutput();
+                double viewFactor1 = changeValue *( (inputs.get(i).getOutput()*aux));
+                double viewFactor2 = this.output ;
+                double viewFactor3 = changeValue *( (inputs.get(i).getOutput()*aux)/this.output );
+                //end test
+                aux = aux + changeValue *( (inputs.get(i).getOutput()*aux) /this.output ); 
+                weights.set(i, aux);
+            }
+        
+            double[] aux = this.weights.stream().mapToDouble(Double::doubleValue).toArray();
+            //double mean = ALifeCalcUtil.mean(aux);
+            //for (int i = 0; i < aux.length; i++){
+            //    if (aux[i] > mean) aux[i] = aux[i] + aux[i]* changeValue * Mind_ALife.DEFAULT_u_changeFraction;  
+            //    else aux[i] = aux[i] + aux[i]* changeValue * Mind_ALife.DEFAULT_Weight_changeFraction * Mind_ALife.DEFAULT_weight_changeUnderFraction;
+            //}
+            //ALifeCalcUtil.multiplyArrayByCte(null, chageValue)
+            aux = ALifeCalcUtil.normalizeArrayToTotal_1(aux);
+
+            ArrayList <Double> auxAL = new ArrayList <Double>();
+            Arrays.stream(aux).forEach(value -> auxAL.add(value));
+            this.weights = auxAL;
+        } finally {
+            lockNeuron.unlock();
+        }    
+    } // End public void updateLearn(Double enhanced, Double change)
+
+
+
+
+
     // Private Methods and Fuctions =============
 
     // Main if needed --------------------------------------------------------------------

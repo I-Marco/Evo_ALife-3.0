@@ -32,7 +32,7 @@ public class Detect_Hungry_Neuron_ALife extends Input_Neuron_ALife
      * @param c Int_ALife_Creature the creature that owns the neuron
      */
     public Detect_Hungry_Neuron_ALife (Int_ALife_Creature c) throws IllegalArgumentException{
-        super();
+        super(c);
         //Checks
         if (c==null) {
             throw new IllegalArgumentException("Creature can't be null");
@@ -51,40 +51,45 @@ public class Detect_Hungry_Neuron_ALife extends Input_Neuron_ALife
      */
     @Override
     public double activation(){ // X detection no north if side distance bigger than north not detected
-        if (this.output != null) return output;
-        //Higher value with few humgry value
-        synchronized(this.creature){     
-            output = ALifeCalcUtil.min_max_Normalization(this.creature.hungry,
-                0, this.creature.humgryUmbral * Int_ALife_Creature.DEFAULT_Max_Hungry_factor );
-            output = ALifeCalcUtil.min_max_Normalization(output,
-                Mind_ALife.FALSE_in_double, Mind_ALife.TRUE_in_double);
+        this.lockNeuron.lock();
+        try{
+            if (this.output != null) return output;
+            //Higher value with few humgry value
+
+                output = ALifeCalcUtil.min_max_Normalization(this.creature.hungry,
+                    0, this.creature.humgryUmbral * Int_ALife_Creature.DEFAULT_Max_Hungry_factor );
+                output = ALifeCalcUtil.min_max_Normalization(output,
+                    Mind_ALife.FALSE_in_double, Mind_ALife.TRUE_in_double);
+
+            return output;
+        } finally {
+            this.lockNeuron.unlock();
         }
-        return output;
     } // End public double activation()
         
-    /**
-     * public static BResourceDetection_Neuron_ALife dupeNeuron_ALife(BResourceDetection_Neuron_ALife n)
-     * 
-     * Copy a neuron of this class 
-     * @param  n BResourceDetection_Neuron_ALife the neuron to copy
-     * @return BResourceDetection_Neuron_ALife the copy of the neuron
-     */
-    public static Detect_Hungry_Neuron_ALife dupeNeuron_ALife(Detect_Hungry_Neuron_ALife n){
-        //Its not override since input and output parameters classes are diferent
-        if (n.creature == null) return null;
-        Detect_Hungry_Neuron_ALife newN = new Detect_Hungry_Neuron_ALife(n);
-        return newN;
-    } // End public static BResourceDetection_Neuron_ALife dupeNeuron_ALife(BResourceDetection_Neuron_ALife n)
 
-    //Test Dudoso
+    /**
+     * public Detect_Hungry_Neuron_ALife dupeNeuron_ALife()
+     * 
+     * This method is used to copy the neuron
+     * @param  None
+     * @return Detect_Hungry_Neuron_ALife the copy of the neuron
+     */
     public Detect_Hungry_Neuron_ALife dupeNeuron_ALife(){
         //Its not override since input and output parameters classes are diferent
-        Detect_Hungry_Neuron_ALife newN = new Detect_Hungry_Neuron_ALife(this);
-        return newN;
+        this.lockNeuron.lock();
+        try{
+            Detect_Hungry_Neuron_ALife newN = new Detect_Hungry_Neuron_ALife(this);
+            return newN;
+        } finally {
+            this.lockNeuron.unlock();
+        }
+        //Detect_Hungry_Neuron_ALife newN = new Detect_Hungry_Neuron_ALife(this);
+        //return newN;
     } // End public static BResourceDetection_Neuron_ALife dupeNeuron_ALife(BResourceDetection_Neuron_ALife n)
 
     // Getter and setters
 
     // Private Methods and Fuctions =============
     
-} // End Class
+} // End public class Detect_Hungry_Neuron_ALife extends Input_Neuron_ALife
