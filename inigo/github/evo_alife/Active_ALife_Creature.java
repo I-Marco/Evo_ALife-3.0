@@ -1,6 +1,7 @@
 package inigo.github.evo_alife;
 
 import java.awt.image.*;
+import java.io.IOException;
 import java.awt.*;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.ReentrantLock;
@@ -74,6 +75,8 @@ public class Active_ALife_Creature extends Int_ALife_Creature
     ArrayList <Int_ALife_Creature> familyCreatureList = new ArrayList<Int_ALife_Creature>(); // List of neutral creatures
     Int_ALife_Creature prey = null; // Prey creature
     Int_ALife_Creature favorite = null; // Predator creature
+
+    private ALive_FileManager fileManager = null;
         
     // Methods ---------------------------------------------------------------------------
     // Construcotors ============================
@@ -356,7 +359,27 @@ public class Active_ALife_Creature extends Int_ALife_Creature
             //MultiTaskUtil.threadMsg("===== Semaphore ADQUIRED BY CREATURE("+
             //    semaphore.availablePermits()+").................");
             //Run
-            if(this.lifeTime == 0) statusChangesUpdate(null); //First time in real enviroment
+            if(this.lifeTime == 0) {
+                statusChangesUpdate(null); //First time in real enviroment
+                /*
+                if (this.getIdCreature() == 1)
+                try{
+                this.fileManager = new ALive_FileManager(this.getEnv_ALife().getName()+"_"+"Creature_1"+".csv", this);
+                this.fileManager.start();
+                String[] HEADERS = {"Time", "CreID","LiveT","liveExp","liveP","maxLiveP","Hungry","HungryUmbral","MaxHungry",
+                    "pos", "liveDelay","Def","Attack","SpecieID","TamComplex","FrO(R)","FrO(G)","FrO(B)","mFrO(R)","mFrO(G)","mFrO(B)",
+                    "MFrO(R)","MFrO(G)","MFrO(B)","FrN(R)","FrN(G)","FrN(B)","mFrFactor", "Hidden","DetectionRange","UmbralDetection",
+                    "minRepG", "MaxDescen" ,"StatusVal","Action","InnerN","MidN","OutN","StatusN",
+                    "MindUChangefr","WeightChangefr","WeightChangeUnderfr", "forecastStatusMean", "forecastGeneralError", "forecastGeneralVariance","MindOutput",
+                    "NeuroSep","NiD","tipo","Out","N_U", "Nforecast", "Nact", "Naction","wigths"
+                };
+                this.fileManager.addLine(HEADERS);
+                this.fileManager.forceWrite();
+                }catch (IOException ioe){
+                MultiTaskUtil.threadMsg("Error creating file manager");
+                } 
+                */       
+            } //End if(this.lifeTime == 0) {
             //1.- Eventos involuntarios como morir envejecer ...
             this.lifeTime += this.lifeDelay;
             this.hungry -= 1; //aumentar hambre
@@ -436,6 +459,70 @@ public class Active_ALife_Creature extends Int_ALife_Creature
             //como borramos? Color(0, 0, 0, 0)
             paint(this.getEnv_ALife().getBackLifeImage(),null, this.getEnv_ALife().getLockLiveImage()); //new Color(0, 0, 0, 255)
         }
+
+        /* 
+        if (this.getIdCreature() == 1){
+        try{
+            //String[] HEADERS = {"Time", "CreID","LiveT","liveExp","liveP","maxLiveP","Hungry","HungryUmbral","MaxHungry",
+            //    "pos", "liveDelay","Def","Attack","SpecieID","TamComplex","FrO(R)","FrO(G)","FrO(B)","mFrO(R)","mFrO(G)","mFrO(B)",
+            //    "MFrO(R)","MFrO(G)","MFrO(B)","FrN(R)","FrN(G)","FrN(B)","mFrFactor", "Hidden","DetectionRange","UmbralDetection",
+            //    "minRepG", "MaxDescen" ,"StatusVal","Action","InnerN","MidN","OutN","StatusN",
+            //    "MindUChangefr","WeightChangefr","WeightChangeUnderfr", "forecastStatusMean", "forecastGeneralError", "forecastGeneralVariance","MindOutput",
+            //    "NeuroSep","NiD","tipo","Out","N_U", "Nforecast", "Nact", "Naction","wigths"
+            //};
+
+            ArrayList<String> reportList = new ArrayList<String>();
+            reportList.add(String.valueOf(this.getEnv_ALife().getTime()));
+            reportList.add(String.valueOf(this.idCreature));
+            reportList.add(String.valueOf(this.lifeTime));
+            reportList.add(String.valueOf(this.lifeExp));
+            reportList.add(String.valueOf(this.livePoints));
+            reportList.add(String.valueOf(this.livePointMax));
+            reportList.add(String.valueOf(this.hungry));
+            reportList.add(String.valueOf(this.humgryUmbral));
+            reportList.add(String.valueOf(this.humgryUmbral*DEFAULT_Max_Hungry_factor));
+            reportList.add(String.valueOf(this.pos));
+            reportList.add(String.valueOf(this.lifeDelay));
+            reportList.add(String.valueOf(this.def));
+            reportList.add(String.valueOf(this.attack));
+            reportList.add(String.valueOf(this.specieNumberID));
+            reportList.add(String.valueOf(this.tamComplex));
+            reportList.add(String.valueOf(this.foodResourceOwn[0]));
+            reportList.add(String.valueOf(this.foodResourceOwn[1]));
+            reportList.add(String.valueOf(this.foodResourceOwn[2]));
+            reportList.add(String.valueOf(this.minfoodResourceOwn[0]));
+            reportList.add(String.valueOf(this.minfoodResourceOwn[1]));
+            reportList.add(String.valueOf(this.minfoodResourceOwn[2]));
+            reportList.add(String.valueOf(this.maxfoodResourceOwn[0]));
+            reportList.add(String.valueOf(this.maxfoodResourceOwn[1]));
+            reportList.add(String.valueOf(this.maxfoodResourceOwn[2]));
+            reportList.add(String.valueOf(this.foodResourceNeed[0]));
+            reportList.add(String.valueOf(this.foodResourceNeed[1]));
+            reportList.add(String.valueOf(this.foodResourceNeed[2]));
+            reportList.add(String.valueOf(this.maxfoodResourceGetFactor));
+            reportList.add(String.valueOf(this.hidden));
+            reportList.add(String.valueOf(this.detectionRange));
+            reportList.add(String.valueOf(this.umbralDetection));
+            reportList.add(String.valueOf(this.minReproductionGroup));
+            reportList.add(String.valueOf(this.maxDescendants));
+            reportList.add(String.valueOf(this.status));
+            reportList.add(String.valueOf(this.actions.get(this.actions.size()-1)));
+            reportList.add(String.valueOf(this.mind.getInnerN()));
+            reportList.add(String.valueOf(this.mind.getMidN()));
+            reportList.add(String.valueOf(this.mind.getOutN()));
+            reportList.add(String.valueOf(this.mind.getStatusN()));
+            //Mind and each neuron
+            this.mind.makeMindReport(reportList);
+
+            String[] auxReport = new String[reportList.size()];
+            auxReport = reportList.toArray(auxReport);
+            this.fileManager.addLine(auxReport);
+        }catch (Exception ioe){
+            MultiTaskUtil.threadMsg("Error creating file manager");
+        }
+        } //End if (this.getIdCreature() == 1)
+        */
+
         //Env_Panel.imageDisplay(this.env_ALive.getBackLifeImage(),"From Creature Run (LiveImage) - LIVE Image");
     } // End public void run()    
 

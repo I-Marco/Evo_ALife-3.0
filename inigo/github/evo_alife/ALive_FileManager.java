@@ -25,7 +25,8 @@ public class ALive_FileManager extends Thread{
     public static final int DEFAULT_MAX_LONG_FILE = 1000;//1000000
 
     //Attributes
-    private final Lock lockFileManager;
+    private 
+    private Lock lockFileManager;
     private CSVWriter writer;
     private boolean writerOpen = false;
     private List <String[]> dataIn = new ArrayList<String[]>();
@@ -76,6 +77,45 @@ public class ALive_FileManager extends Thread{
         dataIn = new ArrayList<String[]>();
         dataOut = new ArrayList<String[]>();
     } // End public ALive_FileManager(CSVWriter writer) throws IOException
+
+    /**
+     * public ALive_FileManager(String fileName,Evo_ALife caller) throws IOException
+     * 
+     * This constructor is responsible for creating the file and the writer. This add .csv to the file name.
+     * @param writer
+     * @throws IOException
+     */
+    public ALive_FileManager(String fileName,Int_ALife_Creature c) throws IOException {
+        this.fileNumber = 1;
+        fileName = "DatosVidaEvoAlife";
+        String formattedNumber = String.format("%03d", fileNumber);
+        String filePath = "DATAS" + "/" + fileName + formattedNumber + ".csv";
+        this.running = true;
+        try {
+            this.writer = new CSVWriter(new FileWriter(fileName+formattedNumber+".csv"));
+        }catch (IOException e) {
+            try{
+                File directory = new File("DATAS");
+                directory.mkdirs();  // Crea el directorio si no existe
+                this.writer = new CSVWriter(new FileWriter(fileName+formattedNumber+".csv"));
+            }catch(IOException e2){
+                MultiTaskUtil.threadMsg("Error creating File."+e.getMessage());
+                MultiTaskUtil.threadMsg("Second exception."+e2.getMessage() );
+                throw new IOException("Error creating file: " + filePath);
+            }
+        }
+        //CSVWriter writer = new CSVWriter(new FileWriter("output.csv"));
+        this.writer = new CSVWriter(new FileWriter(fileName+formattedNumber+".csv"));
+        this.writerOpen = true;
+        this.env = c.env_ALive;
+        this.caller = this.env.getCaller();       
+        cont = 0;
+        this.lockFileManager = new ReentrantLock();
+        dataIn = new ArrayList<String[]>();
+        dataOut = new ArrayList<String[]>();
+    } // End public ALive_FileManager(CSVWriter writer) throws IOException
+
+
 
     //Methods public
     /**

@@ -329,6 +329,27 @@ public class Out_Neuron_ALife extends Neuron_ALife
         }    
     } // End public void updateLearn(Double enhanced, Double change)
 
+    /**
+     * public ArrayList<String> makeNeuronReport(ArrayList<String> rep)
+     * 
+     * Returns a report of the neuron
+     * @param rep ArrayList<String> the report to add the neuron report
+     * @return ArrayList<String> the report of the neuron
+     */
+    public ArrayList<String> makeNeuronReport(ArrayList<String> rep){
+        rep.add("NeuroSep");
+        rep.add(String.valueOf(this.neuron_ID));
+        rep.add(this.getClass().getClass().getName());
+        rep.add(String.valueOf(this.output));
+        rep.add(String.valueOf(this.u));
+        rep.add(String.valueOf(this.statusChangeforecast));
+        rep.add(String.valueOf(this.numberOfActivations));
+        rep.add(String.valueOf(this.action));
+        for (Double w: this.weights){
+            rep.add(String.valueOf(w));
+        }
+        return rep;
+    } // End public ArrayList<String> makeNeuronReport(ArrayList<String> rep)
 
 
 

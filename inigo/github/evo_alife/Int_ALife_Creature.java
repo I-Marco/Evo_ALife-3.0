@@ -745,12 +745,15 @@ public abstract class Int_ALife_Creature extends Thread
 
         // Variable status + Owned status
         double ownedStatus = 0;
+        /*
         for(Int_ALife_Creature cr: c.descendents){
             if (cr == null) ownedStatus += DEFAULT_descendat_StatusPlus; //implement DEFAULT_descendat_StatusPlus
             else ownedStatus += DEFAULT_descendat_StatusPlus + cr.getStatus(); 
             //ownedStatus += cr.getStatus(); // implement getStatus()
             //Posibly specie add to status value 
         }
+        */
+        ownedStatus += DEFAULT_descendat_StatusPlus *c.descendents.size() + c.descendents.size()*1; 
         //synchronized (c){
             c.ownedStatus = ownedStatus;
         //}

@@ -1558,6 +1558,22 @@ public class Mind_ALife
         }
     } // End public void addNeuron(Neuron_ALife n)
 
+    public ArrayList<String> makeMindReport(ArrayList<String> rep){
+        rep.add("" + this.u_changeFraction);
+        rep.add("" + this.weight_changeFraction);
+        rep.add("" + this.weight_changeUnderFraction);
+        rep.add("" + this.forecastStatusMean);
+        rep.add("" + this.forecastGeneralError);
+        rep.add("" + this.forecastGeneralVariance);
+        rep.add("" + this.output);
+        for (Neuron_ALife n:this.allNeurons){
+            rep.add("Nw");
+            n.makeNeuronReport(rep);
+        }
+        return rep;
+    } // End public ArrayList<String> makeMindReport(ArrayList<String> rep)
+
+
     // Save Load Merge Mutate
     
     public static Mind_ALife test1Mind(Int_ALife_Creature c){

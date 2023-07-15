@@ -828,7 +828,8 @@ public class Evo_ALife extends JFrame{
         Env_ALife temp_env_ALife = new Env_ALife(this,land_Temp,lifeEnv,env_Vars);
         //Env_ALife temp_env_ALife = new Env_ALife(this,land_Temp,null,env_Vars);
         temp_env_ALife.setTime(0L);
-        this.set_Env_Alive(temp_env_ALife);    
+        this.set_Env_Alive(temp_env_ALife);
+        this.pack();  
     } // End private void makeDefaultEnvCreatureProy()
     
     /**
@@ -850,6 +851,8 @@ public class Evo_ALife extends JFrame{
         Graphics2D g2d = land_Temp.createGraphics();
         int width = land_Temp.getWidth();
         int height = land_Temp.getHeight();
+        g2d.setColor(new Color(05, 5, 5, 125)); // fix background to BLACK 0, 0, 0
+        g2d.fillRect(0 , 0, width,height);
 
         g2d.setColor(new Color(25, 25, 25, 125)); // fix background to BLACK 0, 0, 0
         g2d.fillRect(0 , (height/2)-height/20, width, height/10);
@@ -910,7 +913,8 @@ public class Evo_ALife extends JFrame{
         Env_ALife temp_env_ALife = new Env_ALife(this,land_Temp,lifeEnv,env_Vars);
         //Env_ALife temp_env_ALife = new Env_ALife(this,land_Temp,null,env_Vars);
         temp_env_ALife.setTime(0L);
-        this.set_Env_Alive(temp_env_ALife);    
+        this.set_Env_Alive(temp_env_ALife);  
+        this.pack();  
     } // End private void makeDefaultEnvCreatureProy2()
 
 

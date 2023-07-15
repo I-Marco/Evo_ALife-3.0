@@ -263,10 +263,15 @@ public class Env_ALife extends Thread
     public void run(){ 
         if (!this.fileManager.isAlive()) 
             this.fileManager.start();
-    
+        int nextReportTime = 0;
+        int reportTimeDelay = 200;
+        String[] report = {"0","0","0","0", "0"};
+        ArrayList <String> reportList = new ArrayList<String>();
+
         while(true){ //Forever
             synchronized (pauseSignal) {
                 while (isPaused) {
+                    this.fileManager.forceWrite();
                     try { //Force manual wait if concurrence problems
                         MultiTaskUtil.threadMsg(" Esperando... "+this.getName());
                         //System.out.println(" Esperando... "+this.getName());
@@ -440,13 +445,48 @@ public class Env_ALife extends Thread
             caller.visualiceEnv(this);
             
             //Save report to files.
+            
+            /* 
             if (this.generateReport){
                 String[] report = {""+this.getTime(),""+this.getCreatureNumberString(),""+this.getSpecies().getNumberOfDifferentActiveSpecies(),
                     ""+this.getCreature_BornString(), ""+this.getCreature_DeathString()};
                 this.fileManager.addLine(report);
                 this.generateReport = false;
             }
+            */
 
+            if (this.getTime() > nextReportTime){
+                if (report == null){
+                    report = new String[5];
+                    report[0] = ""+this.getTime();
+                    report[1] = ""+this.getCreatureNumberString();
+                    report[2] = ""+this.getSpecies().getNumberOfDifferentActiveSpecies();
+                    report[3] = ""+this.getCreature_BornString();
+                    report[4] = ""+this.getCreature_DeathString();
+                }
+                while (this.getTime() > nextReportTime+reportTimeDelay){
+                    this.fileManager.addLine(report);    
+                    nextReportTime += reportTimeDelay;
+                }
+                reportList = new ArrayList<String>();
+                reportList.add(""+this.getTime());
+                reportList.add(""+this.getCreatureNumberString());
+                reportList.add(""+this.getSpecies().getNumberOfDifferentActiveSpecies());
+                reportList.add(""+this.getCreature_BornString());
+                reportList.add(""+this.getCreature_DeathString());
+                for (int i = 0; i < this.species.getNumberOfDifferentSpecies();i++){
+                    reportList.add(""+this.species.speciesList.get(i).getSpecieIdNumber());
+                    reportList.add(""+this.species.speciesList.get(i).getNumberOfCreaturesInSpecie());
+                }
+                //String[] auxReport = {""+this.getTime(),""+this.getCreatureNumberString(),""+this.getSpecies().getNumberOfDifferentActiveSpecies(),
+                //    ""+this.getCreature_BornString(), ""+this.getCreature_DeathString()};
+                String[] auxReport = new String[reportList.size()];
+                auxReport = reportList.toArray(auxReport);
+                this.fileManager.addLine(report);
+                nextReportTime += reportTimeDelay;
+                report = auxReport;
+                //this.generateReport = true;
+            }
 
             //=============================
             //For test control.
@@ -462,25 +502,6 @@ public class Env_ALife extends Thread
 
         //MultiTaskUtil.threadMsg("OJO SALIENDO DEL METODO RUN ("+this.getTime()+")..."); //must be unreachable
     }//End public void run(){ // synchronized ??
-
-    /*    
-    public void acquire(){
-    try{
-    this.semaphore.acquire();
-    }catch (java.lang.InterruptedException ie){
-    ie.printStackTrace();
-    }
-    }
-
-    public void release(){
-    try{
-    this.semaphore.release();
-    }catch (Exception ie){
-    ie.printStackTrace();
-    }
-
-    }
-     */    
 
     /**
      * public void MyNotifyAll()
@@ -557,7 +578,17 @@ public class Env_ALife extends Thread
         return env_Name;
     } // End public String get_env_Name()
 
-    
+    /**
+     * public Evo_ALife getCaller()
+     * 
+     * @param   - None
+     * @return  - Evo_ALife
+     */
+    public Evo_ALife getCaller(){
+        return this.caller;
+    } // End public Evo_ALife getCaller()
+
+
     /**
      * public void set_isPaused(boolean b) -
      * Set new value for isPaused variable

@@ -283,6 +283,28 @@ public class Neuron_ALife
          return newN;
     } // End public static Neuron_ALife dupeNeuron_ALife(Neuron_ALife n)
 
+    /**
+     * public ArrayList<String> makeNeuronReport(ArrayList<String> rep)
+     * 
+     * Returns a report of the neuron
+     * @param rep ArrayList<String> the report to add the neuron report
+     * @return ArrayList<String> the report of the neuron
+     */
+    public ArrayList<String> makeNeuronReport(ArrayList<String> rep){
+
+        rep.add(String.valueOf(this.neuron_ID));
+        rep.add(this.getClass().getClass().getName());
+        rep.add(String.valueOf(this.output));
+        rep.add(String.valueOf(this.u));
+        rep.add("fc");
+        rep.add("acC");
+        rep.add("act");
+        for (Double w: this.weights){
+            rep.add(String.valueOf(w));
+        }
+        return rep;
+    } // End public ArrayList<String> makeNeuronReport(ArrayList<String> rep)
+
     // Getter and setters
 
     /**
