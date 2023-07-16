@@ -1,5 +1,6 @@
 package inigo.github.evo_alife;
 
+import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -1115,10 +1116,10 @@ public class Mind_ALife
         lockMind.lock();
         try{
             if (mutatedCar == 0 && caracMutated[mutatedCar] != this.inputNeurons.size()){
-                if (caracMutated[mutatedCar] > Active_ALife_Creature.creature_minCaracteristics[mutatedCar+20]
-                    && caracMutated[mutatedCar] > Active_ALife_Creature.creature_maxCaracteristics[mutatedCar+20])
+                if (caracMutated[mutatedCar] >= Active_ALife_Creature.creature_minCaracteristics[mutatedCar+20]
+                    && caracMutated[mutatedCar] <= Active_ALife_Creature.creature_maxCaracteristics[mutatedCar+20])
                 {
-                    //if bigger create input neuron add new random input neuron
+                    //if bigger create input neuron add new random input neuron later remove if smaller
                     ArrayList <Input_Neuron_ALife> auxInputNPossibles = new ArrayList <Input_Neuron_ALife>();
                     auxInputNPossibles = getAllPosibleInput_Neurons();
                     //
@@ -1128,7 +1129,6 @@ public class Mind_ALife
                         for (Neuron_ALife n: this.inputNeurons){
                             if (n.getClass() == auxN.getClass()){
                                 valid = false;
-                                auxInputNPossibles.remove(auxN);
                             }
                         }
                         if (valid) {
@@ -1136,16 +1136,17 @@ public class Mind_ALife
                             auxN.normalizeWeights();
                             this.addNeuron(auxN);
                         }
+                        auxInputNPossibles.remove(auxN); //added or its present
                     }
-                    //else remove input neuron
+                    //else remove input neuron uf smaller
                     while (this.inputNeurons.size() > caracMutated[mutatedCar]){
                         this.inputNeurons.remove((int)( (Math.random()*this.inputNeurons.size()*100 - 1)/100 ) ); 
                     }                
                 }
             }
             if (mutatedCar == 1 && caracMutated[mutatedCar] != this.midNeurons.size()){
-                if (caracMutated[mutatedCar] > Active_ALife_Creature.creature_minCaracteristics[mutatedCar+20]
-                    && caracMutated[mutatedCar] > Active_ALife_Creature.creature_maxCaracteristics[mutatedCar+20])
+                if (caracMutated[mutatedCar] >= Active_ALife_Creature.creature_minCaracteristics[mutatedCar+20]
+                    && caracMutated[mutatedCar] <= Active_ALife_Creature.creature_maxCaracteristics[mutatedCar+20])
                 {
                     auxInputNList = new ArrayList <Neuron_ALife>();
                     for (Neuron_ALife n: this.inputNeurons) auxInputNList.add(n);
@@ -1155,7 +1156,7 @@ public class Mind_ALife
                         Neuron_ALife auxN = new Neuron_ALife(auxInputNList, this.creature);
                         auxN.normalizeWeights();
                         this.addNeuron(auxN);
-                        //add this neuron to rest inputs
+                        //add this neuron to rest neurons inputs
                         for (Neuron_ALife n: this.statusNeurons) {
                             n.inputs.add(auxN);
                             //add tp weights de new one with deault value
@@ -1168,17 +1169,27 @@ public class Mind_ALife
                             n.weights.add(Mind_ALife.DEFAULT_Weight);
                             n.normalizeWeights();
                         }
-
-                    }
-                    //else remove input neuron
+                    } // End while (this.midNeurons.size() < caracMutated[mutatedCar])
+                    //else remove mid neuron
                     while (this.midNeurons.size() > caracMutated[mutatedCar]){
                         this.midNeurons.remove((int)( (Math.random()*this.midNeurons.size()*100 - 1)/100 ) ); 
+                        //weights in rest neurons are not updated !!!! FALTA
+                        for (Neuron_ALife nwr: this.allNeurons){
+                            for (Neuron_ALife nwr_I: nwr.inputs){
+                                if (nwr_I == nwr){ //if (nwr_I.neuron_ID == nwr.neuron_ID){
+                                    int i = nwr.inputs.indexOf(nwr_I);
+                                    nwr.weights.remove(i);
+                                    nwr.inputs.remove(i);
+                                }
+                            }
+                        } // End for (Neuron_ALife nwr: this.allNeurons) REMOVE this neuron from all neurons inputs and weights
                     }                 
                 }
-            }
+            } // End if (mutatedCar == 1 && caracMutated[mutatedCar] != this.midNeurons.size())
+
             if (mutatedCar == 2 && caracMutated[mutatedCar] != this.outputNeurons.size()){
-                if (caracMutated[mutatedCar] > Active_ALife_Creature.creature_minCaracteristics[mutatedCar+20]
-                    && caracMutated[mutatedCar] > Active_ALife_Creature.creature_maxCaracteristics[mutatedCar+20])
+                if (caracMutated[mutatedCar] >= Active_ALife_Creature.creature_minCaracteristics[mutatedCar+20]
+                    && caracMutated[mutatedCar] <= Active_ALife_Creature.creature_maxCaracteristics[mutatedCar+20])
                 {
                     auxInputNList = new ArrayList <Neuron_ALife>();
                     for (Neuron_ALife n: this.inputNeurons) auxInputNList.add(n);
@@ -1192,7 +1203,7 @@ public class Mind_ALife
                         auxN.normalizeWeights();
                         auxOutputNList.add(auxN);
                     }                
-                    while (this.outputNeurons.size() < caracMutated[mutatedCar]){
+                    while (this.outputNeurons.size() < caracMutated[mutatedCar] && auxOutputNList.size() > 0){
                         int indix = (int)( (Math.random()*auxOutputNList.size()*100 - 1)/100 );
                         boolean found = false;
                         for (Out_Neuron_ALife n: this.outputNeurons){
@@ -1209,9 +1220,20 @@ public class Mind_ALife
                     //else remove input neuron
                     while (this.outputNeurons.size() > caracMutated[mutatedCar]){
                         this.outputNeurons.remove((int)( (Math.random()*this.outputNeurons.size()*100 - 1)/100 ) ); 
+                        //if some status can have this input remove it
+                        for (Neuron_ALife nwr: this.allNeurons){
+                            for (Neuron_ALife nwr_I: nwr.inputs){
+                                if (nwr_I == nwr){ //if (nwr_I.neuron_ID == nwr.neuron_ID){
+                                    int i = nwr.inputs.indexOf(nwr_I);
+                                    nwr.weights.remove(i);
+                                    nwr.inputs.remove(i);
+                                }
+                            }
+                        } // End for (Neuron_ALife nwr: this.allNeurons) REMOVE this neuron from all neurons inputs and weights
                     }                 
                 }
             } // End if (mutatedCar == 2 && caracMutated[mutatedCar] != this.outputNeurons.size())
+
             if (mutatedCar == 3 && caracMutated[mutatedCar] != this.statusNeurons.size()){
                 if (caracMutated[mutatedCar] > Active_ALife_Creature.creature_minCaracteristics[mutatedCar+20]
                     && caracMutated[mutatedCar] > Active_ALife_Creature.creature_maxCaracteristics[mutatedCar+20])
@@ -1244,9 +1266,19 @@ public class Mind_ALife
                     //else remove input neuron
                     while (this.statusNeurons.size() > caracMutated[mutatedCar]){
                         this.statusNeurons.remove((int)( (Math.random()*this.statusNeurons.size()*100 - 1)/100 ) ); 
+                        //remove this from other weights and inputs
+                        for (Neuron_ALife nwr: this.allNeurons){
+                            for (Neuron_ALife nwr_I: nwr.inputs){
+                                if (nwr_I == nwr){ //if (nwr_I.neuron_ID == nwr.neuron_ID){
+                                    int i = nwr.inputs.indexOf(nwr_I);
+                                    nwr.weights.remove(i);
+                                    nwr.inputs.remove(i);
+                                }
+                            }
+                        } // End for (Neuron_ALife nwr: this.allNeurons) REMOVE this neuron from all neurons inputs and weights
                     }                  
-                }
-            }
+                } // End if (caracMutated[mutatedCar] > Active_ALife_Creature.creature_minCaracteristics[mutatedCar+20]
+            } // End if (mutatedCar == 3 && caracMutated[mutatedCar] != this.statusNeurons.size())
         } finally{
             lockMind.unlock();
         }
@@ -1559,19 +1591,46 @@ public class Mind_ALife
     } // End public void addNeuron(Neuron_ALife n)
 
     public ArrayList<String> makeMindReport(ArrayList<String> rep){
-        rep.add("" + this.u_changeFraction);
-        rep.add("" + this.weight_changeFraction);
-        rep.add("" + this.weight_changeUnderFraction);
-        rep.add("" + this.forecastStatusMean);
-        rep.add("" + this.forecastGeneralError);
-        rep.add("" + this.forecastGeneralVariance);
-        rep.add("" + this.output);
+        makeMindAtribReport(rep);
         for (Neuron_ALife n:this.allNeurons){
             rep.add("Nw");
             n.makeNeuronReport(rep);
         }
         return rep;
     } // End public ArrayList<String> makeMindReport(ArrayList<String> rep)
+
+    public ArrayList<String> makeMindSORTReport(ArrayList<String> rep){
+        rep.add("Nw");
+        for (Neuron_ALife n:this.allNeurons){
+            n.makeNeuronSORTReport(rep);
+        }
+        return rep;
+    } // End public ArrayList<String> makeMindReport(ArrayList<String> rep)
+
+    /**
+     * public ArrayList<String> makeMindAtribReport(ArrayList<String> rep)
+     * 
+     * Make a report of the mind global attributes
+     * @param rep - the report
+     * @return ArrayList<String> the report
+     */
+    public ArrayList<String> makeMindAtribReport(ArrayList<String> rep){
+        DecimalFormat df = new DecimalFormat("0.############");
+        lockMind.lock();
+        try{
+            rep.add("" + df.format(this.u_changeFraction));
+            rep.add("" + df.format(this.weight_changeFraction));
+            rep.add("" + df.format(this.weight_changeUnderFraction));
+            rep.add("" + df.format(this.forecastStatusMean));
+            rep.add("" + df.format(this.forecastGeneralError));
+            rep.add("" + df.format(this.forecastGeneralVariance));
+            //String numeroFormateado = df.format(numero);
+            rep.add("" + df.format(this.output.doubleValue()) );
+        } finally{
+            lockMind.unlock();
+        }
+        return rep;
+    } // End public ArrayList<String> makeMindAtribReport(ArrayList<String> rep)
 
 
     // Save Load Merge Mutate

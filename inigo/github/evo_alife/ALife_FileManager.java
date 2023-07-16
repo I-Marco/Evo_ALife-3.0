@@ -20,12 +20,12 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author Iñigo Marco 
  * @version 20-06-2023
  */
-public class ALive_FileManager extends Thread{
+public class ALife_FileManager extends Thread{
     public static final int DEFAULT_MAX_LONG = 50;//1000
     public static final int DEFAULT_MAX_LONG_FILE = 1000;//1000000
 
     //Attributes
-    private 
+    private String procedureName;
     private Lock lockFileManager;
     private CSVWriter writer;
     private boolean writerOpen = false;
@@ -48,19 +48,21 @@ public class ALive_FileManager extends Thread{
      * @param writer
      * @throws IOException
      */
-    public ALive_FileManager(String fileName,Evo_ALife caller) throws IOException {
+    public ALife_FileManager(String fileName,Evo_ALife caller) throws IOException {
         this.fileNumber = 1;
-        fileName = "DatosVidaEvoAlife";
-        String formattedNumber = String.format("%03d", fileNumber);
+        fileName = "EvoAlife" + fileName;
+        String formattedNumber = "-"+String.format("%03d", fileNumber);
         String filePath = "DATAS" + "/" + fileName + formattedNumber + ".csv";
         this.running = true;
         try {
-            this.writer = new CSVWriter(new FileWriter(fileName+formattedNumber+".csv"));
+            //this.writer = new CSVWriter(new FileWriter(fileName+formattedNumber+".csv"));
+            this.writer = new CSVWriter(new FileWriter(filePath) ) ;
         }catch (IOException e) {
             try{
                 File directory = new File("DATAS");
                 directory.mkdirs();  // Crea el directorio si no existe
-                this.writer = new CSVWriter(new FileWriter(fileName+formattedNumber+".csv"));
+                //this.writer = new CSVWriter(new FileWriter(fileName+formattedNumber+".csv"));
+                this.writer = new CSVWriter(new FileWriter(filePath));
             }catch(IOException e2){
                 MultiTaskUtil.threadMsg("Error creating File."+e.getMessage());
                 MultiTaskUtil.threadMsg("Second exception."+e2.getMessage() );
@@ -68,7 +70,7 @@ public class ALive_FileManager extends Thread{
             }
         }
         //CSVWriter writer = new CSVWriter(new FileWriter("output.csv"));
-        this.writer = new CSVWriter(new FileWriter(fileName+formattedNumber+".csv"));
+        //this.writer = new CSVWriter(new FileWriter(fileName+formattedNumber+".csv"));
         this.writerOpen = true;
         this.caller = caller;
         this.env = caller.get_Env_Alife();
@@ -85,19 +87,21 @@ public class ALive_FileManager extends Thread{
      * @param writer
      * @throws IOException
      */
-    public ALive_FileManager(String fileName,Int_ALife_Creature c) throws IOException {
+    public ALife_FileManager(String fileName,Int_ALife_Creature c) throws IOException {
         this.fileNumber = 1;
-        fileName = "DatosVidaEvoAlife";
+        fileName = "Creature"+fileName;
         String formattedNumber = String.format("%03d", fileNumber);
         String filePath = "DATAS" + "/" + fileName + formattedNumber + ".csv";
         this.running = true;
         try {
-            this.writer = new CSVWriter(new FileWriter(fileName+formattedNumber+".csv"));
+            //this.writer = new CSVWriter(new FileWriter(fileName+formattedNumber+".csv"));
+            this.writer = new CSVWriter(new FileWriter(filePath) ) ;
         }catch (IOException e) {
             try{
                 File directory = new File("DATAS");
                 directory.mkdirs();  // Crea el directorio si no existe
-                this.writer = new CSVWriter(new FileWriter(fileName+formattedNumber+".csv"));
+                //this.writer = new CSVWriter(new FileWriter(fileName+formattedNumber+".csv"));
+                this.writer = new CSVWriter(new FileWriter(filePath));
             }catch(IOException e2){
                 MultiTaskUtil.threadMsg("Error creating File."+e.getMessage());
                 MultiTaskUtil.threadMsg("Second exception."+e2.getMessage() );
@@ -105,7 +109,7 @@ public class ALive_FileManager extends Thread{
             }
         }
         //CSVWriter writer = new CSVWriter(new FileWriter("output.csv"));
-        this.writer = new CSVWriter(new FileWriter(fileName+formattedNumber+".csv"));
+        //this.writer = new CSVWriter(new FileWriter(fileName+formattedNumber+".csv"));
         this.writerOpen = true;
         this.env = c.env_ALive;
         this.caller = this.env.getCaller();       

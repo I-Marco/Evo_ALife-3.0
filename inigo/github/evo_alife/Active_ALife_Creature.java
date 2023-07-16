@@ -1,7 +1,9 @@
 package inigo.github.evo_alife;
 
 import java.awt.image.*;
+import java.io.File;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.awt.*;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.ReentrantLock;
@@ -18,6 +20,8 @@ import java.util.*;
  */
 public class Active_ALife_Creature extends Int_ALife_Creature
 {
+    public static long DEFAULT_CreatureReportPercent = 400;
+
     public static final int DEFAULT_LifeDelayPerNutrient = 2;
     public static final Color CREATURE_DEFAULT_COLOR = new Color (199,199,199);
     // Constants for normalization Creature
@@ -55,6 +59,8 @@ public class Active_ALife_Creature extends Int_ALife_Creature
     private BufferedImage backLand = null;
     private BufferedImage frontLand = null;    
     private Semaphore semaphore;
+
+    private ReentrantLock lockCreature = new ReentrantLock();
     
     //Creature caracteristics in Int_ALife_Creature
     ArrayList <Long> timeOfDeccision = new ArrayList<Long>(); // Time of deccision
@@ -76,7 +82,7 @@ public class Active_ALife_Creature extends Int_ALife_Creature
     Int_ALife_Creature prey = null; // Prey creature
     Int_ALife_Creature favorite = null; // Predator creature
 
-    private ALive_FileManager fileManager = null;
+    private ALife_FileManager fileManager_Mind = null; //for creature mind evolution reports Hard to manage
         
     // Methods ---------------------------------------------------------------------------
     // Construcotors ============================
@@ -90,6 +96,7 @@ public class Active_ALife_Creature extends Int_ALife_Creature
     public Active_ALife_Creature(Env_ALife env, Point p, Mind_ALife m, long lifeexp, int[] frOwn, int[] frNeed){
         super();
         lockStatusMemory = new ReentrantLock();
+        lockCreature = new ReentrantLock();
         env_ALive = env;
         idCreature = this.env_ALive.getNewCreatureID();
         semaphore = env_ALive.getSemaphore(); // Quiza deberia ser parámetro pero Evo_ALIFE no lo tiene
@@ -147,7 +154,7 @@ public class Active_ALife_Creature extends Int_ALife_Creature
     //Creature(this.env_ALife,new Point(170,170),null,1000,haveR,needR
     //public Creature(Env_ALife env, Semaphore s, Point p){
     public Active_ALife_Creature(ArrayList<Int_ALife_Creature> progenitors, boolean mutate) throws Exception{
-        lockStatusMemory = new ReentrantLock();
+        //check
         //Caracteristicas mix progenitores
         if (progenitors == null) {
             //Error msg.
@@ -160,6 +167,8 @@ public class Active_ALife_Creature extends Int_ALife_Creature
             //return;
         }
         
+        lockStatusMemory = new ReentrantLock();
+        lockCreature = new ReentrantLock();
         
         //Look for place to born
         this.setEnv_ALife(progenitors.get(0).getEnv_ALife()); //progenitors[0] = pregnant
@@ -170,7 +179,33 @@ public class Active_ALife_Creature extends Int_ALife_Creature
         this.pos = null; //Nowhere to born ---> misbirth
         int w = getEnv_ALife().getEnv_Width();
         int h = getEnv_ALife().getEnv_Height();
+
+        ArrayList<Point> posiblePos = new ArrayList<Point>();
+
+        for(int lo = 1;lo < 3; lo++){//Birth pos range increassing
+            //if (pos != null) break;
+            for (int i = auxP.x-lo; i < auxP.x+lo ; i++){
+                //if (pos != null) break;
+                for(int j = auxP.y-lo;j <= auxP.y+lo; j++){
+                    Env_ALife e = this.getEnv_ALife();
+                    ALife_Logical_Environment le = e.getLogical_Env();
+                    boolean b = le.detectColision(progenitors.get(0),new Point((i + w) % w,(j + h) % h),0);
+                    if (!b){
+                    //if (!env_ALive.getLogical_Env().detectColision(progenitors.get(0),
+                    //    new Point((i + w) % w,(j + h) % h), 0)){
+                        //this.pos = new Point((i + w) % w,(j + h) % h);
+                        posiblePos.add(new Point((i + w) % w,(j + h) % h));
+                        break;
+                    }
+                }
+            }
+        }
+        if (posiblePos.size() != 0) {
+            this.pos = posiblePos.get((int)((Math.random() * posiblePos.size()*100 )) % posiblePos.size());
+        }
         
+
+        /*
         for(int lo = 1;lo < 3; lo++){//Birth pos range increassing
             if (pos != null) break;
             for (int i = auxP.x-lo; i < auxP.x+lo ; i++){
@@ -188,7 +223,9 @@ public class Active_ALife_Creature extends Int_ALife_Creature
                 }
             }
         }
+         */
         //MEJORA lista posibles sitios y random
+
         if (this.pos == null){
             this.livePoints = 0; //born death as alternative
             this.pos = progenitors.get(0).getPos(); //born in same place but death MISBIRTH
@@ -197,7 +234,7 @@ public class Active_ALife_Creature extends Int_ALife_Creature
             MultiTaskUtil.copyIntArrayContent(this.foodResourceOwn, 
                 progenitors.get(0).minfoodResourceOwn);
             new ALife_Corpse(this);
-            throw new Exception("Error in Creature constructor: pos == null");
+            throw new Exception("No place for descendant missbirth (pos == null)");
             //return; // Misbirth detection
         }  
         
@@ -221,6 +258,9 @@ public class Active_ALife_Creature extends Int_ALife_Creature
         MultiTaskUtil.copyIntArrayContent(foodResourceNeed, Env_ALife.FOOD_0);
         
         //Data from all progenitors
+        if (numProg == 0) {
+            throw new Exception("Error in Creature constructor: numProg == 0");
+        }
         for(Int_ALife_Creature iac: progenitors){
             lifeDelay = iac.lifeDelay / numProg;
             lifeExp = iac.lifeExp / numProg;
@@ -255,14 +295,22 @@ public class Active_ALife_Creature extends Int_ALife_Creature
         //reproductionGroup[0] = (Int_ALife_Creature)this; //(Int_ALife_Creature)this;
 
         this.mutateCreature();
-        idCreature = this.env_ALive.getNewCreatureID();        
+        idCreature = this.getEnv_ALife().getNewCreatureID();        
         semaphore = env_ALive.getSemaphore();
         env_ALive.addCreature(this); 
         //env_ALive.getSpecies().addCreature(this); //Automatically assign specieIdNumber
     } // End public Creature(ArrayList<Int_ALife_Creature> progenitors)
     
+    /**
+     * Active_ALife_Creature() Constructor
+     * 
+     * Default empty constructor for herence
+     * @param    None
+     * @return   Active_ALife_Creature
+     */
     Active_ALife_Creature(){
         lockStatusMemory = new ReentrantLock();
+        lockCreature = new ReentrantLock();
         //env_ALive.getSpecies().addCreature(null); //Automatically assign specieIdNumber ??
     }//Just to can make subclass constructors
     
@@ -275,6 +323,7 @@ public class Active_ALife_Creature extends Int_ALife_Creature
         //Dupe creature
         super(c); //Int_ALife_Creature(c)
         lockStatusMemory = new ReentrantLock();
+        lockCreature = new ReentrantLock();
         this.backLand = c.backLand; //private BufferedImage backLand = null;
         this.frontLand = c.frontLand; // private BufferedImage frontLand = null;
         this.semaphore = c.semaphore; // private Semaphore semaphore;
@@ -361,24 +410,24 @@ public class Active_ALife_Creature extends Int_ALife_Creature
             //Run
             if(this.lifeTime == 0) {
                 statusChangesUpdate(null); //First time in real enviroment
-                /*
+                
                 if (this.getIdCreature() == 1)
                 try{
-                this.fileManager = new ALive_FileManager(this.getEnv_ALife().getName()+"_"+"Creature_1"+".csv", this);
-                this.fileManager.start();
-                String[] HEADERS = {"Time", "CreID","LiveT","liveExp","liveP","maxLiveP","Hungry","HungryUmbral","MaxHungry",
-                    "pos", "liveDelay","Def","Attack","SpecieID","TamComplex","FrO(R)","FrO(G)","FrO(B)","mFrO(R)","mFrO(G)","mFrO(B)",
-                    "MFrO(R)","MFrO(G)","MFrO(B)","FrN(R)","FrN(G)","FrN(B)","mFrFactor", "Hidden","DetectionRange","UmbralDetection",
-                    "minRepG", "MaxDescen" ,"StatusVal","Action","InnerN","MidN","OutN","StatusN",
-                    "MindUChangefr","WeightChangefr","WeightChangeUnderfr", "forecastStatusMean", "forecastGeneralError", "forecastGeneralVariance","MindOutput",
-                    "NeuroSep","NiD","tipo","Out","N_U", "Nforecast", "Nact", "Naction","wigths"
-                };
-                this.fileManager.addLine(HEADERS);
-                this.fileManager.forceWrite();
+                this.fileManager_Mind = new ALife_FileManager(this.getEnv_ALife().getName()+"_"+"Creature"+this.getIdCreature()+".csv", this);
+                this.fileManager_Mind.start();
+                //String[] HEADERS = {"Time", "CreID","LiveT","liveExp","liveP","maxLiveP","Hungry","HungryUmbral","MaxHungry",
+                //    "pos", "liveDelay","Def","Attack","SpecieID","TamComplex","FrO(R)","FrO(G)","FrO(B)","mFrO(R)","mFrO(G)","mFrO(B)",
+                //    "MFrO(R)","MFrO(G)","MFrO(B)","FrN(R)","FrN(G)","FrN(B)","mFrFactor", "Hidden","DetectionRange","UmbralDetection",
+                //    "minRepG", "MaxDescen" ,"StatusVal","Action","InnerN","MidN","OutN","StatusN",
+                //    "MindUChangefr","WeightChangefr","WeightChangeUnderfr", "forecastStatusMean", "forecastGeneralError", "forecastGeneralVariance","MindOutput",
+                //    "NeuroSep","NiD","tipo","Out","N_U", "Nforecast", "Nact", "Naction","wigths"
+                //};
+                //this.fileManager.addLine(HEADERS);
+                //this.fileManager.forceWrite();
                 }catch (IOException ioe){
                 MultiTaskUtil.threadMsg("Error creating file manager");
                 } 
-                */       
+                       
             } //End if(this.lifeTime == 0) {
             //1.- Eventos involuntarios como morir envejecer ...
             this.lifeTime += this.lifeDelay;
@@ -460,8 +509,18 @@ public class Active_ALife_Creature extends Int_ALife_Creature
             paint(this.getEnv_ALife().getBackLifeImage(),null, this.getEnv_ALife().getLockLiveImage()); //new Color(0, 0, 0, 255)
         }
 
-        /* 
-        if (this.getIdCreature() == 1){
+        //for test
+            long auxbp1 = this.getIdCreature();
+            long auxbp2 = this.getIdCreature() % DEFAULT_CreatureReportPercent;
+            boolean auxbp3 = this.getIdCreature() % DEFAULT_CreatureReportPercent == 1;
+
+        if (this.getIdCreature() % DEFAULT_CreatureReportPercent == 1){
+            if (this.fileManager_Mind != null) {
+                makeCreatureReport(this.fileManager_Mind);
+            } else {
+                MultiTaskUtil.threadMsg("Error in Creature Run: fileManager_Mind == null CreId("+this.getIdCreature()+")");
+            }
+        /*
         try{
             //String[] HEADERS = {"Time", "CreID","LiveT","liveExp","liveP","maxLiveP","Hungry","HungryUmbral","MaxHungry",
             //    "pos", "liveDelay","Def","Attack","SpecieID","TamComplex","FrO(R)","FrO(G)","FrO(B)","mFrO(R)","mFrO(G)","mFrO(B)",
@@ -480,8 +539,8 @@ public class Active_ALife_Creature extends Int_ALife_Creature
             reportList.add(String.valueOf(this.livePointMax));
             reportList.add(String.valueOf(this.hungry));
             reportList.add(String.valueOf(this.humgryUmbral));
-            reportList.add(String.valueOf(this.humgryUmbral*DEFAULT_Max_Hungry_factor));
-            reportList.add(String.valueOf(this.pos));
+            reportList.add(String.valueOf((double)DEFAULT_Max_Hungry_factor));
+            reportList.add("("+String.valueOf(this.pos.x)+","+String.valueOf(this.pos.y)+")");
             reportList.add(String.valueOf(this.lifeDelay));
             reportList.add(String.valueOf(this.def));
             reportList.add(String.valueOf(this.attack));
@@ -505,23 +564,27 @@ public class Active_ALife_Creature extends Int_ALife_Creature
             reportList.add(String.valueOf(this.umbralDetection));
             reportList.add(String.valueOf(this.minReproductionGroup));
             reportList.add(String.valueOf(this.maxDescendants));
-            reportList.add(String.valueOf(this.status));
+            reportList.add(String.valueOf(this.descendents.size() ));
+            DecimalFormat df = new DecimalFormat("0.############");
+            //String numeroFormateado = df.format(numero);
+            reportList.add(""+df.format(this.status)); //excel x100000000000
             reportList.add(String.valueOf(this.actions.get(this.actions.size()-1)));
-            reportList.add(String.valueOf(this.mind.getInnerN()));
-            reportList.add(String.valueOf(this.mind.getMidN()));
-            reportList.add(String.valueOf(this.mind.getOutN()));
-            reportList.add(String.valueOf(this.mind.getStatusN()));
+            reportList.add(String.valueOf(this.innerN));
+            reportList.add(String.valueOf(this.midN));
+            reportList.add(String.valueOf(this.outN));
+            reportList.add(String.valueOf(this.statusN));
             //Mind and each neuron
             this.mind.makeMindReport(reportList);
 
             String[] auxReport = new String[reportList.size()];
             auxReport = reportList.toArray(auxReport);
-            this.fileManager.addLine(auxReport);
+            this.fileManager_Mind.addLine(auxReport);
         }catch (Exception ioe){
             MultiTaskUtil.threadMsg("Error creating file manager");
         }
-        } //End if (this.getIdCreature() == 1)
         */
+        } //End if (this.getIdCreature() == 1)
+        
 
         //Env_Panel.imageDisplay(this.env_ALive.getBackLifeImage(),"From Creature Run (LiveImage) - LIVE Image");
     } // End public void run()    
@@ -564,6 +627,23 @@ public class Active_ALife_Creature extends Int_ALife_Creature
         return acceptation;
     } // End public boolean evaluateReproductionGroupAceptation(Active_ALife_Creature c)
 
+    /**
+     * public ALife_FileManager setFileManager_Mind(ALife_FileManager fm)
+     * 
+     * Set file manager for creature mind evolution reports
+     * @param   fm ALife_FileManager
+     * @return  ALife_FileManager
+     */
+    public ALife_FileManager setFileManager_Mind(){
+        if (this.fileManager_Mind != null) return this.fileManager_Mind;
+        try{
+            this.fileManager_Mind = new ALife_FileManager(this.getEnv_ALife().getName()+"_"+"Creature"+this.getIdCreature()+".csv", this);
+        }catch (IOException ioe){
+            MultiTaskUtil.threadMsg("SetFileManager Error creating file manager"+ ioe.getMessage());
+        }
+        this.fileManager_Mind.start();
+        return this.fileManager_Mind;
+    } // End public ALife_FileManager setFileManager_Mind(ALife_FileManager fm)
 
     // Private Methods and Fuctions =============
     /**
@@ -685,15 +765,19 @@ public class Active_ALife_Creature extends Int_ALife_Creature
      * @return   None
      */
     private void actionAttack(Int_ALife_Creature cr){
+        //check
+        if (cr == null) return;
         if (prey == null) prey = cr;
         if (prey instanceof ALife_Corpse){
             this.actionEat(prey.getPos(), foodResourceNeed, prey); // *10 
         }
         Int_ALife_Creature auxC = ALife_Input_Neuron_Utils.findNearestFoodCreature(this); 
-        if (prey == null) prey = auxC;
-        if (this.pos.distance(auxC.getPos()) < this.pos.distance(prey.getPos())) prey = auxC;
+        if (auxC != null){
+            if (prey == null) prey = auxC;
+            if (this.pos.distance(auxC.getPos()) < this.pos.distance(prey.getPos())) prey = auxC;
+        }
         //Attack
-        prey.beAttacked(this, this.attack);
+        if (prey != null) prey.beAttacked(this, this.attack);
         //cr.beAttacked(this, this.attack);
     }
 
@@ -726,7 +810,7 @@ public class Active_ALife_Creature extends Int_ALife_Creature
      * @param fav - Favorite creature to add to reproduction group
      * @return   None
      */
-    public synchronized void AddToReproductionGroup(Int_ALife_Creature fav){
+    public void AddToReproductionGroup(Int_ALife_Creature fav){
         //Check
         if (fav == null) return;
         double dist = ALife_Species.getDistancetoCreature(this, fav);
@@ -961,6 +1045,7 @@ public class Active_ALife_Creature extends Int_ALife_Creature
      * @return   long -- may be we need change to none
      */
     public long die() {
+         if (this.fileManager_Mind != null) this.fileManager_Mind.KillFileManager();
         //For test
         MultiTaskUtil.threadMsg(getEnv_ALife().getTime()+" Creature DIED("+this.getIdCreature()+"-"+this.getSpecieIdNumber()+")");
         new ALife_Corpse(this);
@@ -995,10 +1080,25 @@ public class Active_ALife_Creature extends Int_ALife_Creature
         return null;
     } //How to make new life
     
+    /**
+     * public String specieToString(Int_ALife_Creature c)
+     * 
+     * @param    Int_ALife_Creature c
+     * @return   String
+     */
     public String specieToString(Int_ALife_Creature c){
         return null;
     }
     
+    /**
+     * public void paint(BufferedImage g, Color col, ReentrantLock lock)
+     * 
+     * Paint creature in g image with color col
+     * @param    BufferedImage g
+     * @param    Color col
+     * @param    ReentrantLock lock
+     * @return   None
+     */
     //@Override
     public void paint(BufferedImage g, Color col, ReentrantLock lock){
         if (g == null) return;
@@ -1078,9 +1178,110 @@ public class Active_ALife_Creature extends Int_ALife_Creature
         return i;
     } // End public static BufferedImage refreshLiveImage(TreeMap<Long, ArrayList<Object>> eventList, BufferedImage img)
 
+    /**
+     * public static Active_ALife_Creature test1Creature()
+     * 
+     * Create specific creature form for tests
+     * @param    None
+     * @return   Active_ALife_Creature
+     */
     public static Active_ALife_Creature test1Creature(){
         Active_ALife_Creature c = new Active_ALife_Creature();
         return c;
     } // End public static Active_ALife_Creature test1Creature()
 
-} // End Class
+    /**
+     * private makeCreatureReport()
+     * 
+     * Make a report of creature status and mind
+     * @param    None
+     * @return   None
+     */
+    private void makeCreatureReport(ALife_FileManager fileManager){
+        ArrayList<String> reportList = new ArrayList<String>();
+        makeCreaturePhysicalReport(reportList);
+            //Mind and each neuron
+            this.mind.makeMindReport(reportList);
+
+            String[] auxReport = new String[reportList.size()];
+            auxReport = reportList.toArray(auxReport);
+            fileManager.addLine(auxReport);
+    } // End private void makeCreatureReport()
+
+    public void makeCreatureSORTReport(ALife_FileManager fileManager){
+        ArrayList<String> reportList = new ArrayList<String>();
+        reportList = makeCreaturePhysicalReport(reportList);
+            //Mind and each neuron
+            reportList = this.mind.makeMindSORTReport(reportList);
+
+            String[] auxReport = new String[reportList.size()];
+            auxReport = reportList.toArray(auxReport);
+            fileManager.addLine(auxReport);
+    } // End makeCreatureSORTReport(ALife_FileManager fileManager)
+
+    /**
+     * private ArrayList <String> makeCreaturePhysicalReport(ArrayList <String> rep)
+     * 
+     * Make a report of creature status
+     * @param rep - ArrayList <String> rep
+     * @return  ArrayList <String> rep
+     */
+    private ArrayList <String> makeCreaturePhysicalReport(ArrayList <String> rep){
+        ArrayList<String> reportList = new ArrayList<String>();
+        this.lockCreature.lock();
+        try{
+            reportList.add(String.valueOf(this.getEnv_ALife().getTime()));
+            reportList.add(String.valueOf(this.idCreature));
+            reportList.add(String.valueOf(this.lifeTime));
+            reportList.add(String.valueOf(this.lifeExp));
+            reportList.add(String.valueOf(this.livePoints));
+            reportList.add(String.valueOf(this.livePointMax));
+            reportList.add(String.valueOf(this.hungry));
+            reportList.add(String.valueOf(this.humgryUmbral));
+            reportList.add(String.valueOf((double)DEFAULT_Max_Hungry_factor));
+            reportList.add("("+String.valueOf(this.pos.x)+","+String.valueOf(this.pos.y)+")");
+            reportList.add(String.valueOf(this.lifeDelay));
+            reportList.add(String.valueOf(this.def));
+            reportList.add(String.valueOf(this.attack));
+            reportList.add(String.valueOf(this.specieNumberID));
+            reportList.add(String.valueOf(this.tamComplex));
+            reportList.add(String.valueOf(this.foodResourceOwn[0]));
+            reportList.add(String.valueOf(this.foodResourceOwn[1]));
+            reportList.add(String.valueOf(this.foodResourceOwn[2]));
+            reportList.add(String.valueOf(this.minfoodResourceOwn[0]));
+            reportList.add(String.valueOf(this.minfoodResourceOwn[1]));
+            reportList.add(String.valueOf(this.minfoodResourceOwn[2]));
+            reportList.add(String.valueOf(this.maxfoodResourceOwn[0]));
+            reportList.add(String.valueOf(this.maxfoodResourceOwn[1]));
+            reportList.add(String.valueOf(this.maxfoodResourceOwn[2]));
+            reportList.add(String.valueOf(this.foodResourceNeed[0]));
+            reportList.add(String.valueOf(this.foodResourceNeed[1]));
+            reportList.add(String.valueOf(this.foodResourceNeed[2]));
+            reportList.add(String.valueOf(this.maxfoodResourceGetFactor));
+            reportList.add(String.valueOf(this.hidden));
+            reportList.add(String.valueOf(this.detectionRange));
+            reportList.add(String.valueOf(this.umbralDetection));
+            reportList.add(String.valueOf(this.minReproductionGroup));
+            reportList.add(String.valueOf(this.maxDescendants));
+            reportList.add(String.valueOf(this.descendents.size() ));
+            DecimalFormat df = new DecimalFormat("0.############");
+            //String numeroFormateado = df.format(numero);
+            reportList.add(""+df.format(this.status)); //excel x100000000000
+            if (this.actions.size() > 0){
+                reportList.add(String.valueOf(this.actions.get(this.actions.size()-1)));
+            } else {
+                reportList.add("Null");
+            }
+            reportList.add(String.valueOf(this.innerN));
+            reportList.add(String.valueOf(this.midN));
+            reportList.add(String.valueOf(this.outN));
+            reportList.add(String.valueOf(this.statusN));
+        }catch (Exception ioe){
+            MultiTaskUtil.threadMsg("Error creating file manager"+ ioe.getMessage());
+        } finally {
+            this.lockCreature.unlock();
+        }
+        return reportList;
+    } // End private void makeCreaturePhysicalReport(ArrayList <String> rep)
+
+} // End Class Active_ALife_Creature

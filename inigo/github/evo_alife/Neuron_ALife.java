@@ -1,5 +1,6 @@
 package inigo.github.evo_alife;
 
+import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -293,8 +294,10 @@ public class Neuron_ALife
     public ArrayList<String> makeNeuronReport(ArrayList<String> rep){
 
         rep.add(String.valueOf(this.neuron_ID));
-        rep.add(this.getClass().getClass().getName());
-        rep.add(String.valueOf(this.output));
+        rep.add(this.getClass().getName());
+        DecimalFormat df = new DecimalFormat("0.############");
+        //String numeroFormateado = df.format(numero);
+        rep.add(df.format(this.output.doubleValue()));
         rep.add(String.valueOf(this.u));
         rep.add("fc");
         rep.add("acC");
@@ -305,7 +308,20 @@ public class Neuron_ALife
         return rep;
     } // End public ArrayList<String> makeNeuronReport(ArrayList<String> rep)
 
-    // Getter and setters
+    /**
+     * public ArrayList<String> makeNeuronSORTReport(ArrayList<String> rep)
+     * 
+     * Returns a report of the neuron for SORT
+     * @param  rep  ArrayList<String> the report to add the neuron report
+     * @return ArrayList<String> the report of the neuron
+     */
+    public ArrayList<String> makeNeuronSORTReport(ArrayList<String> rep){
+        String s = this.getClass().getName();
+        s = s.replaceFirst("inigo.github.evo_alife.Detect_", "");
+        rep.add(s);
+        return rep;
+    }
+    
 
     /**
      * public Double getOutput()

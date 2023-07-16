@@ -21,6 +21,7 @@ import java.awt.*;
  */
 public class Env_ALife extends Thread
 {
+    int CONSTreportTimeDelay = 200;    
     public static final int MAXCREATUREAABALIABLE = 1;
     public static final long CTE_TIEMPO_CEDER = 20;
     public static final long CTE_TIEMPO_ESPERA = 200;
@@ -67,7 +68,9 @@ public class Env_ALife extends Thread
     
     private volatile boolean killSignal = false;
 
-    private ALive_FileManager fileManager = null;
+    private ALife_FileManager fileManager_EnvGlobal = null;
+    private ALife_FileManager fileManager_EnvCreatures = null;
+    long nextReportTime = 0;
 
     //For test control.
     public int creature_Born = 0;
@@ -88,7 +91,7 @@ public class Env_ALife extends Thread
      */
     public Env_ALife(Evo_ALife e){
         LocalDateTime fechaHoraActual = LocalDateTime.now();
-        DateTimeFormatter formateador = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        DateTimeFormatter formateador = DateTimeFormatter.ofPattern("yyyy-MM-dd HHmmss");
         this.env_Name = this.env_Name + fechaHoraActual.format(formateador);
         caller = e;
         isPaused = true;
@@ -124,11 +127,14 @@ public class Env_ALife extends Thread
         this.backLandImage = Env_Panel.copyBufferedImage(this.getLandImg());
         caller.visualiceEnv(this);
         try{
-            this.fileManager = new ALive_FileManager(this.env_Name,this.caller);
-            this.fileManager.start();
+            this.fileManager_EnvGlobal = new ALife_FileManager(this.env_Name,this.caller);
+            //this.fileManager_EnvGlobal.start();
             String[] HEADERS = {"Time", "NumberOfCreaturesAlive", "NumberOfSpeciesAlive", "NumberOfCreaturesBorn", "NumberOfCreaturesDeath"};
-            this.fileManager.addLine(HEADERS);
-            this.fileManager.forceWrite();
+            this.fileManager_EnvGlobal.addLine(HEADERS);
+            this.fileManager_EnvGlobal.forceWrite();
+            this.fileManager_EnvCreatures = new ALife_FileManager(this.env_Name+"_Creatures",this.caller);
+            //this.fileManager_EnvCreatures.start();
+           
         }catch (IOException ioe){
             MultiTaskUtil.threadMsg("Error creating file manager");
         }
@@ -144,7 +150,7 @@ public class Env_ALife extends Thread
      */ //(this,land,lifeEnv,envVars);
     public Env_ALife(Evo_ALife e,BufferedImage l, Object liveEnv, java.util.List<Object> envVars){
         LocalDateTime fechaHoraActual = LocalDateTime.now();
-        DateTimeFormatter formateador = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        DateTimeFormatter formateador = DateTimeFormatter.ofPattern("yyyy-MM-dd HHmmss");
         this.env_Name = this.env_Name +"_"+ fechaHoraActual.format(formateador);
         caller = e;
         isPaused = true;
@@ -153,6 +159,17 @@ public class Env_ALife extends Thread
         this.lockLiveImage = new ReentrantLock();
         this.setPriority(Thread.currentThread().getPriority()-2); //Forzar convergencia
         threadManager = new MultiTaskUtil();
+
+        try{
+            this.fileManager_EnvGlobal = new ALife_FileManager(this.env_Name,this.caller);
+            //this.fileManager_EnvGlobal.start();
+            String[] HEADERS = {"Time", "NumberOfCreaturesAlive", "NumberOfSpeciesAlive", "NumberOfCreaturesBorn", "NumberOfCreaturesDeath"};
+            this.fileManager_EnvGlobal.addLine(HEADERS);
+            this.fileManager_EnvGlobal.forceWrite();
+            this.fileManager_EnvCreatures = new ALife_FileManager(this.env_Name+"_Creatures",this.caller);
+        }catch (IOException ioe){
+            MultiTaskUtil.threadMsg("Error creating file manager"+ioe.getMessage());
+        }
 
         //Set time to 0 and create new eventList
         setTime(Long.valueOf(0));
@@ -189,7 +206,7 @@ public class Env_ALife extends Thread
         //backLandImage = Env_Panel.copyBufferedImage(l); //Temporal
         backLandImage = Env_Panel.copyBufferedImage(this.getLandImg());
         backLifeImage = Env_Panel.copyBufferedImage(getLifeImg()); //= referencia?
-        
+                
         //Live
         if (liveEnv == null){
             //If liveEnv not defined take this Env_ALife as liveEnv
@@ -236,15 +253,7 @@ public class Env_ALife extends Thread
 
         caller.visualiceEnv(this); //Display de new enviroment
 
-        try{
-            this.fileManager = new ALive_FileManager(this.env_Name,this.caller);
-            this.fileManager.start();
-            String[] HEADERS = {"Time", "NumberOfCreaturesAlive", "NumberOfSpeciesAlive", "NumberOfCreaturesBorn", "NumberOfCreaturesDeath"};
-            this.fileManager.addLine(HEADERS);
-            this.fileManager.forceWrite();
-        }catch (IOException ioe){
-            MultiTaskUtil.threadMsg("Error creating file manager");
-        }
+
         
     } // End public Env_ALife(Evo_ALife e,BufferedImage l, Object liveEnv, java.util.List<Object> envVars) Constructor
 
@@ -261,17 +270,19 @@ public class Env_ALife extends Thread
      **/ 
     @Override
     public void run(){ 
-        if (!this.fileManager.isAlive()) 
-            this.fileManager.start();
-        int nextReportTime = 0;
-        int reportTimeDelay = 200;
+        if (this.fileManager_EnvGlobal != null) 
+            this.fileManager_EnvGlobal.start();
+        if (this.fileManager_EnvCreatures != null) 
+            this.fileManager_EnvCreatures.start();
+
         String[] report = {"0","0","0","0", "0"};
-        ArrayList <String> reportList = new ArrayList<String>();
+        //ArrayList <String> reportList = new ArrayList<String>();
 
         while(true){ //Forever
             synchronized (pauseSignal) {
                 while (isPaused) {
-                    this.fileManager.forceWrite();
+                    this.fileManager_EnvGlobal.forceWrite();
+                    this.fileManager_EnvCreatures.forceWrite();
                     try { //Force manual wait if concurrence problems
                         MultiTaskUtil.threadMsg(" Esperando... "+this.getName());
                         //System.out.println(" Esperando... "+this.getName());
@@ -289,7 +300,8 @@ public class Env_ALife extends Thread
             }
             
             if (this.killSignal) {
-                this.fileManager.close();
+                this.fileManager_EnvGlobal.close();
+                this.fileManager_EnvCreatures.close();
                 break;
             }
             //For concurrency Log
@@ -455,6 +467,8 @@ public class Env_ALife extends Thread
             }
             */
 
+            report = reportEnvGlobal(report);
+            /*
             if (this.getTime() > nextReportTime){
                 if (report == null){
                     report = new String[5];
@@ -464,9 +478,9 @@ public class Env_ALife extends Thread
                     report[3] = ""+this.getCreature_BornString();
                     report[4] = ""+this.getCreature_DeathString();
                 }
-                while (this.getTime() > nextReportTime+reportTimeDelay){
-                    this.fileManager.addLine(report);    
-                    nextReportTime += reportTimeDelay;
+                while (this.getTime() > nextReportTime+CONSTreportTimeDelay){
+                    this.fileManager_EnvGlobal.addLine(report);    
+                    nextReportTime += CONSTreportTimeDelay;
                 }
                 reportList = new ArrayList<String>();
                 reportList.add(""+this.getTime());
@@ -482,11 +496,12 @@ public class Env_ALife extends Thread
                 //    ""+this.getCreature_BornString(), ""+this.getCreature_DeathString()};
                 String[] auxReport = new String[reportList.size()];
                 auxReport = reportList.toArray(auxReport);
-                this.fileManager.addLine(report);
-                nextReportTime += reportTimeDelay;
+                this.fileManager_EnvGlobal.addLine(report);
+                nextReportTime += CONSTreportTimeDelay;
                 report = auxReport;
                 //this.generateReport = true;
             }
+            */
 
             //=============================
             //For test control.
@@ -499,7 +514,8 @@ public class Env_ALife extends Thread
             //For test stop each iteration
             //MultiTaskUtil.msgDialog("Final Turno :"+this.getTime());
         } //End While for ever 
-
+        this.fileManager_EnvGlobal.close();
+        this.fileManager_EnvCreatures.close();
         //MultiTaskUtil.threadMsg("OJO SALIENDO DEL METODO RUN ("+this.getTime()+")..."); //must be unreachable
     }//End public void run(){ // synchronized ??
 
@@ -1216,6 +1232,12 @@ public class Env_ALife extends Thread
         //add Creature to specie system
         this.species.addCreatureToSpecies(c);
         if (c.getIdCreature() < 0) {int breakpoints = 1;} // FALTA new id creature
+        this.reportEnvCreatureBorn(c);
+        if (c instanceof Active_ALife_Creature && 
+            c.getIdCreature()%Active_ALife_Creature.DEFAULT_CreatureReportPercent == 0) 
+        {
+            ((Active_ALife_Creature)c).setFileManager_Mind();
+        }
     } //End public addCreature(Int_ALife_Creature c)
     
     /**
@@ -1376,6 +1398,64 @@ public class Env_ALife extends Thread
 
 
     // Private Methods and Fuctions ====================================================================
+
+    /**
+     * public String[] reportEnvGlobal(String[] report)
+     * 
+     * Create a report of enviroment global creatures and species count
+     * @param   - String[] report, the report to be updated
+     * @return  - String[], the report updated
+     */
+    public String[] reportEnvGlobal(String[] report){
+        String[] auxReport = null;
+        if (this.getTime() > nextReportTime){
+            if (report == null){
+                report = new String[5];
+                report[0] = ""+this.getTime();
+                report[1] = ""+this.getCreatureNumberString();
+                report[2] = ""+this.getSpecies().getNumberOfDifferentActiveSpecies();
+                report[3] = ""+this.getCreature_BornString();
+                report[4] = ""+this.getCreature_DeathString();
+            }
+            while (this.getTime() > nextReportTime+CONSTreportTimeDelay){
+                this.fileManager_EnvGlobal.addLine(report);    
+                nextReportTime += CONSTreportTimeDelay;
+            }
+            ArrayList<String> reportList = new ArrayList<String>();
+            reportList.add(""+this.getTime());
+            reportList.add(""+this.getCreatureNumberString());
+            reportList.add(""+this.getSpecies().getNumberOfDifferentActiveSpecies());
+            reportList.add(""+this.getCreature_BornString());
+            reportList.add(""+this.getCreature_DeathString());
+            for (int i = 0; i < this.species.getNumberOfDifferentSpecies();i++){
+                reportList.add(""+this.species.speciesList.get(i).getSpecieIdNumber());
+                reportList.add(""+this.species.speciesList.get(i).getNumberOfCreaturesInSpecie());
+            }
+            //String[] auxReport = {""+this.getTime(),""+this.getCreatureNumberString(),""+this.getSpecies().getNumberOfDifferentActiveSpecies(),
+            //    ""+this.getCreature_BornString(), ""+this.getCreature_DeathString()};
+            auxReport = new String[reportList.size()];
+            auxReport = reportList.toArray(auxReport);
+            this.fileManager_EnvGlobal.addLine(report);
+            nextReportTime += CONSTreportTimeDelay;
+        } // End if (this.getTime() > nextReportTime)
+        return auxReport;
+    } // End public void reportEnvGlobal()
+
+    /**
+     * private void reportEnvCreatureBorn(Int_ALife_Creature c)
+     * 
+     * Create a report of enviroment creature born
+     * @param  - Int_ALife_Creature c, the creature to be reported
+     * @return - None
+     */
+    private void reportEnvCreatureBorn(Int_ALife_Creature c){
+        ArrayList<String> reportList = new ArrayList<String>();
+        reportList.add(""+this.getTime());
+        ((Active_ALife_Creature)c).makeCreatureSORTReport(this.fileManager_EnvCreatures);
+        String[] auxReport = new String[reportList.size()];
+        auxReport = reportList.toArray(auxReport);
+        this.fileManager_EnvCreatures.addLine(auxReport);
+    } // End public void reportEnvCreatureBorn(Int_ALife_Creature c)
 
     // Serialización de un objeto en un archivo
     public static void guardarObjeto(Object objeto, String archivo) throws IOException {

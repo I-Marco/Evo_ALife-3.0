@@ -32,6 +32,7 @@ public abstract class Int_ALife_Creature extends Thread
     public static long DEFAULT_Life_Turns = 100;
     public static double DEFAULT_descendat_StatusPlus = 0.5;    
     public static double MUTATION_DISTANCE = 1; //1 * minimum value of caracteristic
+    public static double MUTATION_RANGE = 0.2; //20% of value of caracteristic
     // Fields ==================================================================================
 
     //end for test
@@ -797,22 +798,30 @@ public abstract class Int_ALife_Creature extends Thread
         int l = carac.length;
         // same possibility to mutate all caracteristics other way an array to set the possibilities of each caracteristic
         Random r = new Random();
-        int mutateCaracteristic = r.nextInt(l);
+        int mutateCaracteristic = (r.nextInt(l*100) % l);
         double[] caracMutated = new double[l];
         for (int j = 0; j < l; j++){
             if (j == mutateCaracteristic) {
                 double tempMin = 0; //Cuantity of minimum modification, other way if min = 0 modifycantion is always 0
                 if (Active_ALife_Creature.creature_minCaracteristics[mutateCaracteristic] == 0) {
-                    tempMin = Active_ALife_Creature.creature_maxCaracteristics[mutateCaracteristic] / 100;
+                    double auxCap = Math.min(Active_ALife_Creature.creature_maxCaracteristics[mutateCaracteristic] * MUTATION_RANGE, 
+                        Math.max(carac[j] * 3, Active_ALife_Creature.creature_minCaracteristics[mutateCaracteristic] * 5)
+                        );
+                    //tempMin = Active_ALife_Creature.creature_maxCaracteristics[mutateCaracteristic] * MUTATION_RANGE * MUTATION_DISTANCE;/// 100;//MUTATION_RANGE = 0.2
+                    tempMin = auxCap * MUTATION_RANGE;/// 100;//MUTATION_RANGE = 0.2
                     /*
                     tempMin = Creature.creature_maxCaracteristics[mutateCaracteristic] / 
                       (Creature.creature_maxCaracteristics[mutateCaracteristic] + 
                         (100 * Creature.creature_maxCaracteristics[mutateCaracteristic])); //may be 1000
                     */
-                    if (tempMin == 0) tempMin = 0.01;
-                }else tempMin = Active_ALife_Creature.creature_minCaracteristics[mutateCaracteristic];
+                    if (tempMin == 0) tempMin = MUTATION_DISTANCE;
+                }else {
+                    tempMin = (Active_ALife_Creature.creature_maxCaracteristics[mutateCaracteristic] -
+                        Active_ALife_Creature.creature_minCaracteristics[mutateCaracteristic]) * MUTATION_RANGE;
+                    if (tempMin == 0) tempMin = MUTATION_DISTANCE;
+                }
                 caracMutated[j] = 
-                    carac[j] + (r.nextInt(3)-1) * MUTATION_DISTANCE * tempMin;//random +-1 * mutation distance
+                    carac[j] + ((r.nextInt(3*100-1))%3 - 1) * tempMin;//random +-1 * tempMin = mutation distance (RangeMaxmin * Mutancion range)
                 //limits check
                 if (caracMutated[j] < Active_ALife_Creature.creature_minCaracteristics[mutateCaracteristic]) 
                     caracMutated[j] = Active_ALife_Creature.creature_minCaracteristics[mutateCaracteristic];
@@ -848,7 +857,8 @@ public abstract class Int_ALife_Creature extends Thread
 
         if (mutatedCar == carac.length || carac[mutatedCar] == caracMutated[mutatedCar]) return; //No mutation
         //Mutate creature
-        if (mutatedCar < carac.length - Active_ALife_Creature.MIND_NEURONS_TYPES){
+        //if (mutatedCar < carac.length - Active_ALife_Creature.MIND_NEURONS_TYPES){
+        if (mutatedCar < carac.length){
         /*
          public static final double[] creature_minCaracteristics =
             {0, 1, 0, 0, 0, 0, 1, //hidden, tamComplex, attack, def, detectionRange, umbralDetection, humgryUmbral, 
@@ -943,7 +953,7 @@ public abstract class Int_ALife_Creature extends Thread
                 case 22 :
                 case 23 :
                 case 24 :                                                
-                    mind.mutateMind(mutatedCar,
+                    mind.mutateMind(mutatedCar - carac.length + Active_ALife_Creature.MIND_NEURONS_TYPES,
                         new int[]{(int)caracMutated[21], (int)caracMutated[22], (int)caracMutated[23], (int)caracMutated[24]}
                         );
                     break;  
@@ -955,10 +965,10 @@ public abstract class Int_ALife_Creature extends Thread
         this.tamComplex = evaluateTamComplex(this);
     } // End public void mutateCreature()
 
-    private synchronized int[] mutateFood(int[] food, int[] newcarac, int carac){
+    private int[] mutateFood(int[] food, int[] newcarac, int carac){
         boolean valid = true;
         int sum = 0;
-        if (carac == 12 || carac == 15 || carac == 18) {
+        if (carac == 12 || carac == 15 || carac == 18) { //min
             for (int i=0; i < food.length; i++){
                 sum += newcarac[i];
                 if (newcarac[i] < 0 || newcarac[i] >= maxfoodResourceOwn[i] / 2 ) valid = false;
@@ -969,7 +979,7 @@ public abstract class Int_ALife_Creature extends Thread
                 return food;
             }
         } else {
-            if (carac == 13 || carac == 16 || carac == 19) {
+            if (carac == 13 || carac == 16 || carac == 19) { //
                 for (int i=0; i < food.length; i++){
                     sum += newcarac[i];
                     if (newcarac[i] < 0 || newcarac[i] >= minfoodResourceOwn[i] * this.maxfoodResourceGetFactor ) valid = false;
@@ -980,7 +990,7 @@ public abstract class Int_ALife_Creature extends Thread
                     return food;
                 }
             }else {
-                if (carac == 14 || carac == 17 || carac == 20) {
+                if (carac == 14 || carac == 17 || carac == 20) { //Need
                     for (int i=0; i < food.length; i++){
                         sum += newcarac[i];
                         if (newcarac[i] < 0 || newcarac[i] >= minfoodResourceOwn[i] / this.maxfoodResourceGetFactor ) valid = false;

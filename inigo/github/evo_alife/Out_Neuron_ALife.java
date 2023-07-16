@@ -1,5 +1,6 @@
 package inigo.github.evo_alife;
 
+import java.text.DecimalFormat;
 import java.util.*;
 
 /**
@@ -337,12 +338,19 @@ public class Out_Neuron_ALife extends Neuron_ALife
      * @return ArrayList<String> the report of the neuron
      */
     public ArrayList<String> makeNeuronReport(ArrayList<String> rep){
-        rep.add("NeuroSep");
+        //rep.add("NeuroSep");
+        DecimalFormat df = new DecimalFormat("0.############");;
         rep.add(String.valueOf(this.neuron_ID));
-        rep.add(this.getClass().getClass().getName());
-        rep.add(String.valueOf(this.output));
+        rep.add("OutputNeuron"+this.getAction());
+        if (this.output == null){
+            rep.add("null");
+        }else {
+            //String numeroFormateado = df.format(numero);
+            rep.add(df.format(this.output.doubleValue()));
+        }
         rep.add(String.valueOf(this.u));
-        rep.add(String.valueOf(this.statusChangeforecast));
+        if (this.statusChangeforecast != null) rep.add(df.format(this.statusChangeforecast.doubleValue()));
+        else rep.add("null");
         rep.add(String.valueOf(this.numberOfActivations));
         rep.add(String.valueOf(this.action));
         for (Double w: this.weights){
@@ -350,6 +358,18 @@ public class Out_Neuron_ALife extends Neuron_ALife
         }
         return rep;
     } // End public ArrayList<String> makeNeuronReport(ArrayList<String> rep)
+
+    /**
+     * public ArrayList<String> makeNeuronSORTReport(ArrayList<String> rep)
+     * 
+     * Returns a report of the neuron for SORT
+     * @param  rep  ArrayList<String> the report to add the neuron report
+     * @return ArrayList<String> the report of the neuron
+     */
+    public ArrayList<String> makeNeuronSORTReport(ArrayList<String> rep){
+        rep.add("OutN."+this.getAction());
+        return rep;
+    } // End public ArrayList<String> makeNeuronSORTReport(ArrayList<String> rep)
 
 
 
